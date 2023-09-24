@@ -8,7 +8,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
+  useReactTable, VisibilityState,
 } from '@tanstack/react-table'
 import {
   Table,
@@ -19,6 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Fragment, useState } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
@@ -32,6 +38,10 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState({});
+  console.log("🚀basicTable.tsx rowSelection:", rowSelection)
 
   const table = useReactTable({
     data,
@@ -41,21 +51,17 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
     state: {
-      sorting, columnFilters,
+      sorting, columnFilters, columnVisibility, rowSelection,
     },
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
   })
-
-  /*state: {
-      globalFilter: filtering,
-    },
+  /*state: { globalFilter: filtering,},
     onGlobalFilterChange: setFiltering, 
-    <input
-        type='text'
-        value={filtering}
-        onChange={e => setFiltering(e.target.value)}
-    */
+    <input type='text' value={filtering}
+        onChange={e => setFiltering(e.target.value)}*/
   return (
     <div>
       <div className="flex items-center py-4">
@@ -67,6 +73,34 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
         />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto bg-blue">
+              Column Visibility
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className='bg-dark-4 text-light-2'>
+            {table
+              .getAllColumns()
+              .filter(
+                (column) => column.getCanHide()
+              )
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                )
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       <div className="rounded-md border">
@@ -169,6 +203,10 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
         >
           Last Page
         </Button>
+      </div>
+      <div className="flex-1 text-sm text-muted-foreground">
+        {table.getFilteredSelectedRowModel().rows.length} of{" "}
+        {table.getFilteredRowModel().rows.length} row(s) selected.
       </div>
     </div>
   )

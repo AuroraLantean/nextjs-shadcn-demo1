@@ -15,7 +15,7 @@ export default async function TablePage() {
   //const data = mData;//JSON.parse(JSON.stringify(mData))
 
   return (
-    <div className="text-light-2">
+    <div className="container py-10 mx-auto text-light-2">
       <h1 className='font-bold '>Tanstack Table</h1>
       <BasicTable data={data} columns={columns} />
     </div>
