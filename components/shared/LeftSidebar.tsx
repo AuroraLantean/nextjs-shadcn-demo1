@@ -16,7 +16,7 @@ function LeftSidebar() {
           const isActive = (pathname.includes(link.route) && link.route.length > 1) || pathname === link.route;
           //link.route.length > 1 => the route is not "/"
           // the home route "/" is determined by pathname == link.route
-
+          //text-light-1
           return (
             <Link
               href={link.route}
@@ -29,7 +29,7 @@ function LeftSidebar() {
                 width={24}
                 height={24}
               />
-              <p className="text-light-1 max-lg:hidden">{link.label}</p>
+              <p className=" max-lg:hidden">{link.label}</p>
             </Link>
           )
         }

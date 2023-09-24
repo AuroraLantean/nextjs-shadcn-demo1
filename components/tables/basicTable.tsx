@@ -25,9 +25,10 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
+import { ThemeToggle } from '../ThemeToggle'
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
@@ -63,23 +64,26 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
     <input type='text' value={filtering}
         onChange={e => setFiltering(e.target.value)}*/
   return (
-    <div>
+    <Fragment>
       <div className="flex items-center py-4">
         <Input
-          className='max-w-[15%] bg-dark-4'
+          className='max-w-[15%] '
           placeholder="Filter emails..."
           value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("email")?.setFilterValue(event.target.value)
           }
         />
+
+        <ThemeToggle className='ml-4' />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto bg-blue">
               Column Visibility
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className='bg-dark-4 text-light-2'>
+          <DropdownMenuContent align="end" >
             {table
               .getAllColumns()
               .filter(
@@ -145,24 +149,6 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
               </TableRow>
             )}
           </TableBody>
-          <TableFooter>
-            {table.getFooterGroups().map((footerGroup) => (
-              <TableRow key={footerGroup.id}>
-                {footerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableFooter>
         </Table>
       </div>
 
@@ -208,11 +194,30 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
         {table.getFilteredSelectedRowModel().rows.length} of{" "}
         {table.getFilteredRowModel().rows.length} row(s) selected.
       </div>
-    </div>
+    </Fragment>
   )
 }
-/*{{ asc: '🔼', desc: '🔽' }[header.column.getIsSorted() ?? null]}
-        <thead>
+/*
+          <TableFooter>
+            {table.getFooterGroups().map((footerGroup) => (
+              <TableRow key={footerGroup.id}>
+                {footerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableFooter>
+
+<thead>
           <tr>
             <th>ID</th>
           </tr>

@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 @layer components {
-  /* main */
+  /* main bg-dark-1 */
   .main-container {
-    @apply flex min-h-screen flex-1 flex-col items-center bg-dark-1 px-6 pb-10 pt-28 max-md:pb-32 sm:px-10;
+    @apply flex min-h-screen flex-1 flex-col items-center  px-6 pb-10 pt-28 max-md:pb-32 sm:px-10;
   }
 
   /* Head Text */
@@ -58,8 +58,9 @@
     @apply border-none bg-dark-3 text-base-regular text-light-4 outline-none !important;
   }
 
+  /*bg-dark-2*/
   .topbar {
-    @apply fixed top-0 z-30 flex w-full items-center justify-between bg-dark-2 px-6 py-3;
+    @apply fixed top-0 z-30 flex w-full items-center justify-between  px-6 py-3;
   }
 
   .bottombar {
@@ -73,9 +74,9 @@
   .bottombar_link {
     @apply relative flex flex-col items-center gap-2 rounded-lg p-2 sm:flex-1 sm:px-2 sm:py-2.5;
   }
-
+  /*bg-dark-2*/
   .leftsidebar {
-    @apply sticky left-0 top-0 z-20 flex h-screen w-fit flex-col justify-between overflow-auto border-r border-r-dark-4 bg-dark-2 pb-5 pt-28 max-md:hidden;
+    @apply sticky left-0 top-0 z-20 flex h-screen w-fit flex-col justify-between overflow-auto border-r border-r-dark-4  pb-5 pt-28 max-md:hidden;
   }
 
   .leftsidebar_link {
