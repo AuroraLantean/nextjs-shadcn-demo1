@@ -24,6 +24,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "eslint-config-next": "^13.5.2",
+    "json-as-xlsx": "^2.5.4",
     "lucide-react": "^0.265.0",
     "luxon": "^3.4.3",
     "mongodb": "^5.9.0",

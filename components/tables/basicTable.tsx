@@ -29,6 +29,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 import { ThemeToggle } from '../ThemeToggle'
+import { downloadToExcel } from '@/lib/xlsx'
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
@@ -64,7 +65,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
     <input type='text' value={filtering}
         onChange={e => setFiltering(e.target.value)}*/
   return (
-    <Fragment>
+    <div>
       <div className="flex items-center py-4">
         <Input
           className='max-w-[15%] '
@@ -75,15 +76,18 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
           }
         />
 
+        <Button onClick={() => downloadToExcel()} className="ml-4 !bg-primary !text-light-2">
+          Export to Excel
+        </Button>
         <ThemeToggle className='ml-4' />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto bg-blue">
+            <Button variant="outline" className="ml-auto !bg-primary text-light-2">
               Column Visibility
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" >
+          <DropdownMenuContent align="end" className="!bg-primary">
             {table
               .getAllColumns()
               .filter(
@@ -154,7 +158,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
 
       <div className="flex items-center justify-center space-x-2 py-4">
         <Button
-          className='bg-blue'
+          className='!bg-primary'
           variant="outline"
           size="sm"
           onClick={() => table.setPageIndex(0)}
@@ -163,7 +167,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
           First page
         </Button>
         <Button
-          className='bg-blue'
+          className='!bg-primary'
           variant="outline"
           size="sm"
           onClick={() => table.previousPage()}
@@ -172,7 +176,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
           Previous
         </Button>
         <Button
-          className='bg-blue'
+          className='!bg-primary'
           variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
@@ -181,7 +185,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
           Next
         </Button>
         <Button
-          className='bg-blue'
+          className='!bg-primary'
           variant="outline"
           size="sm"
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}
@@ -194,7 +198,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
         {table.getFilteredSelectedRowModel().rows.length} of{" "}
         {table.getFilteredRowModel().rows.length} row(s) selected.
       </div>
-    </Fragment>
+    </div>
   )
 }
 /*

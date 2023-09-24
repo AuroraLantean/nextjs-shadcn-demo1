@@ -134,14 +134,14 @@ export const columns: ColumnDef<dataT>[] = [
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" >
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="!bg-primary text-light-2">
+
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(personId.toString())}
             >
               Copy item id
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
+
             <DropdownMenuItem>View item details</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -150,6 +150,8 @@ export const columns: ColumnDef<dataT>[] = [
   }
 ];
 /** adding cell function => functions cannot be passed directly to client components unless you explicitly expose it by marking it with "use server"... cell: function => "use client"
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+<DropdownMenuSeparator />
 
   {
     accessorKey: "amount",

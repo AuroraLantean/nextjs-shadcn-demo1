@@ -10,19 +10,14 @@ export const sidebarLinks = [
     label: 'Table',
   },
   {
+    imgURL: '/assets/community.svg',
+    route: '/form',
+    label: 'Form',
+  },
+  {
     imgURL: '/assets/create.svg',
     route: '/create-thread',
     label: 'Create Thread',
-  },
-  {
-    imgURL: '/assets/community.svg',
-    route: '/communities',
-    label: 'Communities',
-  },
-  {
-    imgURL: '/assets/user.svg',
-    route: '/profile',
-    label: 'Profile',
   },
 ];
 /**

@@ -2,30 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
+  }
+}
+
 @layer components {
   /* main bg-dark-1 */
   .main-container {
     @apply flex min-h-screen flex-1 flex-col items-center  px-6 pb-10 pt-28 max-md:pb-32 sm:px-10;
   }
 
-  /* Head Text */
+  /* Head Text text-light-1*/
   .head-text {
-    @apply text-heading2-bold text-light-1;
+    @apply text-heading2-bold;
   }
 
-  /* Activity */
+  /* Activity bg-dark-2*/
   .activity-card {
-    @apply flex items-center gap-2 rounded-md bg-dark-2 px-7 py-4;
+    @apply flex items-center gap-2 rounded-md  px-7 py-4;
   }
 
-  /* No Result */
+  /* No Result text-light-3*/
   .no-result {
-    @apply text-center !text-base-regular text-light-3;
+    @apply text-center !text-base-regular;
   }
 
-  /* Community Card */
+  /* Community Card bg-dark-3*/
   .community-card {
-    @apply w-full rounded-lg bg-dark-3 px-4 py-5 sm:w-96;
+    @apply w-full rounded-lg  px-4 py-5 sm:w-96;
   }
 
   .community-card_btn {
@@ -45,17 +92,17 @@
   .user-card_avatar {
     @apply flex flex-1 items-start justify-start gap-3 xs:items-center;
   }
-
+  /*text-light-1*/
   .user-card_btn {
-    @apply h-auto min-w-[74px] rounded-lg bg-primary-500 text-[12px] text-light-1 !important;
+    @apply h-auto min-w-[74px] rounded-lg bg-primary-500 text-[12px]  !important;
   }
-
+  /*bg-dark-3*/
   .searchbar {
-    @apply flex gap-1 rounded-lg bg-dark-3 px-4 py-2;
+    @apply flex gap-1 rounded-lg  px-4 py-2;
   }
-
+  /*bg-dark-3 text-light-4 */
   .searchbar_input {
-    @apply border-none bg-dark-3 text-base-regular text-light-4 outline-none !important;
+    @apply border-none  text-base-regular outline-none !important;
   }
 
   /*bg-dark-2*/
@@ -86,9 +133,9 @@
   .pagination {
     @apply mt-10 flex w-full items-center justify-center gap-5;
   }
-
+  /*bg-dark-2 */
   .rightsidebar {
-    @apply sticky right-0 top-0 z-20 flex h-screen w-fit flex-col justify-between gap-12 overflow-auto border-l border-l-dark-4 bg-dark-2 px-10 pb-6 pt-28 max-xl:hidden;
+    @apply sticky right-0 top-0 z-20 flex h-screen w-fit flex-col justify-between gap-12 overflow-auto border-l border-l-dark-4  px-10 pb-6 pt-28 max-xl:hidden;
   }
 }
 
@@ -130,33 +177,33 @@
 
 /* Shadcn Component Styles */
 
-/* Tab */
+/* Tab bg-dark-2 text-light-2*/
 .tab {
-  @apply flex min-h-[50px] flex-1 items-center gap-3 bg-dark-2 text-light-2 data-[state=active]:bg-[#0e0e12] data-[state=active]:text-light-2 !important;
+  @apply flex min-h-[50px] flex-1 items-center gap-3  data-[state=active]:bg-[#0e0e12] data-[state=active]:text-light-2 !important;
 }
 
 .no-focus {
   @apply focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0 !important;
 }
 
-/* Account Profile  */
+/* Account Profile bg-dark-4 */
 .account-form_image-label {
-  @apply flex h-24 w-24 items-center justify-center rounded-full bg-dark-4 !important;
+  @apply flex h-24 w-24 items-center justify-center rounded-full  !important;
 }
 
 .account-form_image-input {
   @apply cursor-pointer border-none bg-transparent outline-none file:text-blue !important;
 }
-
+/*bg-dark-3 text-light-1  */
 .account-form_input {
-  @apply border border-dark-4 bg-dark-3 text-light-1 !important;
+  @apply border border-dark-4 !important;
 }
 
 /* Comment Form */
 .comment-form {
   @apply mt-10 flex items-center gap-4 border-y border-y-dark-4 py-5 max-xs:flex-col !important;
 }
-
+/*text-light-1*/
 .comment-form_btn {
-  @apply rounded-3xl bg-primary-500 px-8 py-2 !text-small-regular text-light-1 max-xs:w-full !important;
+  @apply rounded-3xl bg-primary-500 px-8 py-2 !text-small-regular  max-xs:w-full !important;
 }
