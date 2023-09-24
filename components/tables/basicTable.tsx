@@ -1,6 +1,7 @@
 "use client"
 import {
   ColumnDef,
+  ColumnFiltersState,
   SortingState,
   flexRender,
   getCoreRowModel,
@@ -13,12 +14,14 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
 import { Fragment, useState } from 'react'
 import { Button } from '../ui/button'
+import { Input } from '../ui/input'
 
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[]
@@ -27,7 +30,9 @@ type DataTableProps<TData, TValue> = {
 
 export default function BasicTable<TData, TValue>({ data, columns }: DataTableProps<TData, TValue>) {
 
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   const table = useReactTable({
     data,
     columns,
@@ -36,23 +41,33 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
     state: {
-      sorting,
+      sorting, columnFilters,
     },
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnFiltersChange: setColumnFilters,
   })
 
-  /*const [filtering, setFiltering] = useState('')
-  const table = useReactTable({
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      //sorting: sorting,
+  /*state: {
       globalFilter: filtering,
     },
-    //onSortingChange: setSorting,
-    onGlobalFilterChange: setFiltering,
-  })*/
-
+    onGlobalFilterChange: setFiltering, 
+    <input
+        type='text'
+        value={filtering}
+        onChange={e => setFiltering(e.target.value)}
+    */
   return (
     <div>
+      <div className="flex items-center py-4">
+        <Input
+          className='max-w-[15%] bg-dark-4'
+          placeholder="Filter emails..."
+          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("email")?.setFilterValue(event.target.value)
+          }
+        />
+      </div>
 
       <div className="rounded-md border">
         <Table>
@@ -96,10 +111,37 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
               </TableRow>
             )}
           </TableBody>
+          <TableFooter>
+            {table.getFooterGroups().map((footerGroup) => (
+              <TableRow key={footerGroup.id}>
+                {footerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableFooter>
         </Table>
       </div>
 
       <div className="flex items-center justify-center space-x-2 py-4">
+        <Button
+          className='bg-blue'
+          variant="outline"
+          size="sm"
+          onClick={() => table.setPageIndex(0)}
+          disabled={!table.getCanPreviousPage()}
+        >
+          First page
+        </Button>
         <Button
           className='bg-blue'
           variant="outline"
@@ -118,113 +160,30 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
         >
           Next
         </Button>
+        <Button
+          className='bg-blue'
+          variant="outline"
+          size="sm"
+          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+          disabled={!table.getCanNextPage()}
+        >
+          Last Page
+        </Button>
       </div>
     </div>
   )
-  /*
-  return (
-    <div className='text-white'>
-      <input
-        className='bg-gray-1'
-        type='text'
-        value={filtering}
-        onChange={e => setFiltering(e.target.value)}
-      />
-      <table className='text-white '>
-        <thead>
-          {table.getHeaderGroups().map(headerGroup => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map(header => (
-                <th
-                  key={header.id}
-                  onClick={header.column.getToggleSortingHandler()}
-                >
-                  {header.isPlaceholder ? null : (
-                    <div>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-
-                    </div>
-                  )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-
-        <tbody className='bg-gray-1'>
-          {table.getRowModel().rows.map(row => (
-            <tr key={row.id}>
-              {row.getVisibleCells().map(cell => (
-                <td key={cell.id}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-        {<tfoot>
-          {table.getFooterGroups().map(footerGroup => (
-            <tr key={footerGroup.id}>
-              {footerGroup.headers.map(header => (
-                <th key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </tfoot>}
-      </table>
-      <div className='flex justify-between'>
-        <button className='bg-blue rounded' onClick={() => table.setPageIndex(0)}>First page</button>
-
-        <button className='bg-primary-500 rounded'
-          disabled={!table.getCanPreviousPage()}
-          onClick={() => table.previousPage()}
-        >
-          Previous page
-        </button>
-
-        <button className='bg-primary-500 rounded'
-          disabled={!table.getCanNextPage()}
-          onClick={() => table.nextPage()}
-        >
-          Next page
-        </button>
-
-        <button className='bg-red-500 rounded' onClick={() => table.setPageIndex(table.getPageCount() - 1)}>
-          Last page
-        </button>
-      </div>
-    </div>
-  )*/
 }
-/**
- *                       {
-                        { asc: '🔼', desc: '🔽' }[
-                          header.column.getIsSorted() ?? null
-                        ]
-                      }
-                      
+/*{{ asc: '🔼', desc: '🔽' }[header.column.getIsSorted() ?? null]}
         <thead>
           <tr>
             <th>ID</th>
           </tr>
         </thead>
-        
         <tbody>
-                  <tr>
+          <tr>
             <td>
               1
             </td>
           </tr>
-
         </tbody>
  */

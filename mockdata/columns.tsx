@@ -30,7 +30,6 @@ export type dataT = (typeof data)[number]
 }
 "oepn" | "completed" | "closed" | "failed"
 */
-//const data = useMemo(() => mData, [])
 
 export const columns: ColumnDef<dataT>[] = [
   {
@@ -80,7 +79,7 @@ export const columns: ColumnDef<dataT>[] = [
   },
   {
     accessorKey: 'dob',
-    footer: 'Date of Birth',
+    footer: 'Date',
     cell: ({ row }) => {
       const date_of_birth = row.getValue("dob");
       const formatted = new Date(date_of_birth as string).toLocaleDateString();
@@ -93,7 +92,7 @@ export const columns: ColumnDef<dataT>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Date of Birth
+          Date
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
