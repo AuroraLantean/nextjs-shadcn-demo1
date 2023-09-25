@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { ThemeToggle } from "../ThemeToggle";
 //import { SignOutButton, SignedIn, OrganizationSwitcher } from "@clerk/nextjs";
 //import { dark } from "@clerk/themes";
 //text-light-1
@@ -11,18 +12,21 @@ function Topbar() {
         <p className="text-heading3-bold  max-xs:hidden">Threads</p>
       </Link>
 
-      <div className="flex items-center gap-1">
-        <div className="block md:hidden">
-          SignOut Button
+      <div>
+        <ThemeToggle className='' />
+
+        <div className="flex items-center gap-1">
+          <div className="block md:hidden">
+            SignOut Button
+          </div>
         </div>
-
-
       </div>
     </nav>
   )
 }
 export default Topbar;
 /**
+  toggle: absolute top-0 right-0
           <SignedIn>
             <SignOutButton>
               <div className="flex cursor-pointer">

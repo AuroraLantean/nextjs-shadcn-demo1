@@ -148,6 +148,18 @@ export const columns: ColumnDef<dataT>[] = [
       )
     },
   }
+  /*{
+    accessorKey: 'amount',
+    header: () => <div className="text-right">Amount</div>,
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue('amount'))
+      const formatted = new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+      }).format(amount)
+      return <div className="text-right font-medium">{formatted}</div>
+    },
+  },*/
 ];
 /** adding cell function => functions cannot be passed directly to client components unless you explicitly expose it by marking it with "use server"... cell: function => "use client"
             <DropdownMenuLabel>Actions</DropdownMenuLabel>

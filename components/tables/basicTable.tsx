@@ -79,6 +79,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
         <Button onClick={() => downloadToExcel()} className="ml-4 !bg-primary !text-light-2">
           Export to Excel
         </Button>
+
         <ThemeToggle className='ml-4' />
 
         <DropdownMenu>

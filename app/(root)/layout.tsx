@@ -6,6 +6,7 @@ import LeftSidebar from '@/components/shared/LeftSidebar'
 import RightSidebar from '@/components/shared/RightSidebar'
 import Bottombar from '@/components/shared/Bottombar'
 import { ThemeProvider } from '@/components/theme-provider';//NOT next-themes!!!
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ['latin'] }); // font
 
@@ -38,6 +39,7 @@ export default function RootLayout({
           </main>
           <Bottombar />
         </ThemeProvider>
+        <Toaster />
       </body>
     </html>
   )
