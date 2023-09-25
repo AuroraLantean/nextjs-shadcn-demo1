@@ -16,8 +16,13 @@ export const sidebarLinks = [
   },
   {
     imgURL: '/assets/create.svg',
-    route: '/create-thread',
-    label: 'Create Thread',
+    route: '/register',
+    label: 'Register',
+  },
+  {
+    imgURL: '/assets/create.svg',
+    route: '/login',
+    label: 'Login',
   },
 ];
 /**

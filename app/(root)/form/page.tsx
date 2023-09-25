@@ -38,6 +38,7 @@ import { Switch } from "@/components/ui/switch"
 import { useToast } from "@/components/ui/use-toast"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { formSchema } from '@/lib/validators'
 
 type Props = {}
 
@@ -55,24 +56,8 @@ function FormPage({ }: Props) {
     { label: "Chinese", value: "zh" },
   ] as const
 
-  const formSchema = z.object({
-    username: z.string().min(2, {
-      message: "Username must be at least 2 characters.",
-    }).max(50),
-    email: z
-      .string({
-        required_error: "Please select an email to display.",
-      })
-      .email(),
-    marketing_emails: z.boolean().default(false).optional(),
-    security_emails: z.boolean(),
-    language: z.string({
-      required_error: "Please select a language.",
-    }),
-  })
-
-  // 1. Define your form.
-  const form = useForm<z.infer<typeof formSchema>>({
+  type Input = z.infer<typeof formSchema>;
+  const form = useForm<Input>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
@@ -82,7 +67,7 @@ function FormPage({ }: Props) {
     },
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: Input) {
     console.log("🚀 ~ file: page.tsx:38 ~ onSubmit ~ values:", values)
 
     toast({
