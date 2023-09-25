@@ -1,7 +1,7 @@
 "use client"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { UserValidation } from "@/lib/validations/user";
+
 import { Button } from "@/components/ui/button"
 import {
   Form,
@@ -21,6 +21,7 @@ import { isBase64Image } from "@/lib/utils";
 import { useUploadThing } from "@/lib/uploadthing";
 import { updateUser } from "@/lib/actions/user.actions";
 import { usePathname, useRouter } from "next/navigation";
+import { UserValidation } from "@/lib/validators";
 
 interface Props {
   user: {
