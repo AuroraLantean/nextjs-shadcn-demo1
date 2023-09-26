@@ -1,3 +1,42 @@
+export interface DragonT {
+  name: string
+  artist: string
+  imgURL: string
+}
+
+export const dragons: DragonT[] = [
+  {
+    name: "Rendezvous",
+    artist: "Ethan Byte",
+    imgURL:
+      "/dragons/0c1987f8-42aa-46d8-9d2d-98e5b7bb5d7f.png",
+  },
+  {
+    name: "Async Awakenings",
+    artist: "Nina Netcode",
+    imgURL:
+      "/dragons/8e25da39-6895-4ad4-88b2-34a31ac1bfa4.png",
+  },
+  {
+    name: "The Art of Reusability",
+    artist: "Lena Logic",
+    imgURL:
+      "/dragons/41a691af-f4c3-4242-a223-5b0796b603ec.png",
+  },
+  {
+    name: "Stateful Symphony",
+    artist: "Beth Binary",
+    imgURL:
+      "/dragons/65f6e1c0-f76d-4a1e-869e-dfa6011eaeea.png",
+  },
+  {
+    name: "Thinking Components",
+    artist: "Lena Logic",
+    imgURL:
+      "/dragons/8599b949-2f76-4ec5-91b6-1a9a6fae3867.png",
+  },
+]
+
 export const sidebarLinks = [
   {
     imgURL: '/assets/home.svg',
