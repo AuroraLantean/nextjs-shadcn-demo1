@@ -1,12 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu"
+
 import {
   Dialog,
   DialogContent,
@@ -17,7 +12,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import {
@@ -34,9 +28,12 @@ import { useToast } from "@/components/ui/use-toast"
 import { buyNftSchema } from '@/lib/validators'
 import Icons from "@/components/Icons";
 
-type Props = {}
-
-const BasicModal = (props: Props) => {
+type Props = {
+  id: number
+  address: string
+  price: number
+}
+const BasicModal = ({ id, address, price }: Props) => {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [open, setOpen] = useState(false);
@@ -45,8 +42,10 @@ const BasicModal = (props: Props) => {
   const form = useForm<Input>({
     resolver: zodResolver(buyNftSchema),
     defaultValues: {
-      nftId: "",
-      amount: "",
+      nftId: id?.toString() || "",
+      address: address,
+      amount: price.toString(),
+
     },
   })
 
@@ -55,8 +54,8 @@ const BasicModal = (props: Props) => {
     setIsLoading(true);
     setTimeout(() => {
       toast({
-        title: "Transaction submitted",
-        description: "your message",
+        title: "Success",
+        description: "Your transaction has been submitted successfully with hash 123abc",
         //action: <ToastAction altText="Try again">Try again</ToastAction>,
         //variant: "destructive",
       })
@@ -87,7 +86,7 @@ const BasicModal = (props: Props) => {
         <DialogHeader>
           <DialogTitle>Buy NFT</DialogTitle>
           <DialogDescription>
-            Confirm NFT ID and enter bidding price. Click 'Bid' when you're ready.
+            Confirm NFT ID and enter the required price. Click 'Buy' when you're ready.
           </DialogDescription>
         </DialogHeader>
 
@@ -111,6 +110,21 @@ const BasicModal = (props: Props) => {
 
             <FormField
               control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" {...field} />
+                  </FormControl>
+                  <FormDescription>NFT Address</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="amount"
               render={({ field }) => (
                 <FormItem>
@@ -118,7 +132,7 @@ const BasicModal = (props: Props) => {
                   <FormControl>
                     <Input placeholder="" {...field} />
                   </FormControl>
-                  <FormDescription>Amount to bid</FormDescription>
+                  <FormDescription>Amount to buy</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -132,7 +146,7 @@ const BasicModal = (props: Props) => {
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Bid Now
+              Buy Now
             </Button>
           </form>
         </Form>
@@ -171,7 +185,7 @@ export default BasicModal
             type="submit"
             className='!bg-primary !text-light-2'
             onClick={() => { console.log("action") }}
-          >Bid Now</Button>
+          >Buy Now</Button>
         </DialogFooter>
 
         */
