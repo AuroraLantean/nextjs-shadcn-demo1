@@ -27,6 +27,7 @@ import { useForm } from 'react-hook-form'
 import { useToast } from "@/components/ui/use-toast"
 import { buyNftSchema } from '@/lib/validators'
 import Icons from "@/components/Icons";
+import { buyNFT } from '@/lib/actions/radix.actions'
 
 type Props = {
   id: number
@@ -49,19 +50,29 @@ const BasicModal = ({ id, address, price }: Props) => {
     },
   })
 
-  function onSubmit(values: Input) {
+  const onSubmit = async (values: Input) => {
     console.log("🚀onSubmit:", values)
     setIsLoading(true);
-    setTimeout(() => {
+    const { hash, error } = await buyNFT(values);
+    console.log("🚀onSubmit. hash:", hash, ", error:", error)
+
+    if (error) {
+      toast({
+        title: "Failed",
+        description: "Your transaction has failed with error: " + error,
+        variant: "destructive",
+      })
+    } else {
       toast({
         title: "Success",
-        description: "Your transaction has been submitted successfully with hash 123abc",
+        description: "Your transaction has been submitted successfully with hash " + hash,
         //action: <ToastAction altText="Try again">Try again</ToastAction>,
-        //variant: "destructive",
       })
-      setOpen(false);
-      setIsLoading(false);
-    }, 3000);
+    }
+    setOpen(false);
+    setIsLoading(false);
+    //form.reset();
+    //revalidatePath(`/mynft/${userAccount}`);
   }
 
   useEffect(() => {
