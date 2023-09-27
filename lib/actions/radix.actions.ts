@@ -7,6 +7,7 @@ type TypeBuyNFT = {
   amount: string
 }
 export const buyNFT = async ({ nftId, address, amount }: TypeBuyNFT) => {
+  console.log("radix.actions > buyNFT: ", nftId, address, amount)
   try {
     setTimeout(() => {
       console.log("radix.actions: buyNFT")

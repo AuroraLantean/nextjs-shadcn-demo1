@@ -4,8 +4,8 @@
 //import { DateTime } from 'luxon'
 import { Button } from '@/components/ui/button'
 import BasicTable from '@/components/tables/basicTable'
-import { columns } from '@/mockdata/columns'
 import data from '@/mockdata/data1.json'
+import { columns } from '@/constants/data1columns'
 
 export default async function TablePage() {
   //https://react.dev/reference/react/useMemo cache the result of a calculation between re-renders

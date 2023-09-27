@@ -56,7 +56,7 @@ const BasicModal = ({ id, address, price }: Props) => {
     const { hash, error } = await buyNFT(values);
     console.log("🚀onSubmit. hash:", hash, ", error:", error)
 
-    if (error) {
+    if (error || !hash) {
       toast({
         title: "Failed",
         description: "Your transaction has failed with error: " + error,
