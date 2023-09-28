@@ -30,7 +30,7 @@ export default function RootLayout({
           <Topbar />
           <main className='flex flex-row'>
             <LeftSidebar />
-            <section className='main-container'>
+            <section className='flex min-h-screen flex-1 flex-col items-center  px-6 pb-10 pt-28 max-md:pb-32 sm:px-10 overflow-hidden'>
               <div className='w-full '>
                 {children}
               </div>

@@ -50,11 +50,6 @@
 }
 
 @layer components {
-  /* main bg-dark-1 */
-  .main-container {
-    @apply flex min-h-screen flex-1 flex-col items-center  px-6 pb-10 pt-28 max-md:pb-32 sm:px-10;
-  }
-
   /* Head Text text-light-1*/
   .head-text {
     @apply text-heading2-bold;
