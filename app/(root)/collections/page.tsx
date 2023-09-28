@@ -16,7 +16,7 @@ const BREAKPOINTS = {
   lg: 1024,
 };
 
-const CardCarousel = () => {
+const CarouselClickable = () => {
   const [ref, { width }] = useMeasure();
   const [offset, setOffset] = useState(0);
 
@@ -120,7 +120,7 @@ const Card = ({ id, address, price, imgURL, category, name, description }: Drago
   );
 };
 
-export default CardCarousel;
+export default CarouselClickable;
 /*
 type DragonT = {
   id: number;

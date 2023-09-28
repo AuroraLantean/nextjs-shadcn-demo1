@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { fetchPosts } from "@/lib/actions/thread.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { Separator } from "@/components/ui/separator";
+import { CarouselDraggable } from "@/components/carousel/CarouselDraggable";
 
 //      <UserButton afterSignOutUrl="/" />
 async function HomePage() {
@@ -16,7 +17,7 @@ async function HomePage() {
   return (
     <>
       <h1 className="head-text text-left">HomePage</h1>
-
+      <CarouselDraggable />
       <Separator className="my-2" />
 
     </>
@@ -56,10 +57,10 @@ export default HomePage;
           </div>
         </div>
       </div>
-      
+
     <div className="grid lg:grid-cols-5">
     <div className="col-span-3 lg:col-span-4 lg:border-l">
-    
+
       <section className='mt-9 flex flex-col gap-10'>
         {result.posts.length === 0 ? (
           <p className='no-result'>No threads found</p>

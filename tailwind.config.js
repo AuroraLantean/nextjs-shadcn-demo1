@@ -187,6 +187,7 @@ module.exports = {
         'light-3': '#7878A3',
         'light-4': '#5C5C7B',
         'gray-1': '#697C89',
+        'blue-1': '#ADD8E6',
         glassmorphism: 'rgba(16, 16, 18, 0.60)',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
