@@ -27,7 +27,7 @@ export const CarouselDraggable = () => {
         </p>
         <motion.div ref={carousel} className="my-2 " whileHover={{ cursor: "grab" }} whileTap={{ cursor: "grabbing" }}>
           <motion.div drag="x"
-            dragConstraints={{ right: 0, left: - leftLimit - (CARD_WIDTH / 1) }}
+            dragConstraints={{ right: 0, left: - leftLimit - (1 / 1) }}
             className="flex flex-row">
             {dragons.map((item) => {
               return (
