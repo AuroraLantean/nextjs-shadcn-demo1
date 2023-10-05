@@ -3,6 +3,7 @@ import { fetchPosts } from "@/lib/actions/thread.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { Separator } from "@/components/ui/separator";
 import { CarouselDraggable } from "@/components/carousel/CarouselDraggable";
+import ItemInputForm from "@/components/forms/ItemInputForm";
 
 //      <UserButton afterSignOutUrl="/" />
 async function HomePage() {
@@ -19,6 +20,7 @@ async function HomePage() {
       <h1 className="head-text text-left">HomePage</h1>
       <CarouselDraggable />
       <Separator className="my-2" />
+      <ItemInputForm />
 
     </>
   )
