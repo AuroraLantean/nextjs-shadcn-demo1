@@ -5,6 +5,8 @@ import { create } from 'zustand'
 type ItemsStoreT = {
   totalNum: number
   increaseNum: (by: number) => void
+  decreaseNum: (by: number) => void
+  updateNum: (by: number) => void
   removeAllNum: () => void
   getItems: () => Promise<ItemT[]>;
   items: ItemT[]
@@ -17,9 +19,11 @@ type ItemsStoreT = {
 export const useItemsStore = create<ItemsStoreT>()((set) => ({
   totalNum: 0,
   increaseNum: (by: number) => set((state) => ({ totalNum: state.totalNum + by, })),
+  decreaseNum: (by: number) => set((state) => ({ totalNum: state.totalNum - by, })),
+  updateNum: (by: number) => set({ totalNum: by }),
   removeAllNum: () => set({ totalNum: 0 }),
   getItems: async () => {
-    const res = await fetch(`https://api.domain.com/items`);
+    const res = await fetch(`http://localhost:3000/api/items`);
     const items: ItemT[] = await res.json();
     console.log("items:", items);
     return items;
@@ -32,10 +36,8 @@ export const useItemsStore = create<ItemsStoreT>()((set) => ({
       const oldItems = state.items;
       const updatedItems = oldItems.map((item) => {
         if (item.item_id === itemId) return { ...item, votes: item.votes + 1 };
-
         return item;
       });
-
       return { items: updatedItems };
     }),
   fetchAllItems: async () => {
