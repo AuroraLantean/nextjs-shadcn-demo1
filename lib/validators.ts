@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const zustandSchema = z.object({
-  enum1: z.enum(["add", "update", "delete"], {
+  enum1: z.enum(["add", "remove", "update", "delete", "addObjNum1", "addObjNum2"], {
     required_error: "You need to select one radio selection",
   }),
   floatNum1: z.string().min(1, {

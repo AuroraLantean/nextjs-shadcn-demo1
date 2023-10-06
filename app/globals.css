@@ -159,6 +159,9 @@
   }
 }
 
+.radio-item {
+  @apply flex items-center space-x-1 space-y-0 mr-2;
+}
 /* Clerk Responsive fix */
 .cl-organizationSwitcherTrigger .cl-userPreview .cl-userPreviewTextContainer {
   @apply max-sm:hidden;

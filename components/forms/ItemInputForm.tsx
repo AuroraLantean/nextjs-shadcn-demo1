@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '../ui/button';
 import { useItemsStore } from '@/store/store';
 import { Input } from '../ui/input';
@@ -17,7 +17,7 @@ type Props = {}
 
 const ItemInputForm = (props: Props) => {
   const { toast } = useToast();
-  const { totalNum, increaseNum, decreaseNum, updateNum, removeAllNum, items, setItems, increaseVotes, fetchAllItems } = useItemsStore(
+  const { totalNum, addNum, decreaseNum, updateNum, removeNum, obj, addObjNum1, addObjNum2, sumObj, objSum, items, setItems, addVotes, fetchAllItems } = useItemsStore(
     (state) => state
   );
 
@@ -42,19 +42,28 @@ const ItemInputForm = (props: Props) => {
       ),
     });
     if (data.enum1 === "add") {
-      increaseNum(Number(data.floatNum1))
+      addNum(Number(data.floatNum1))
+    } else if (data.enum1 === "remove") {
+      decreaseNum(Number(data.floatNum1));
     } else if (data.enum1 === "update") {
       updateNum(Number(data.floatNum1));
     } else if (data.enum1 === "delete") {
-      removeAllNum();
+      removeNum();
+    } else if (data.enum1 === "addObjNum1") {
+      addObjNum1(Number(data.floatNum1));
+    } else if (data.enum1 === "addObjNum2") {
+      addObjNum2(Number(data.floatNum1));
     }
+    sumObj()
   }
   return (
     <div>
-      <Card className="w-[350px]">
+      <Card className="w-[370px]">
         <CardHeader>
           <CardTitle>ItemInputForm: Zustand State Management</CardTitle>
-          <CardDescription>TotalNum: {totalNum}</CardDescription>
+          <p>TotalNum: {totalNum}</p>
+          <p>TotalObjNum: {objSum}</p>
+          <p>{JSON.stringify(obj, null, 2)}</p>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -74,30 +83,55 @@ const ItemInputForm = (props: Props) => {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-row space-y-1"
                       >
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="add" />
-                          </FormControl>
-                          <FormLabel className="font-normal">
-                            Add
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="update" />
-                          </FormControl>
-                          <FormLabel className="font-normal">
-                            Update
-                          </FormLabel>
-                        </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                          <FormControl>
-                            <RadioGroupItem value="delete" />
-                          </FormControl>
-                          <FormLabel className="font-normal">Delete</FormLabel>
-                        </FormItem>
+                        <div className="flex flex-row space-y-1">
+                          <FormItem className="radio-item">
+                            <FormControl>
+                              <RadioGroupItem value="add" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Add
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="radio-item">
+                            <FormControl>
+                              <RadioGroupItem value="remove" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Remove
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="radio-item">
+                            <FormControl>
+                              <RadioGroupItem value="update" />
+                            </FormControl>
+                            <FormLabel className="font-normal">
+                              Update
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="radio-item">
+                            <FormControl>
+                              <RadioGroupItem value="delete" />
+                            </FormControl>
+                            <FormLabel className="font-normal">Delete</FormLabel>
+                          </FormItem>
+                        </div>
+
+                        <div className="flex flex-row space-y-1">
+                          <FormItem className="radio-item">
+                            <FormControl>
+                              <RadioGroupItem value="addObjNum1" />
+                            </FormControl>
+                            <FormLabel className="font-normal">AddObjNum1</FormLabel>
+                          </FormItem>
+                          <FormItem className="radio-item">
+                            <FormControl>
+                              <RadioGroupItem value="addObjNum2" />
+                            </FormControl>
+                            <FormLabel className="font-normal">AddObjNum2</FormLabel>
+                          </FormItem>
+                        </div>
+
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />

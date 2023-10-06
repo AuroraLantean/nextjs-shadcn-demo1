@@ -86,6 +86,9 @@ dependencies:
   framer-motion:
     specifier: ^10.16.4
     version: 10.16.4(react-dom@18.2.0)(react@18.2.0)
+  immer:
+    specifier: ^10.0.3
+    version: 10.0.3
   json-as-xlsx:
     specifier: ^2.5.4
     version: 2.5.4
@@ -151,7 +154,7 @@ dependencies:
     version: 3.22.2
   zustand:
     specifier: ^4.4.2
-    version: 4.4.2(@types/react@18.2.20)(react@18.2.0)
+    version: 4.4.2(@types/react@18.2.20)(immer@10.0.3)(react@18.2.0)
 
 devDependencies:
   '@types/luxon':
@@ -3010,6 +3013,10 @@ packages:
     engines: {node: '>= 4'}
     dev: false
 
+  /immer@10.0.3:
+    resolution: {integrity: sha512-pwupu3eWfouuaowscykeckFmVTpqbzW+rXFCX8rQLkZzM9ftBmU/++Ra+o+L27mz03zJTlyV4UUr+fdKNffo4A==}
+    dev: false
+
   /import-fresh@3.3.0:
     resolution: {integrity: sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==}
     engines: {node: '>=6'}
@@ -4796,7 +4803,7 @@ packages:
     resolution: {integrity: sha512-wvWkphh5WQsJbVk1tbx1l1Ly4yg+XecD+Mq280uBGt9wa5BKSWf4Mhp6GmrkPixhMxmabYY7RbzlwVP32pbGCg==}
     dev: false
 
-  /zustand@4.4.2(@types/react@18.2.20)(react@18.2.0):
+  /zustand@4.4.2(@types/react@18.2.20)(immer@10.0.3)(react@18.2.0):
     resolution: {integrity: sha512-qF3/vZHCrjPUX5DvPE3DPDZlh+FiAWRKlP9PI7SlW1MCk8q4vUCDqyWsbF8K41ne0Yx8eeeb0m1cypn1LqUMYQ==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
@@ -4812,6 +4819,7 @@ packages:
         optional: true
     dependencies:
       '@types/react': 18.2.20
+      immer: 10.0.3
       react: 18.2.0
       use-sync-external-store: 1.2.0(react@18.2.0)
     dev: false

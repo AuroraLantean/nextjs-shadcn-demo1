@@ -1,27 +1,48 @@
 import { ItemT } from '@/types'
 import { create } from 'zustand'
+import { immer } from 'zustand/middleware/immer'
 
 //Store State interface
 type ItemsStoreT = {
-  totalNum: number
-  increaseNum: (by: number) => void
-  decreaseNum: (by: number) => void
-  updateNum: (by: number) => void
-  removeAllNum: () => void
+  totalNum: number;
+  addNum: (by: number) => void;
+  decreaseNum: (by: number) => void;
+  updateNum: (by: number) => void;
+  removeNum: () => void;
+
   getItems: () => Promise<ItemT[]>;
-  items: ItemT[]
-  setItems: (items: ItemT[]) => void
-  increaseVotes: (itemId: string) => void;
+  items: ItemT[];
+  setItems: (items: ItemT[]) => void;
+  addVotes: (itemId: string) => void;
   fetchAllItems: () => void;
+
+  obj: { num1: number; num2: number };
+  objSum: number;
+  addObjNum1: (by: number) => void;
+  addObjNum2: (by: number) => void;
+  sumObj: () => void;
+  //removeObjAll: () => void
 }
 
 //Zustand Store can contain primitives, objects, functions. State has to be updated immutably and the set function merges state to help it.
-export const useItemsStore = create<ItemsStoreT>()((set) => ({
+export const useItemsStore = create<ItemsStoreT>()(immer<ItemsStoreT>((set, get) => ({
+  obj: { num1: 0, num2: 0 },
+  objSum: 0,
+  addObjNum1: (by: number) => set((state) => {
+    state.obj.num1 += by
+  }),
+  addObjNum2: (by: number) => set((state) => {
+    state.obj.num2 += by
+  }),
+  sumObj: () => set((state) => {
+    const total = get().obj.num1 + get().obj.num2;
+    state.objSum = total
+  }),
   totalNum: 0,
-  increaseNum: (by: number) => set((state) => ({ totalNum: state.totalNum + by, })),
+  addNum: (by: number) => set((state) => ({ totalNum: state.totalNum + by, })),
   decreaseNum: (by: number) => set((state) => ({ totalNum: state.totalNum - by, })),
   updateNum: (by: number) => set({ totalNum: by }),
-  removeAllNum: () => set({ totalNum: 0 }),
+  removeNum: () => set({ totalNum: 0 }),
   getItems: async () => {
     const res = await fetch(`http://localhost:3000/api/items`);
     const items: ItemT[] = await res.json();
@@ -31,7 +52,7 @@ export const useItemsStore = create<ItemsStoreT>()((set) => ({
   items: [],
   setItems: (items: ItemT[]) => set({ items }),
   votes: 0,
-  increaseVotes: (itemId: string) =>
+  addVotes: (itemId: string) =>
     set((state) => {
       const oldItems = state.items;
       const updatedItems = oldItems.map((item) => {
@@ -44,7 +65,12 @@ export const useItemsStore = create<ItemsStoreT>()((set) => ({
     const fetchedItems = await fetchItems();
     if (fetchedItems) set({ items: fetchedItems || [] });
   },
-}));
+})));
+/*addObjNum1: (by: number) => set((state) => ({
+    obj: {
+      ...state.obj, num1: state.obj.num1 + by
+    }
+  })), */
 
 export async function fetchItems(): Promise<ItemT[] | null> {
   try {
