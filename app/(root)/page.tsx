@@ -5,7 +5,9 @@ import { Separator } from "@/components/ui/separator";
 import { CarouselDraggable } from "@/components/carousel/CarouselDraggable";
 import ItemInputForm from "@/components/forms/ItemInputForm";
 
-//      <UserButton afterSignOutUrl="/" />
+import StateOutput from "@/components/stateOutput";
+import StateInput from "@/components/stateInput";
+
 async function HomePage() {
 
   //const result = await fetchPosts(1, 30);
@@ -20,11 +22,18 @@ async function HomePage() {
       <h1 className="head-text text-left">HomePage</h1>
       <CarouselDraggable />
       <Separator className="my-2" />
-      <ItemInputForm />
-
+      <div className="flex">
+        <ItemInputForm />
+        <StateOutput />
+        <StateInput />
+      </div>
     </>
   )
 }
+// 
+//      <StateOutput />
+//      <UserButton afterSignOutUrl="/" />
+
 export default HomePage;
 /**<HorizontalScrollCarousel />
       <div className="border-2">

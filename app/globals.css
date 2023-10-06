@@ -159,8 +159,11 @@
   }
 }
 
+.blue-button {
+  @apply !bg-primary text-white;
+}
 .radio-item {
-  @apply flex items-center space-x-1 space-y-0 mr-2;
+  @apply flex items-center space-x-1 space-y-0 mr-2 mb-2;
 }
 /* Clerk Responsive fix */
 .cl-organizationSwitcherTrigger .cl-userPreview .cl-userPreviewTextContainer {

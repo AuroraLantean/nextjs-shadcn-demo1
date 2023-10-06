@@ -1,5 +1,6 @@
+import { createSelectors } from '@/lib/utils';
 import { ItemT } from '@/types'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
 
 //Store State interface
@@ -25,7 +26,7 @@ type ItemsStoreT = {
 }
 
 //Zustand Store can contain primitives, objects, functions. State has to be updated immutably and the set function merges state to help it.
-export const useItemsStore = create<ItemsStoreT>()(immer<ItemsStoreT>((set, get) => ({
+export const useItemsStore = createSelectors(createWithEqualityFn<ItemsStoreT>()(immer<ItemsStoreT>((set, get) => ({
   obj: { num1: 0, num2: 0 },
   objSum: 0,
   addObjNum1: (by: number) => set((state) => {
@@ -65,12 +66,14 @@ export const useItemsStore = create<ItemsStoreT>()(immer<ItemsStoreT>((set, get)
     const fetchedItems = await fetchItems();
     if (fetchedItems) set({ items: fetchedItems || [] });
   },
-})));
-/*addObjNum1: (by: number) => set((state) => ({
+}))));
+/*without immer
+  addObjNum1: (by: number) => set((state) => ({
     obj: {
       ...state.obj, num1: state.obj.num1 + by
     }
   })), */
+
 
 export async function fetchItems(): Promise<ItemT[] | null> {
   try {
