@@ -159,8 +159,11 @@
   }
 }
 
-.blue-button {
-  @apply !bg-primary text-white;
+.primary-color {
+  @apply !bg-primary text-foreground;
+}
+.destructive-color {
+  @apply !bg-destructive text-foreground;
 }
 .radio-item {
   @apply flex items-center space-x-1 space-y-0 mr-2 mb-2;

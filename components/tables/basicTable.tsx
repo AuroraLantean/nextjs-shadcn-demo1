@@ -76,7 +76,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
           }
         />
 
-        <Button onClick={() => downloadToExcel()} className="blue-button ml-4">
+        <Button onClick={() => downloadToExcel()} className="primary-color ml-4">
           Export to Excel
         </Button>
 
@@ -84,11 +84,11 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="blue-button ml-auto">
+            <Button variant="outline" className="primary-color ml-auto">
               Column Visibility
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="blue-button">
+          <DropdownMenuContent align="end" className="primary-color">
             {table
               .getAllColumns()
               .filter(
@@ -159,7 +159,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
 
       <div className="flex items-center justify-center space-x-2 py-4">
         <Button
-          className='blue-button'
+          className='primary-color'
           variant="outline"
           size="sm"
           onClick={() => table.setPageIndex(0)}
@@ -168,7 +168,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
           First page
         </Button>
         <Button
-          className='blue-button'
+          className='primary-color'
           variant="outline"
           size="sm"
           onClick={() => table.previousPage()}
@@ -177,7 +177,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
           Previous
         </Button>
         <Button
-          className='blue-button'
+          className='primary-color'
           variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
@@ -186,7 +186,7 @@ export default function BasicTable<TData, TValue>({ data, columns }: DataTablePr
           Next
         </Button>
         <Button
-          className='blue-button'
+          className='primary-color'
           variant="outline"
           size="sm"
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}

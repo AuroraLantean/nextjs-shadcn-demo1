@@ -152,7 +152,7 @@ const BasicModal = ({ id, address, price }: Props) => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="blue-button">
+              className="primary-color">
 
               {isLoading && (
                 <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />

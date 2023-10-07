@@ -239,7 +239,7 @@ function FormPage({ }: Props) {
                 )}
               />
 
-              <Button type="submit" className="blue-button">Submit</Button>
+              <Button type="submit" className="primary-color">Submit</Button>
             </form>
           </Form>
         </CardContent>

@@ -18,7 +18,7 @@ type Props = {}
 
 const ItemInputForm = (props: Props) => {
   const { toast } = useToast();
-  const { totalNum, addNum, decreaseNum, updateNum, removeNum, obj, addObjNum1, addObjNum2, sumObj, objSum, items, setItems, addVotes, fetchAllItems } = useItemsStore(
+  const { totalNum, addNum, substractNum, setNum, resetNum, obj, addObjNum1, addObjNum2, sumObj, objSum, items, setItems, addVotes, refreshItems } = useItemsStore(
     (state) => state
   );
   console.log("ItemInputForm...")
@@ -45,11 +45,11 @@ const ItemInputForm = (props: Props) => {
     if (data.enum1 === "add") {
       addNum(Number(data.floatNum1))
     } else if (data.enum1 === "remove") {
-      decreaseNum(Number(data.floatNum1));
+      substractNum(Number(data.floatNum1));
     } else if (data.enum1 === "update") {
-      updateNum(Number(data.floatNum1));
+      setNum(Number(data.floatNum1));
     } else if (data.enum1 === "delete") {
-      removeNum();
+      resetNum();
     } else if (data.enum1 === "addObjNum1") {
       addObjNum1(Number(data.floatNum1));
       sumObj()
@@ -179,7 +179,7 @@ const ItemInputForm = (props: Props) => {
               )}
             />
 
-            <Button className='blue-button' type="submit">Run</Button>
+            <Button className='primary-color' type="submit">Run</Button>
           </form>
         </Form>
 
