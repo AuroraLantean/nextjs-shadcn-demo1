@@ -1,40 +1,41 @@
 import { createSelectors } from '@/lib/utils';
-import { ItemT } from '@/types'
+import { BoxT } from '@/types'
 import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
 
 //extract functions from store itself...
-type ItemsStoreT = {
-  totalNum: number;
-  items: ItemT[];
-  refreshItem: (id: string) => Promise<null | ItemT>;
-  refreshItems: () => void;
+//const initialState = {}
+type BoxesStoreT = {
+  totalLength: number;
+  boxes: BoxT[];
+  refreshBox: (id: string) => Promise<null | BoxT>;
+  refreshBoxes: () => void;
 }
 
-const makeItemSlice: StateCreator<ItemsStoreT, [
+const makeBoxSlice: StateCreator<BoxesStoreT, [
   ["zustand/immer", never],
   ["zustand/devtools", unknown],
   ["zustand/subscribeWithSelector", never],
   ["zustand/persist", unknown]
 ]> = (set, get) => ({
-  totalNum: 0,
-  items: [],
+  totalLength: 0,
+  boxes: [],
   votes: 0,
-  refreshItem: async (id: string) => {
-    const fetchedItem = await fetchItem();
-    return fetchedItem;
+  refreshBox: async (id: string) => {
+    const fetchedBox = await fetchBox(id);
+    return fetchedBox;
   },
-  refreshItems: async () => {
-    const fetchedItems = await fetchItems();
-    if (fetchedItems) set({ items: fetchedItems || [] });
+  refreshBoxes: async () => {
+    const fetchedBoxes = await fetchBoxes();
+    if (fetchedBoxes) set({ boxes: fetchedBoxes || [] });
   },
 });
 
 //Zustand Store can contain primitives, objects, functions. State has to be updated immutably and the set function merges state to help it. immer
-export const useItemsStore = createSelectors(createWithEqualityFn<ItemsStoreT>()(immer(devtools(subscribeWithSelector(persist(makeItemSlice, {
-  name: "Localstorage Item store",
+export const useBoxesStore = createSelectors(createWithEqualityFn<BoxesStoreT>()(immer(devtools(subscribeWithSelector(persist(makeBoxSlice, {
+  name: "Localstorage Box store",
   //storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
   //partialize: (state) => ({ obj: state.obj, objSum: state.objSum }),
   /*partialize: (state) =>
@@ -43,50 +44,50 @@ export const useItemsStore = createSelectors(createWithEqualityFn<ItemsStoreT>()
         ), */
 })), {
   enabled: true,
-  name: "ReduxTool Item store",
+  name: "ReduxTool Box store",
 }
 )
 )));
 //extracting functions out of stores
-export const addItem = (item: ItemT) => {
-  useItemsStore.setState((state) => ({
-    items: [...state.items, item],
-    totalNum: state.totalNum + 1,
+export const addBox = (box: BoxT) => {
+  useBoxesStore.setState((state) => ({
+    boxes: [...state.boxes, box],
+    totalLength: state.totalLength + 1,
   }));
 }
-export const deleteItem = (itemId: string) => {
-  useItemsStore.setState((state) => ({
-    items: state.items.filter(item => item.item_id !== itemId),
-    totalNum: state.totalNum - 1,
+export const deleteBox = (boxId: string) => {
+  useBoxesStore.setState((state) => ({
+    boxes: state.boxes.filter(box => box.boxId !== boxId),
+    totalLength: state.totalLength - 1,
   }));
 }
-export const updateItem = (itemId: string, title: string, img_url: string, fixed_price: number, min_price: number, bid_price: number, votes: number, status: string) => {
-  useItemsStore.setState((state) => ({
-    items: state.items.map(item =>
-      item.item_id === itemId ? {
+export const updateBox = (boxId: string, title: string, img_url: string, fixed_price: number, min_price: number, bid_price: number, votes: number, status: string) => {
+  useBoxesStore.setState((state) => ({
+    boxes: state.boxes.map(box =>
+      box.boxId === boxId ? {
         title, img_url, fixed_price, min_price, bid_price, votes, status,
-      } : item
+      } : box
     )
   }));
 }
-export const addVotes = (itemId: string) => {
-  const oldItems = useItemsStore.getState().items;
-  const updatedItems = oldItems.map((item) => {
-    if (item.item_id === itemId) return { ...item, votes: item.votes + 1 };
-    return item;
+export const addVotes = (boxId: string) => {
+  const oldBoxes = useBoxesStore.getState().boxes;
+  const updatedBoxes = oldBoxes.map((box) => {
+    if (box.boxId === boxId) return { ...box, votes: box.votes + 1 };
+    return box;
   });
-  useItemsStore.setState((state) => ({
-    items: updatedItems
+  useBoxesStore.setState((state) => ({
+    boxes: updatedBoxes
   }));
 }
-export const findItem = (itemId: string) => {
-  return useItemsStore.getState().items.find(item => item.item_id === itemId)
+export const findBox = (boxId: string) => {
+  return useBoxesStore.getState().boxes.find(box => box.boxId === boxId)
 }
 
 export const resetMemState = () => {
-  useItemsStore.setState((state) => ({
-    totalNum: 0,
-    items: [],
+  useBoxesStore.setState((state) => ({
+    totalLength: 0,
+    boxes: [],
   }));
 }
 /*without immer
@@ -96,34 +97,34 @@ export const resetMemState = () => {
     }
   })), */
 //--------------------==
-export async function fetchItem(): Promise<ItemT | null> {
+export async function fetchBox(id: string): Promise<BoxT | null> {
   try {
-    const res = await fetch(`http://localhost:3000/api/item/{id}`);
+    const res = await fetch(`http://localhost:3000/api/box/${id}`);
     if (res.ok) {
-      const item: ItemT = await res.json();
-      console.log("item:", item);
-      return item;
+      const box: BoxT = await res.json();
+      console.log("box:", box);
+      return box;
     }
     return null;
     //const res = await axios.get("http://...");
     //return res.data;
   } catch (err) {
-    console.log("Error fetching item: ", err);
+    console.log("Error fetching box: ", err);
     return null;
   }
 }
-export async function fetchItems(): Promise<ItemT[] | null> {
+export async function fetchBoxes(): Promise<BoxT[] | null> {
   try {
     const res = await fetch('/api/prompt/new');
     if (res.ok) {
-      const items: ItemT[] = await res.json();
-      return items;
+      const boxes: BoxT[] = await res.json();
+      return boxes;
     }
     return null;
     //const res = await axios.get("http://..");
     //return res.data;
   } catch (err) {
-    console.log("Error fetching items: ", err);
+    console.log("Error fetching boxes: ", err);
     return null;
   }
 }

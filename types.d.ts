@@ -1,5 +1,5 @@
-export type ItemT = {
-  item_id: string;
+export type BoxT = {
+  boxId: string;
   seller_id: string;
   title: string;
   img_url: string;
