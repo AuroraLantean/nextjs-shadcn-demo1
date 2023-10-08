@@ -1,10 +1,9 @@
 "use client"
-import { DragonT, dragons } from "@/constants/site_data";
+import { APP_WIDTH_MIN, DragonT, dragons } from "@/constants/site_data";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 
-const CARD_WIDTH = 350;
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
 //TODO: use md:xyz to set the carousel width
@@ -53,7 +52,7 @@ const Card = ({ id, address, price, imgURL, category, name, description }: Drago
     <div
       className="relative shrink-0 rounded-2xl  shadow-md transition-all hover:scale-[1.025] hover:shadow-xl"
       style={{
-        width: CARD_WIDTH,
+        width: APP_WIDTH_MIN,
         height: CARD_HEIGHT,
         marginRight: MARGIN,
         backgroundImage: `url(${imgURL})`,

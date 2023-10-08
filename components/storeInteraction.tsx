@@ -1,13 +1,14 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button';
-import { useDiscountStore } from '@/store/discount';
+import { useCouponStore } from '@/store/coupon';
+import { APP_WIDTH_MIN } from '@/constants/site_data';
 
 type Props = {}
 
 //separate the input functions to reduce rerendering
 const StoreInteraction = (props: Props) => {
-  const { totalDiscount, addDiscount, substractDiscount, setDiscount } = useDiscountStore();
+  const { totalCoupon, addCoupon, substractCoupon, setCoupon } = useCouponStore();
 
   console.log("StoreInteraction")
   const [isClient, setIsClient] = useState(false)
@@ -16,14 +17,14 @@ const StoreInteraction = (props: Props) => {
   }, [])
 
   return (
-    <div className=''>
+    <div className={`w-[${APP_WIDTH_MIN}px] mr-5 mb-5`}>
       <p>StoreInteraction</p>
       <p>{isClient ? Math.random() : 0}</p>
-      <p>Total Discount: {totalDiscount}</p>
-      <Button className='primary-color m-2' onClick={() => { addDiscount(1) }}>Add Discount</Button>
-      <Button className='primary-color m-2' onClick={() => { substractDiscount(1) }}>Substract Discount</Button>
+      <p>Total Coupon: {totalCoupon}</p>
+      <Button className='primary-color m-2' onClick={() => { addCoupon(1) }}>Add Coupon</Button>
+      <Button className='primary-color m-2' onClick={() => { substractCoupon(1) }}>Substract Coupon</Button>
 
-      <Button className='destructive-color m-2' onClick={() => setDiscount(0)}>Set Discount</Button>
+      <Button className='destructive-color m-2' onClick={() => setCoupon(0)}>Set Coupon</Button>
 
     </div>
   )

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react'
 import { shallow } from 'zustand/shallow'
 import { useItemsStore } from '@/store/store';
 import { Button } from './ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { APP_WIDTH_MIN } from '@/constants/site_data';
 
 type Props = {}
 
@@ -31,7 +33,7 @@ const StateInput = (props: Props) => {
     useItemsStore.persist.clearStorage();
   }
   return (
-    <div className=''>
+    <div className={`w-[${APP_WIDTH_MIN}px] mr-5 mb-5`}>
       <p>StateInput - Accessing Partial State</p>
       <p>{isClient ? Math.random() : 0}</p>
       <Button className='primary-color m-2' onClick={() => { addObjNum1(1.1); sumObj(); }}>AddObjNum1</Button>

@@ -1,3 +1,4 @@
+export const APP_WIDTH_MIN = 350;
 export type DragonT = {
   id: number;
   address: string

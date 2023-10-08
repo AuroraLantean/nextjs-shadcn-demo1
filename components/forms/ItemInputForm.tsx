@@ -13,6 +13,7 @@ import { zustandSchema } from '@/lib/validators';
 import { cn } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { APP_WIDTH_MIN } from '@/constants/site_data';
 
 type Props = {}
 
@@ -59,7 +60,7 @@ const ItemInputForm = (props: Props) => {
     }
   }
   return (
-    <Card className="w-[370px]">
+    <Card className={`w-[${APP_WIDTH_MIN}px] mr-5 mb-5`}>
       <CardHeader>
         <CardTitle>ItemInputForm: Zustand State Management</CardTitle>
       </CardHeader>
@@ -183,11 +184,8 @@ const ItemInputForm = (props: Props) => {
           </form>
         </Form>
 
-
-
       </CardContent>
     </Card>
-
   )
 }
 

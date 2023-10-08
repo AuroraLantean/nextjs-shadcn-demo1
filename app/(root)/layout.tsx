@@ -11,8 +11,8 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ['latin'] }); // font
 
 export const metadata = {
-  title: 'Threads',
-  description: 'A NextJs 13 meta thread app'
+  title: 'NextJs 13',
+  description: 'A NextJs 13 app'
 }
 
 export default function RootLayout({

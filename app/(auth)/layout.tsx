@@ -9,8 +9,8 @@ import { Toaster } from "@/components/ui/toaster";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Auth",
-  description: "A NextJs 13 meta thread app",
+  title: "NextJs 13 App: Auth",
+  description: "A NextJs 13 app",
 };
 
 export default function RootLayout({
