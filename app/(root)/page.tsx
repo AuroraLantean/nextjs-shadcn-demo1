@@ -7,6 +7,7 @@ import ItemInputForm from "@/components/forms/ItemInputForm";
 
 import StateOutput from "@/components/stateOutput";
 import StateInput from "@/components/stateInput";
+import StoreInteraction from "@/components/storeInteraction";
 
 async function HomePage() {
 
@@ -22,10 +23,11 @@ async function HomePage() {
       <h1 className="head-text text-left">HomePage</h1>
       <CarouselDraggable />
       <Separator className="my-2" />
-      <div className="flex">
+      <div className="flex flex-wrap">
         <ItemInputForm />
         <StateOutput />
         <StateInput />
+        <StoreInteraction />
       </div>
     </>
   )

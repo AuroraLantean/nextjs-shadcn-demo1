@@ -2,7 +2,7 @@ import { createSelectors } from '@/lib/utils';
 import { ItemT } from '@/types'
 import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
-import { devtools, persist } from 'zustand/middleware';
+import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 //Store State interface
 type ItemsStoreT = {
   totalNum: number;
@@ -27,7 +27,7 @@ type ItemsStoreT = {
 }
 
 //Zustand Store can contain primitives, objects, functions. State has to be updated immutably and the set function merges state to help it. immer
-export const useItemsStore = createSelectors(createWithEqualityFn<ItemsStoreT>()(immer(devtools(persist((set, get) => ({
+export const useItemsStore = createSelectors(createWithEqualityFn<ItemsStoreT>()(immer(devtools(subscribeWithSelector(persist((set, get) => ({
   obj: { num1: 0, num2: 0 },
   objSum: 0,
   addObjNum1: (by: number) => set((state) => {
@@ -81,11 +81,12 @@ export const useItemsStore = createSelectors(createWithEqualityFn<ItemsStoreT>()
           Object.entries(state).filter(([key]) => !["excluded1","excluded2"].includes(key))
         ),
  */
-}), {
+})), {
   enabled: true,
   name: "ReduxTool item store",
 }
-))));
+)
+)));
 /*without immer
   addObjNum1: (by: number) => set((state) => ({
     obj: {

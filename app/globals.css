@@ -160,10 +160,10 @@
 }
 
 .primary-color {
-  @apply !bg-primary text-foreground;
+  @apply !bg-primary !text-white;
 }
 .destructive-color {
-  @apply !bg-destructive text-foreground;
+  @apply !bg-destructive !text-white;
 }
 .radio-item {
   @apply flex items-center space-x-1 space-y-0 mr-2 mb-2;

@@ -31,13 +31,13 @@ const StateInput = (props: Props) => {
     useItemsStore.persist.clearStorage();
   }
   return (
-    <div>
-      StateInput - Accessing Partial State
+    <div className=''>
+      <p>StateInput - Accessing Partial State</p>
       <p>{isClient ? Math.random() : 0}</p>
       <Button className='primary-color m-2' onClick={() => { addObjNum1(1.1); sumObj(); }}>AddObjNum1</Button>
-      <Button className='primary-color' onClick={() => { addObjNum2(0.3); sumObj(); }}>AddObjNum2</Button>
+      <Button className='primary-color m-2' onClick={() => { addObjNum2(0.3); sumObj(); }}>AddObjNum2</Button>
 
-      <Button className='destructive-color' onClick={clearStorage}>Clear Storage</Button>
+      <Button className='destructive-color m-2' onClick={clearStorage}>Clear Storage</Button>
 
     </div>
   )
