@@ -7,7 +7,7 @@ import ItemInputForm from "@/components/forms/ItemInputForm";
 
 import StateOutput from "@/components/stateOutput";
 import StateInput from "@/components/stateInput";
-import StoreInteraction from "@/components/storeInteraction";
+import CouponDiv from "@/components/couponDiv";
 
 async function HomePage() {
 
@@ -27,7 +27,7 @@ async function HomePage() {
         <ItemInputForm />
         <StateOutput />
         <StateInput />
-        <StoreInteraction />
+        <CouponDiv />
       </div>
     </>
   )

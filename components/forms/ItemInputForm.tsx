@@ -1,7 +1,7 @@
 "use client"
 import React from 'react'
 import { Button } from '../ui/button';
-import { useItemsStore } from '@/store/store';
+import { addNum, addObjNum1, addObjNum2, setNum, subNum, sumObj, useObjStore } from '@/store/obj';
 import { Input } from '../ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Label } from "@/components/ui/label"
@@ -19,7 +19,7 @@ type Props = {}
 
 const ItemInputForm = (props: Props) => {
   const { toast } = useToast();
-  const { totalNum, addNum, substractNum, setNum, resetNum, obj, addObjNum1, addObjNum2, sumObj, objSum, items, setItems, addVotes, refreshItems } = useItemsStore(
+  const { totalNum, obj, objSum } = useObjStore(
     (state) => state
   );
   console.log("ItemInputForm...")
@@ -45,12 +45,12 @@ const ItemInputForm = (props: Props) => {
     });
     if (data.enum1 === "add") {
       addNum(Number(data.floatNum1))
-    } else if (data.enum1 === "remove") {
-      substractNum(Number(data.floatNum1));
-    } else if (data.enum1 === "update") {
+    } else if (data.enum1 === "substract") {
+      subNum(Number(data.floatNum2));
+    } else if (data.enum1 === "set") {
       setNum(Number(data.floatNum1));
-    } else if (data.enum1 === "delete") {
-      resetNum();
+    } else if (data.enum1 === "reset") {
+      setNum(0);
     } else if (data.enum1 === "addObjNum1") {
       addObjNum1(Number(data.floatNum1));
       sumObj()
@@ -96,28 +96,28 @@ const ItemInputForm = (props: Props) => {
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="update" />
+                            <RadioGroupItem value="substract" />
                           </FormControl>
                           <FormLabel>
-                            Update
+                            Substract
                           </FormLabel>
                         </FormItem>
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="remove" />
+                            <RadioGroupItem value="set" />
                           </FormControl>
                           <FormLabel>
-                            Remove
+                            Set
                           </FormLabel>
                         </FormItem>
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="delete" />
+                            <RadioGroupItem value="reset" />
                           </FormControl>
                           <FormLabel>
-                            Delete
+                            Reset
                           </FormLabel>
                         </FormItem>
 

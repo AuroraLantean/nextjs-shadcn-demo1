@@ -1,22 +1,36 @@
-import { create } from "zustand";
-import { subscribeWithSelector } from "zustand/middleware";
+//import { create } from "zustand";
+import { createWithEqualityFn } from 'zustand/traditional'
+import { devtools, persist, subscribeWithSelector } from "zustand/middleware";
 
-type CouponStoreT = {
-  totalCoupon: number;
-  addCoupon: (by: number) => void;
-  substractCoupon: (by: number) => void;
-  setCoupon: (by: number) => void;
+const initialCouponValue = {
+  totalCoupon: 0,
+}
+export const useCouponStore = createWithEqualityFn<typeof initialCouponValue>()(devtools(subscribeWithSelector(persist(() => initialCouponValue, {
+  name: "LocalStorage Coupon store"
+})), {
+  name: "ReduxTool Coupon store",
+}));
+
+//extracting functions out of stores
+export const addCoupon = (by: number) => {
+  useCouponStore.setState((state) => ({
+    totalCoupon: state.totalCoupon + by,
+  }));
+}
+export const subCoupon = (by: number) => {
+  useCouponStore.setState((state) => ({
+    totalCoupon: state.totalCoupon - by,
+  }));
+}
+export const setCoupon = (by: number) => {
+  useCouponStore.setState((state) => ({
+    totalCoupon: by,
+  }));
 }
 
-export const useCouponStore = create<CouponStoreT>()(subscribeWithSelector((set) => ({
-  totalCoupon: 0,
-  addCoupon: (by: number) => set((state) => ({
-    totalCoupon: state.totalCoupon + by
-  })),
-  substractCoupon: (by: number) => set((state) => ({
-    totalCoupon: state.totalCoupon - by
-  })),
-  setCoupon: (by: number) => set((state) => ({
-    totalCoupon: by
-  })),
-})));
+export const clearStorage = (): void => {
+  useCouponStore.setState((state) => ({
+    totalCoupon: 0,
+  }));
+  useCouponStore.persist.clearStorage();
+}

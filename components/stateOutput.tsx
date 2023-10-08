@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { shallow, useShallow } from 'zustand/shallow'
-import { useItemsStore } from '@/store/store';
+import { useObjStore } from '@/store/obj';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { useCouponStore } from '@/store/coupon';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
@@ -10,13 +10,13 @@ type Props = {}
 
 //select multi states to reduce rerendering
 const StateOutput = (props: Props) => {
-  const { totalNum, objSum, num1, num2 } = useItemsStore(
+  const { totalNum, objSum, num1, num2 } = useObjStore(
     useShallow((state) => ({ totalNum: state.totalNum, objSum: state.objSum, num1: state.obj.num1, num2: state.obj.num2 }))
   )
-  //const totalNum = useItemsStore((state) => state.totalNum);
+  //const totalNum = useObjStore((state) => state.totalNum);
 
   const [isClient, setIsClient] = useState(false)
-  const [style1, setStyle1] = useState("");
+  const [style1, setStyle1] = useState(useCouponStore.getState().totalCoupon >= totalNum ? "text-green-600" : "text-red-600");
   /*const totalDicount = useCouponStore((state) => state.totalCoupon);//causing this compo to rerender!
   console.log("a.", totalDicount);
   let style = totalDicount > 3 ? 'text-green-600' : 'text-red-600';
@@ -24,13 +24,9 @@ const StateOutput = (props: Props) => {
   useEffect(() => {
     setIsClient(true);
     const unsub = useCouponStore.subscribe((state) => state.totalCoupon, (totalCoupon, prevCoupon) => {
-      console.log(prevCoupon, totalCoupon);
+      console.log("StateOutput...", prevCoupon, totalCoupon, totalNum);
 
-      if (prevCoupon == totalCoupon) {
-        if (totalCoupon >= totalNum) { setStyle1("text-green-600"); } else { setStyle1("text-red-600"); }
-      }
-
-      if (prevCoupon < totalNum && totalCoupon >= totalNum) { setStyle1("text-green-600"); } else if (prevCoupon >= totalNum && totalCoupon < totalNum) { setStyle1("text-red-600"); }
+      if (totalNum > totalCoupon) { setStyle1("text-red-600") } else { setStyle1("text-green-600") }
     }, {
       equalityFn: shallow,
       fireImmediately: true,//at 1st time to run above
@@ -41,7 +37,7 @@ const StateOutput = (props: Props) => {
     });*/
     return unsub;//to unsubscribe it when leaving this component
   }, [totalNum])
-  //const { obj: { num1, num2 } } = useItemsStore();
+  //const { obj: { num1, num2 } } = useObjStore();
 
   return (
     <Card className={`w-[${APP_WIDTH_MIN}px] mr-5 mb-5`}>
@@ -50,7 +46,7 @@ const StateOutput = (props: Props) => {
       </CardHeader>
       <CardContent>
         <p>{isClient ? Math.random() : 0}</p>
-        <p className={style1}>HaveCoupon?</p>
+        <p className={style1}>Have Enough Coupon?</p>
         <p>totalCoupon: na</p>
         <p>TotalNum: {totalNum}</p>
         <p>TotalObjNum: {objSum}</p>
