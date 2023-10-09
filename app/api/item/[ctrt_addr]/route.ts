@@ -1,4 +1,4 @@
-import { ItemT } from "@/types"
+import { BoxT } from "@/types"
 import { NextResponse } from "next/server"
 
 const DATA_SOURCE_URL = "http://localhost:8080"
@@ -8,9 +8,9 @@ export async function GET(req: Request) {
 
   const res = await fetch(`${DATA_SOURCE_URL}/${id}`)
 
-  const item: ItemT = await res.json()
+  const box: BoxT = await res.json()
 
-  if (!item.item_id) return NextResponse.json({ "message": "Todo not found" })
+  if (!box.id) return NextResponse.json({ "message": "Todo not found" })
 
-  return NextResponse.json(item)
+  return NextResponse.json(box)
 }
