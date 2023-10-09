@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import BoxCard from './cards/BoxCard';
 import { useBoxStore } from '@/store/objArray';
-import { useShallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow'
 type Props = {}
 
 const TableRows = (props: Props) => {
