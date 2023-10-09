@@ -6,7 +6,7 @@ const initialCouponValue = {
   totalCoupon: 0,
 }
 export const useCouponStore = createWithEqualityFn<typeof initialCouponValue>()(devtools(subscribeWithSelector(persist(() => initialCouponValue, {
-  name: "LocalStorage Coupon store"
+  name: "Coupon store"
 })), {
   name: "ReduxTool Coupon store",
 }));
@@ -28,9 +28,8 @@ export const setCoupon = (by: number) => {
   }));
 }
 
-export const clearStorage = (): void => {
+export const resetCouponStorage = (): void => {
   useCouponStore.setState((state) => ({
     totalCoupon: 0,
   }));
-  useCouponStore.persist.clearStorage();
 }

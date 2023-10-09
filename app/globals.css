@@ -160,10 +160,13 @@
 }
 
 .primary-color {
-  @apply !bg-primary !text-white;
+  @apply !bg-primary !text-slate-300;
+}
+.secondary500-color {
+  @apply !bg-secondary-500 !text-black;
 }
 .destructive-color {
-  @apply !bg-destructive !text-white;
+  @apply !bg-destructive !text-slate-300;
 }
 .radio-item {
   @apply flex items-center space-x-1 space-y-0 mr-2 mb-2;

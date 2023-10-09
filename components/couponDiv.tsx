@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { Button } from './ui/button';
-import { addCoupon, clearStorage, setCoupon, subCoupon, useCouponStore } from '@/store/coupon';
+import { addCoupon, resetCouponStorage, setCoupon, subCoupon, useCouponStore } from '@/store/coupon';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 
 type Props = {}
@@ -16,6 +16,8 @@ const CouponDiv = (props: Props) => {
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
+    //resetCouponStorage(); defeat purpose
+    //useCouponStore.persist.clearStorage();
   }, [])
 
 
@@ -30,7 +32,7 @@ const CouponDiv = (props: Props) => {
 
       <Button className='primary-color m-2' onClick={() => { addCoupon(5) }}>Add 5 Coupons</Button>
 
-      <Button className='destructive-color m-2' onClick={clearStorage}>Clear Storage</Button>
+      <Button className='destructive-color m-2' onClick={resetCouponStorage}>Clear Storage</Button>
 
     </div>
   )

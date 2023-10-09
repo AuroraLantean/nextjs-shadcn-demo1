@@ -1,11 +1,16 @@
 export type BoxT = {
-  boxId: string;
-  seller_id: string;
+  id: number;
   title: string;
-  img_url: string;
+  available: number;
+  total: number;
+  interest: number;
+  compo_addr: string;
+  status: string;
+  detail_link: string;
+  img_link: string;
+  seller_id: string;
   fixed_price: number;
   min_price: number;
   bid_price: number;
   votes: number;
-  status: string;
 }

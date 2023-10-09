@@ -20,7 +20,7 @@ const makeObjSlice: StateCreator<typeof initialState, [
 
 //Zustand Store can contain primitives, objects, functions. State has to be updated immutably and the set function merges state to help it. immer
 export const useObjStore = createSelectors(createWithEqualityFn<typeof initialState>()(immer(devtools(subscribeWithSelector(persist(makeObjSlice, {
-  name: "Localstorage Obj store",
+  name: "Obj store",
   //storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
   partialize: (state) => ({ obj: state.obj, objSum: state.objSum }),
   /*partialize: (state) =>
@@ -49,12 +49,11 @@ export const sumObj = () => {
     objSum: state.obj.num1 + state.obj.num2,
   }));
 }
-export const resetMemState = () => {
+export const resetObjNumMemState = () => {
   useObjStore.setState((state) => ({
     obj: { num1: 0, num2: 0 },
     objSum: 0,
     totalNum: 0,
-    Objs: [],
   }));
 }
 export const addNum = (by: number) => {

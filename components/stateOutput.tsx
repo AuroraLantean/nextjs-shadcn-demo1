@@ -5,6 +5,7 @@ import { useObjStore } from '@/store/obj';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { useCouponStore } from '@/store/coupon';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
+import { useBoxStore } from '@/store/objArray';
 
 type Props = {}
 
@@ -12,8 +13,7 @@ type Props = {}
 const StateOutput = (props: Props) => {
   const { totalNum, objSum, num1, num2 } = useObjStore(
     useShallow((state) => ({ totalNum: state.totalNum, objSum: state.objSum, num1: state.obj.num1, num2: state.obj.num2 }))
-  )
-  //const totalNum = useObjStore((state) => state.totalNum);
+  )//const totalNum = useObjStore((state) => state.totalNum);
 
   const [isClient, setIsClient] = useState(false)
   const [style1, setStyle1] = useState(useCouponStore.getState().totalCoupon >= totalNum ? "text-green-600" : "text-red-600");
@@ -51,6 +51,7 @@ const StateOutput = (props: Props) => {
         <p>TotalNum: {totalNum}</p>
         <p>TotalObjNum: {objSum}</p>
         <p>Obj num1:{num1}, num2: {num2}</p>
+
       </CardContent>
     </Card>
   )

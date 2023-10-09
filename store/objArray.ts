@@ -34,8 +34,8 @@ const makeBoxSlice: StateCreator<BoxesStoreT, [
 });
 
 //Zustand Store can contain primitives, objects, functions. State has to be updated immutably and the set function merges state to help it. immer
-export const useBoxesStore = createSelectors(createWithEqualityFn<BoxesStoreT>()(immer(devtools(subscribeWithSelector(persist(makeBoxSlice, {
-  name: "Localstorage Box store",
+export const useBoxStore = createSelectors(createWithEqualityFn<BoxesStoreT>()(immer(devtools(subscribeWithSelector(persist(makeBoxSlice, {
+  name: "Box store",
   //storage: createJSONStorage(() => sessionStorage), // (optional) by default, 'localStorage' is used
   //partialize: (state) => ({ obj: state.obj, objSum: state.objSum }),
   /*partialize: (state) =>
@@ -50,42 +50,41 @@ export const useBoxesStore = createSelectors(createWithEqualityFn<BoxesStoreT>()
 )));
 //extracting functions out of stores
 export const addBox = (box: BoxT) => {
-  useBoxesStore.setState((state) => ({
+  console.log("addBox...")
+  useBoxStore.setState((state) => ({
     boxes: [...state.boxes, box],
     totalLength: state.totalLength + 1,
   }));
 }
 export const deleteBox = (boxId: string) => {
-  useBoxesStore.setState((state) => ({
-    boxes: state.boxes.filter(box => box.boxId !== boxId),
+  useBoxStore.setState((state) => ({
+    boxes: state.boxes.filter(box => box.id + "" !== boxId),
     totalLength: state.totalLength - 1,
   }));
 }
-export const updateBox = (boxId: string, title: string, img_url: string, fixed_price: number, min_price: number, bid_price: number, votes: number, status: string) => {
-  useBoxesStore.setState((state) => ({
+export const updateBox = (boxNew: BoxT) => {
+  useBoxStore.setState((state) => ({
     boxes: state.boxes.map(box =>
-      box.boxId === boxId ? {
-        title, img_url, fixed_price, min_price, bid_price, votes, status,
+      box.id === boxNew.id ? {
+        ...boxNew
       } : box
     )
   }));
 }
 export const addVotes = (boxId: string) => {
-  const oldBoxes = useBoxesStore.getState().boxes;
-  const updatedBoxes = oldBoxes.map((box) => {
-    if (box.boxId === boxId) return { ...box, votes: box.votes + 1 };
-    return box;
-  });
-  useBoxesStore.setState((state) => ({
+  const oldBoxes = useBoxStore.getState().boxes;
+  const updatedBoxes = oldBoxes.map((box) =>
+    box.id + "" === boxId ? { ...box, votes: box.votes + 1 } : box);
+  useBoxStore.setState((state) => ({
     boxes: updatedBoxes
   }));
 }
 export const findBox = (boxId: string) => {
-  return useBoxesStore.getState().boxes.find(box => box.boxId === boxId)
+  return useBoxStore.getState().boxes.find(box => box.id + "" === boxId)
 }
 
-export const resetMemState = () => {
-  useBoxesStore.setState((state) => ({
+export const resetObjArrMemState = () => {
+  useBoxStore.setState((state) => ({
     totalLength: 0,
     boxes: [],
   }));

@@ -8,9 +8,10 @@ import ItemInputForm from "@/components/forms/ItemInputForm";
 import StateOutput from "@/components/stateOutput";
 import StateInput from "@/components/stateInput";
 import CouponDiv from "@/components/couponDiv";
+import TableRows from "@/components/tableRows";
 
 async function HomePage() {
-
+  console.log("HomePage")
   //const result = await fetchPosts(1, 30);
   /*const result = await fetchPosts(
     searchParams.page ? +searchParams.page : 1,
@@ -28,6 +29,7 @@ async function HomePage() {
         <StateOutput />
         <StateInput />
         <CouponDiv />
+        <TableRows />
       </div>
     </>
   )
