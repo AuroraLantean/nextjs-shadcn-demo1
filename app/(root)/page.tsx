@@ -9,8 +9,9 @@ import StateOutput from "@/components/stateOutput";
 import StateInput from "@/components/stateInput";
 import CouponDiv from "@/components/couponDiv";
 import TableRows from "@/components/tableRows";
+import DbInputForm from "@/components/forms/DbInputForm";
 
-async function HomePage() {
+export default async function HomePage() {
   console.log("HomePage")
   //const result = await fetchPosts(1, 30);
   /*const result = await fetchPosts(
@@ -25,6 +26,7 @@ async function HomePage() {
       <CarouselDraggable />
       <Separator className="my-2" />
       <div className="flex flex-wrap">
+        <DbInputForm />
         <ItemInputForm />
         <StateOutput />
         <StateInput />
@@ -34,11 +36,8 @@ async function HomePage() {
     </>
   )
 }
-// 
 //      <StateOutput />
 //      <UserButton afterSignOutUrl="/" />
-
-export default HomePage;
 /**<HorizontalScrollCarousel />
       <div className="border-2">
         <div className="h-full px-4 py-6 lg:px-8">

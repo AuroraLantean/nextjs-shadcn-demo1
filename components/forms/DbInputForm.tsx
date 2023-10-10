@@ -1,7 +1,6 @@
 "use client"
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from '../ui/button';
-import { addNum, addObjNum1, addObjNum2, setNum, subNum, sumObj, useObjStore } from '@/store/obj';
 import { Input } from '../ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Label } from "@/components/ui/label"
@@ -9,60 +8,94 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { zustandSchema } from '@/lib/validators';
-import { cn } from '@/lib/utils';
+import { dbInputSchema } from '@/lib/validators';
+import { cn, parseFloatSafe } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
+import { addOne, addOrUpdateOne, deleteAll, deleteOne, findOne, findAll } from '@/lib/actions/box.actions';
+import BoxCard from '../cards/BoxCard';
 
 type Props = {}
 
-const ItemInputForm = (props: Props) => {
+const DbInputForm = (props: Props) => {
   const { toast } = useToast();
-  const { totalNum, obj, objSum } = useObjStore(
-    (state) => state
-  );
-  console.log("ItemInputForm...")
-  type Input = z.infer<typeof zustandSchema>;
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  console.log("DbInputForm...")
+  type Input = z.infer<typeof dbInputSchema>;
   const form = useForm<Input>({
-    resolver: zodResolver(zustandSchema),
+    resolver: zodResolver(dbInputSchema),
     defaultValues: {
-      enum1: "add",
-      floatNum1: "",
-      floatNum2: "",
+      enum1: "findAll",
+      id: "",
+      title: "",
+      total: "",
+      //floatNum2: "",
     },
   });
-  function onSubmit(data: Input) {
+  async function onSubmit(data: Input) {
     //alert(JSON.stringify(data, null, 4));
     console.log(data);
-    toast({
+    /*toast({
       title: "submitted values:",
       description: (
         <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
           <code className="text-white">{JSON.stringify(data, null, 2)}</code>
         </pre>
       ),
-    });
-    if (data.enum1 === "add") {
-      addNum(Number(data.floatNum1))
-    } else if (data.enum1 === "substract") {
-      subNum(Number(data.floatNum2));
-    } else if (data.enum1 === "set") {
-      setNum(Number(data.floatNum1));
-    } else if (data.enum1 === "reset") {
-      setNum(0);
-    } else if (data.enum1 === "addObjNum1") {
-      addObjNum1(Number(data.floatNum1));
-      sumObj()
-    } else if (data.enum1 === "addObjNum2") {
-      addObjNum2(Number(data.floatNum2));
-      sumObj()
+    });*/
+    let out = null;
+    const total = parseFloatSafe(data.total);
+
+    if (data.enum1 === "findAll") {
+      out = await findAll();
+
+    } else if (data.enum1 === "findOne") {
+      if (data.id) {
+        out = await findOne(data.id)
+        if (out === null) out = "not found"
+      } else {
+        console.log("data.id does not exist")
+        out = "data.id does not exist";
+      }
+    } else if (data.enum1 === "addOrUpdateOne") {
+      //if (data.id) {
+      const input = { id: data.id, title: data.title, total };
+      //out = await findOne(data.id)
+      //outUpdated = { ...out, title: data.title, total: data.total}
+      //await outUpdated.save();
+      out = await addOrUpdateOne(input)
+      // } else {
+      //   const input = { title: data.title, total };
+      //   out = await addOne(input)
+      // }
+    } else if (data.enum1 === "deleteOne") {
+      if (data.id) {
+        out = await deleteOne(data.id)
+      } else {
+        out = "data.id does not exist";
+      }
+    } else if (data.enum1 === "deleteAll") {
+      out = await deleteAll()
     }
+    console.log("out:", out)
+    toast({
+      title: "result:",
+      description: (
+        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
+          <code className="text-white">{JSON.stringify(out, null, 2)}</code>
+        </pre>
+      ),
+    });
   }
   return (
     <Card className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <CardHeader>
-        <CardTitle>ItemInputForm: Zustand State Management</CardTitle>
+        <CardTitle>DbInputForm: Server State Management</CardTitle>
       </CardHeader>
       <CardContent>
 
@@ -87,57 +120,49 @@ const ItemInputForm = (props: Props) => {
                       <div className='flex flex-wrap'>
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="add" />
+                            <RadioGroupItem value="addOrUpdateOne" />
                           </FormControl>
                           <FormLabel>
-                            Add
+                            AddOrUpdateOne
                           </FormLabel>
                         </FormItem>
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="substract" />
+                            <RadioGroupItem value="findAll" />
                           </FormControl>
                           <FormLabel>
-                            Substract
+                            FindAll
                           </FormLabel>
                         </FormItem>
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="set" />
+                            <RadioGroupItem value="findOne" />
                           </FormControl>
                           <FormLabel>
-                            Set
+                            FindOne
                           </FormLabel>
                         </FormItem>
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="reset" />
+                            <RadioGroupItem value="deleteOne" />
                           </FormControl>
                           <FormLabel>
-                            Reset
+                            DeleteOne
                           </FormLabel>
                         </FormItem>
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="addObjNum1" />
+                            <RadioGroupItem value="deleteAll" />
                           </FormControl>
                           <FormLabel>
-                            AddObjNum1
+                            DeleteAll
                           </FormLabel>
                         </FormItem>
 
-                        <FormItem className="radio-item">
-                          <FormControl>
-                            <RadioGroupItem value="addObjNum2" />
-                          </FormControl>
-                          <FormLabel>
-                            AddObjNum2
-                          </FormLabel>
-                        </FormItem>
                       </div>
 
                     </RadioGroup>
@@ -147,31 +172,49 @@ const ItemInputForm = (props: Props) => {
               )}
             />
 
-            {/* floatNum1 */}
+            {/* id */}
             <FormField
               control={form.control}
-              name="floatNum1"
+              name="id"
               render={({ field }) => (
                 <FormItem>
-                  <h3>Float Input1</h3>
+                  <h3>Id</h3>
                   <FormControl>
-                    <Input placeholder="Enter a float input..." {...field} />
+                    <Input placeholder="Enter id" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* floatNum2 */}
+            {/* title */}
             <FormField
               control={form.control}
-              name="floatNum2"
+              name="title"
               render={({ field }) => (
                 <FormItem>
-                  <h3>Float Input2</h3>
+                  <h3>Title</h3>
                   <FormControl>
                     <Input
-                      placeholder="Enter a float number..."
+                      placeholder="Enter title..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* total */}
+            <FormField
+              control={form.control}
+              name="total"
+              render={({ field }) => (
+                <FormItem>
+                  <h3>Total</h3>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter total..."
                       {...field}
                     />
                   </FormControl>
@@ -190,4 +233,4 @@ const ItemInputForm = (props: Props) => {
 }
 
 //  <div className="flex flex-row space-y-1">
-export default ItemInputForm;
+export default DbInputForm;

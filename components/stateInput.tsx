@@ -52,7 +52,7 @@ const StateInput = (props: Props) => {
   }
 
   return (
-    <div className={`w-[${APP_WIDTH_MIN}px] mr-5 mb-5`}>
+    <div className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <p>StateInput - Accessing Partial State</p>
       <p>{isClient ? Math.random() : 0}, boxVotes: {box3votes}</p>
       <Button className='primary-color m-2' onClick={() => addNum(1.1)}>AddNum</Button>

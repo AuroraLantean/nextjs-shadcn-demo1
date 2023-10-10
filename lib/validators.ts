@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const dbInputSchema = z.object({
+  enum1: z.enum(["addOrUpdateOne", "findAll", "findOne", "deleteOne", "deleteAll"], {
+    required_error: "You need to select one radio selection",
+  }),
+  id: z.string().optional(),
+  title: z.string().optional(),
+  total: z.string().optional(),
+});
+
 export const zustandSchema = z.object({
   enum1: z.enum(["add", "substract", "set", "reset", "addObjNum1", "addObjNum2"], {
     required_error: "You need to select one radio selection",

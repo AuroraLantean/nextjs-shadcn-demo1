@@ -22,7 +22,7 @@ const CouponDiv = (props: Props) => {
 
 
   return (
-    <div className={`w-[${APP_WIDTH_MIN}px] mr-5 mb-5`}>
+    <div className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <p>CouponDiv</p>
       <p>{isClient ? Math.random() : 0}</p>
       <p>Total Coupon: {totalCoupon}</p>

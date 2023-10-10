@@ -1,3 +1,4 @@
+import { fail } from "assert";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { StoreApi, UseBoundStore } from 'zustand'
@@ -57,4 +58,12 @@ export function formatThreadCount(count: number): string {
     const threadWord = count === 1 ? "Thread" : "Threads";
     return `${threadCount} ${threadWord}`;
   }
+}
+
+export const parseFloatSafe = (f: any) => {
+  const out = Number.parseFloat(f);
+  if (Number.isNaN(out)) {
+    return 0;
+  }
+  return out;
 }

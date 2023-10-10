@@ -1,4 +1,4 @@
-import { BoxT } from "@/types"
+import { BoxT } from "@/lib/models/box.model"
 import { NextResponse } from "next/server"
 
 const DATA_SOURCE_URL = "http://localhost:8080"

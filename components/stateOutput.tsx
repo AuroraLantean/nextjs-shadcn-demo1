@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react'
 import { shallow } from 'zustand/shallow'
 import { useShallow } from 'zustand/react/shallow'
-
 import { useObjStore } from '@/store/obj';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { useCouponStore } from '@/store/coupon';
@@ -42,7 +41,7 @@ const StateOutput = (props: Props) => {
   //const { obj: { num1, num2 } } = useObjStore();
 
   return (
-    <Card className={`w-[${APP_WIDTH_MIN}px] mr-5 mb-5`}>
+    <Card className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <CardHeader>
         <CardTitle>StateOutput - Accessing Partial State</CardTitle>
       </CardHeader>

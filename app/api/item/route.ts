@@ -1,6 +1,6 @@
-import { BoxT } from '@/types'
 import { NextResponse } from 'next/server'
 import box_data from '@/mockdata/box_data.json'
+import { BoxT } from '@/lib/models/box.model';
 
 const delayFunc = (delay: number): Promise<boolean> => new Promise((resolve, reject) => setTimeout(() => {
   console.log("delay:", delay);
@@ -8,7 +8,7 @@ const delayFunc = (delay: number): Promise<boolean> => new Promise((resolve, rej
 }, delay))
 
 const mockResponse = () => {
-  const box = { "id": 7, "title": "integer", "seller_id": "9nXgU0GWjowSDQfR", "available": 74, "total": 292, "status": "open", "detail_link": "http://angelfire.com/tristique/tortor.js", "img_link": "http://dummyimage.com/209x119.png/5fa2dd/ffffff", "compo_addr": "1MMjjVKgYv5FovSXGz1VMkmnyM4QsHvzKs", "interest": 13.94, "fixed_price": 428.14, "min_price": 382.18, "bid_price": 179.7, "votes": 47 };
+  const box = { "id": "7", "title": "integer", "seller_id": "9nXgU0GWjowSDQfR", "available": 74, "total": 292, "status": "open", "detail_link": "http://angelfire.com/tristique/tortor.js", "img_link": "http://dummyimage.com/209x119.png/5fa2dd/ffffff", "compo_addr": "1MMjjVKgYv5FovSXGz1VMkmnyM4QsHvzKs", "interest": 13.94, "fixed_price": 428.14, "min_price": 382.18, "bid_price": 179.7, "votes": 47 };
   //console.log(box_data[0])
   const myBlob = new Blob([JSON.stringify(box, null, 2)], { type: 'application/json' });
 
@@ -17,12 +17,16 @@ const mockResponse = () => {
   return res;
 }
 //http://localhost:3000/api/item/
-export const GET = async () => {
-  //const res = await fetch(DATA_SOURCE_URL)
-  //const boxes: BoxT[] = await res.json()
-  let boxes: BoxT[];
-  await delayFunc(1000)
-  boxes = box_data;
+export async function GET() {
+  /*Frontend code:
+  const res = await fetch(DATA_SOURCE_URL)
+    if (!res.ok) {
+      throw new Error(`error status: ${res.status}`);
+    }
+  const boxes: BoxT[] = await res.json()
+  */
+  await delayFunc(1000);
+  const boxes: BoxT[] = box_data;
   return NextResponse.json(boxes)
 }
 
@@ -34,7 +38,8 @@ export async function POST(request: Request) {
 
   await delayFunc(1000);
   const res = mockResponse()
-  /*const res = await fetch(DATA_SOURCE_URL, {
+  /*Frontend code:
+  const res = await fetch(DATA_SOURCE_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -44,7 +49,10 @@ export async function POST(request: Request) {
       seller_id, title, status: false
     })
   })
-*/
+    if (!res.ok) {
+      throw new Error(`error status: ${res.status}`);
+    }
+  */
   const newTodo: BoxT = await res.json()
 
   return NextResponse.json(newTodo)
@@ -59,20 +67,22 @@ export async function PUT(request: Request) {
 
   await delayFunc(1000);
   const res = mockResponse()
-  /*const res = await fetch(`${DATA_SOURCE_URL}/${id}`, {
+  /*Frontend code:
+  const { id, ...rest } = updatedBox;
+  const res = await fetch(`${DATA_SOURCE_URL}/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       'API-Key': API_KEY
     },
-    body: JSON.stringify({
-      seller_id, title, status
-    })
-  })*/
-
-  const updatedTodo: BoxT = await res.json()
-
-  return NextResponse.json(updatedTodo)
+    body: JSON.stringify(rest)
+  })
+    if (!res.ok) {
+      throw new Error(`error status: ${res.status}`);
+    }
+  */
+  const updatedBox: BoxT = await res.json()
+  return NextResponse.json(updatedBox)
 }
 
 export async function DELETE(request: Request) {
@@ -83,13 +93,17 @@ export async function DELETE(request: Request) {
 
   await delayFunc(1000);
   const res = mockResponse()
-  /*await fetch(`${DATA_SOURCE_URL}/${id}`, {
+  /*Frontend code:
+  await fetch(`${DATA_SOURCE_URL}/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
       'API-Key': API_KEY
     }
-  })*/
-
+  })
+    if (!res.ok) {
+      throw new Error(`error status: ${res.status}`);
+    }
+  */
   return NextResponse.json({ "message": `BoxT ${id} deleted` })
 }

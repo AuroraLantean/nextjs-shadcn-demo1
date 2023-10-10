@@ -1,9 +1,9 @@
 import { createSelectors } from '@/lib/utils';
-import { BoxT } from '@/types'
 import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
 import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
+import { BoxT } from '@/lib/models/box.model';
 
 //extract functions from store itself...
 //const initialState = {}
@@ -58,7 +58,7 @@ export const addBox = (box: BoxT) => {
 }
 export const deleteBox = (boxId: string) => {
   useBoxStore.setState((state) => ({
-    boxes: state.boxes.filter(box => box.id + "" !== boxId),
+    boxes: state.boxes.filter(box => box.id !== boxId),
     totalLength: state.totalLength - 1,
   }));
 }
@@ -74,13 +74,13 @@ export const updateBox = (boxNew: BoxT) => {
 export const addVotes = (boxId: string) => {
   const oldBoxes = useBoxStore.getState().boxes;
   const updatedBoxes = oldBoxes.map((box) =>
-    box.id + "" === boxId ? { ...box, votes: box.votes + 1 } : box);
+    box.id === boxId ? { ...box, votes: box.votes + 1 } : box);
   useBoxStore.setState((state) => ({
     boxes: updatedBoxes
   }));
 }
 export const findBox = (boxId: string) => {
-  return useBoxStore.getState().boxes.find(box => box.id + "" === boxId)
+  return useBoxStore.getState().boxes.find(box => box.id === boxId)
 }
 
 export const resetObjArrMemState = () => {

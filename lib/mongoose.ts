@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 let isConnected = false;
 
-export const connectToDB = async () => {
+//Do not need to wait for this to connect. Mongoose will automatically do all your commands after it connects https://mongoosejs.com/docs/connections.html
+export const connectToDB = () => {
   console.log("connectToDB()...")
   mongoose.set('strictQuery', true);//prevent unknown field queries
 
@@ -19,8 +20,8 @@ export const connectToDB = async () => {
     const connStr = `mongodb+srv://${dbusername}:${dbpassword}@${process.env.MONGODB_URLX}`;
     console.log("connStr:", connStr);
 
-    await mongoose.connect(connStr, {
-      dbName: 'threads',
+    mongoose.connect(connStr, {
+      dbName: 'box',
       //useNewUrlParser: true,
       //useUnifiedTopology: true,
       //useCreateIndex: true,
@@ -28,7 +29,7 @@ export const connectToDB = async () => {
     isConnected = true;
     console.log("connectToDB() successful");
   } catch (error) {
-    console.log("Error:" + error);
+    console.log("connectToDB() error:", error);
   }
 
 }
