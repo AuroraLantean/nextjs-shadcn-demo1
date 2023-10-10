@@ -14,6 +14,12 @@ Then install this repository packages:
 pnpm install
 ```
 
+Notice to use v1.0.4 for Radix UI @radix-ui/react-dialog@1.0.4 and @radix-ui/react-alert-dialog@1.0.4 for the DialogPortalProp error:
+
+```bash
+pnpm add @radix-ui/react-alert-dialog@1.0.4
+```
+
 ## Run the application
 
 I use Bun to run the development because of its speed, but you should be able to use PNPM or NPM or Yarn to run it as well.
