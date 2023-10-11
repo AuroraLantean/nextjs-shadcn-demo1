@@ -57,7 +57,7 @@ export async function addOrUpdateOne(box: Partial<BoxT>) {
     const result = await Box.findOneAndUpdate(
       { id: box.id },
       { ...box },
-      { upsert: true, returnOriginal: false },//to insert if it does not exist, or update if it exist!
+      { upsert: true, returnOriginal: false },//to insert if it does not exist, or update if it exist! returnOriginal true to return old value
     );
     //https://nextjs.org/docs/app/api-reference/functions/revalidatePath ... to purge cached data on-demand for a specific path.
     /*if (path === '/profile/edit') {
@@ -65,7 +65,6 @@ export async function addOrUpdateOne(box: Partial<BoxT>) {
     }*/
     console.log("addOrUpdateOne() is successful. result:", result);
     return JSON.parse(JSON.stringify(result)) as BoxT;
-    //returns old value if updating
   } catch (error: any) {
     console.log('box.actions.ts: addOrUpdateOne() failed:', error);
     throw new Error('addOrUpdateOne: ${error.message}');

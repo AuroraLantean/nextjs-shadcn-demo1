@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import box_data from '@/mockdata/box_data.json'
 import { BoxT } from '@/lib/models/box.model';
+import z from 'zod';
+import { addOrUpdateOne, deleteOne, findAll } from '@/lib/actions/box.actions';
+import { Split } from 'lucide-react';
 
 const delayFunc = (delay: number): Promise<boolean> => new Promise((resolve, reject) => setTimeout(() => {
   console.log("delay:", delay);
@@ -17,93 +20,88 @@ const mockResponse = () => {
   return res;
 }
 //http://localhost:3000/api/item/
-export async function GET() {
-  /*Frontend code:
-  const res = await fetch(DATA_SOURCE_URL)
-    if (!res.ok) {
-      throw new Error(`error status: ${res.status}`);
-    }
-  const boxes: BoxT[] = await res.json()
-  */
-  await delayFunc(1000);
-  const boxes: BoxT[] = box_data;
-  return NextResponse.json(boxes)
+export async function GET(req: Request) {
+  console.log("🚀 GET")
+  const id = req.url.split('=')[1];
+  console.log("🚀 GET ~ id:", id);
+  try {
+    const boxes = await findAll();
+    //await delayFunc(1000);
+    //const boxes: BoxT[] = box_data;
+    return NextResponse.json({ boxes });// output will be data.boxes
+  } catch (err: any) {
+    if (err instanceof z.ZodError) return new Response(err.issues[0].message, { status: 422 });
+    return new Response(err.message, { status: 500 });
+  }
 }
 
-export async function POST(request: Request) {
-  const { seller_id, title }: Partial<BoxT> = await request.json()
-  console.log("🚀 POST ~ seller_id, title:", seller_id, title)
+export async function POST(req: Request) {
+  console.log("🚀 POST");
+  const body = await req.json();
+  console.log("🚀 POST ~ body:", body);
+  const box: Partial<BoxT> = body.box;
+  const { id, title, total } = box;
+  if (!id || !title || !total) return new Response("Missing required data", { status: 404 });
 
-  if (!seller_id || !title) return NextResponse.json({ "message": "Missing required data" })
-
-  await delayFunc(1000);
-  const res = mockResponse()
-  /*Frontend code:
-  const res = await fetch(DATA_SOURCE_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'API-Key': API_KEY
-    },
-    body: JSON.stringify({
-      seller_id, title, status: false
-    })
-  })
-    if (!res.ok) {
-      throw new Error(`error status: ${res.status}`);
-    }
-  */
-  const newTodo: BoxT = await res.json()
-
-  return NextResponse.json(newTodo)
+  try {
+    const newBox = await addOrUpdateOne(box);
+    return new Response("OK", { status: 200 })
+    //return NextResponse.json(newBox)
+    //await delayFunc(1000);
+    //const res = mockResponse()
+    //const newTodo: BoxT = await res.json()
+  } catch (err: any) {
+    if (err instanceof z.ZodError) return new Response(err.issues[0].message, { status: 422 });
+    return new Response(err.message, { status: 500 });
+  }
 }
 
-export async function PUT(request: Request) {
-  const { seller_id, id, title, status }: BoxT = await request.json()
-  console.log("🚀 PUT ~ seller_id, id, title, status:", seller_id, id, title, status)
+export async function PATCH(req: Request) {
+  console.log("PATCH");
+  //console.log("PATCH", req, req.url);
+  const body = await req.json();
+  console.log("body:", body)
+}
+export async function PUT(req: Request) {
+  console.log("PUT");
+  //console.log("PUT", req, req.url);
+  const body = await req.json();
+  console.log("🚀 POST ~ body:", body);
+  const box: Partial<BoxT> = body.box;
+  const { id, title, total } = box;
+
+  //const { seller_id, id, title, status }: BoxT = await req.json()
+  console.log("🚀 PUT ~ seller_id, id, title, status:", id, title, total)
 
   //|| typeof (status) !== 'boolean'
-  if (!seller_id || !id || !title) return NextResponse.json({ "message": "Missing required data" })
+  if (!total || !id || !title) return NextResponse.json({ message: "Missing required data" })
 
-  await delayFunc(1000);
-  const res = mockResponse()
-  /*Frontend code:
-  const { id, ...rest } = updatedBox;
-  const res = await fetch(`${DATA_SOURCE_URL}/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      'API-Key': API_KEY
-    },
-    body: JSON.stringify(rest)
-  })
-    if (!res.ok) {
-      throw new Error(`error status: ${res.status}`);
-    }
-  */
-  const updatedBox: BoxT = await res.json()
-  return NextResponse.json(updatedBox)
+  try {
+    const newBox = await addOrUpdateOne(box);
+    return new Response("OK", { status: 200 })
+    //await delayFunc(1000);
+    //const res = mockResponse()
+    //return NextResponse.json(updatedBox)
+  } catch (err: any) {
+    if (err instanceof z.ZodError) return new Response(err.issues[0].message, { status: 422 });
+    return new Response(err.message, { status: 500 });
+  }
 }
+//DELETE cannot get req body!
+export async function DELETE(req: Request) {
+  console.log("DELETE");
+  //console.log("DELETE", req, req.url);
+  const id = req.url.split('=')[1];
+  console.log("🚀 DELETE ~ id:", id);
 
-export async function DELETE(request: Request) {
-  const { id }: Partial<BoxT> = await request.json()
-  console.log("🚀 DELETE ~ id:", id)
+  if (!id) return NextResponse.json({ message: "box id required", status: 400 });
 
-  if (!id) return NextResponse.json({ "message": "BoxT id required" })
-
-  await delayFunc(1000);
-  const res = mockResponse()
-  /*Frontend code:
-  await fetch(`${DATA_SOURCE_URL}/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json',
-      'API-Key': API_KEY
-    }
-  })
-    if (!res.ok) {
-      throw new Error(`error status: ${res.status}`);
-    }
-  */
-  return NextResponse.json({ "message": `BoxT ${id} deleted` })
+  try {
+    await deleteOne(id)
+    return new Response("OK", { status: 200 })
+    //return NextResponse.json({ "message": `BoxT ${id} deleted` })
+  } catch (err: any) {
+    if (err instanceof z.ZodError) return new Response(err.issues[0].message, { status: 422 });
+    return new Response(err.message, { status: 500 });
+  }
 }

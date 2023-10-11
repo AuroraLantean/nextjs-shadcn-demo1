@@ -15,6 +15,8 @@ export type BoxT = {
   min_price: number;
   bid_price: number;
   votes: number;
+  __v?: number;
+  _id?: string;
 }
 
 //one box. default: false

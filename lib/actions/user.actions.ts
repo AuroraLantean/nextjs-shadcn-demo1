@@ -18,7 +18,7 @@ export async function updateUser({
   userId, username, name, bio, image, path
 }: Params): Promise<void> {
   console.log("updateUser()...");
-  await connectToDB();//WHY not await?
+  connectToDB();//WHY not await?
 
   //typo in the new user attributes will not trigger error!!!
   try {
@@ -46,9 +46,8 @@ export async function updateUser({
 }
 
 export async function fetchUser(userId: string) {
+  connectToDB();
   try {
-    await connectToDB();
-
     return await User.findOne({ id: userId })
     // .populate({
     //   path: 'communities',
@@ -61,9 +60,8 @@ export async function fetchUser(userId: string) {
 
 
 export async function fetchUserPosts(userId: string) {
+  connectToDB();
   try {
-    await connectToDB();
-
     // Find all threads authored by the user with the given userId
     const threads = await User.findOne({ id: userId }).populate({
       path: "threads",
@@ -107,9 +105,8 @@ export async function fetchUsers({
   pageSize?: number;
   sortBy?: SortOrder;
 }) {
-  try {
     connectToDB();
-
+  try {
     // Calculate the number of users to skip based on the page number and page size.
     const skipAmount = (pageNumber - 1) * pageSize;
 
@@ -153,9 +150,8 @@ export async function fetchUsers({
 }
 
 export async function getActivity(userId: string) {
-  try {
     connectToDB();
-
+  try {
     // Find all threads created by the user
     const userThreads = await Thread.find({ author: userId });
 

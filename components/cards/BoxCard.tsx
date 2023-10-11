@@ -1,7 +1,7 @@
 import { BoxT } from "@/lib/models/box.model";
 import { cn } from "@/lib/utils"
 
-const BoxCard = ({ id, title, available, total, interest, compo_addr, status, detail_link, img_link, fixed_price, bid_price, votes }: BoxT) => {
+const BoxCard = ({ id, title, available, total, interest, compo_addr, status, detail_link, img_link, fixed_price, bid_price, votes, __v, _id }: BoxT) => {
   //bg-gradient-to-b from-black/90 via-black/60 to-black/0 transition-[backdrop-filter]bg-white
   return (
     <div className="my-2 text-slate-300">

@@ -17,7 +17,7 @@ pnpm install
 Notice to use v1.0.4 for Radix UI @radix-ui/react-dialog@1.0.4 and @radix-ui/react-alert-dialog@1.0.4 for the DialogPortalProp error:
 
 ```bash
-pnpm add @radix-ui/react-alert-dialog@1.0.4
+pnpm add @radix-ui/react-dialog@1.0.4 @radix-ui/react-alert-dialog@1.0.4
 ```
 
 ## Run the application

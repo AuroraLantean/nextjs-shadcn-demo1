@@ -10,6 +10,8 @@ import StateInput from "@/components/stateInput";
 import CouponDiv from "@/components/couponDiv";
 import TableRows from "@/components/tableRows";
 import DbInputForm from "@/components/forms/DbInputForm";
+import TanstackOut from "@/components/TanstackOut";
+import TanstackIn from "@/components/TanstackIn";
 
 export default async function HomePage() {
   console.log("HomePage")
@@ -26,6 +28,8 @@ export default async function HomePage() {
       <CarouselDraggable />
       <Separator className="my-2" />
       <div className="flex flex-wrap">
+        <TanstackIn />
+        <TanstackOut />
         <DbInputForm />
         <ItemInputForm />
         <StateOutput />

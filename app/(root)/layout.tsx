@@ -5,9 +5,10 @@ import Topbar from '@/components/shared/Topbar'
 import LeftSidebar from '@/components/shared/LeftSidebar'
 import RightSidebar from '@/components/shared/RightSidebar'
 import Bottombar from '@/components/shared/Bottombar'
-import { ThemeProvider } from '@/components/theme-provider';//NOT next-themes!!!
 import { Toaster } from "@/components/ui/toaster"
-import TanstackProvider from '@/components/TanstackProvider'
+import TanstackProvider from '@/components/providers/TanstackProvider'
+import { NextThemeProvider } from '@/components/providers/NextThemeProvider';//NOT next-themes!!!
+
 
 const inter = Inter({ subsets: ['latin'] }); // font
 
@@ -22,7 +23,7 @@ export default function RootLayout({
     <html lang="en" >
       <body className={inter.className}>
         <TanstackProvider>
-          <ThemeProvider attribute="class"
+          <NextThemeProvider attribute="class"
             defaultTheme="system"
             enableSystem
             disableTransitionOnChange >
@@ -37,7 +38,7 @@ export default function RootLayout({
 
             </main>
             <Bottombar />
-          </ThemeProvider>
+          </NextThemeProvider>
         </TanstackProvider>
 
         <Toaster />
