@@ -1,10 +1,9 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { APP_WIDTH_MIN } from '@/constants/site_data';
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import axios from "axios";//axios will throw error if received resp status is not 200!
 import BoxCard from './cards/BoxCard';
-import { Button } from './ui/button';
 import { BoxT } from "@/lib/models/box.model"
 
 type Props = {}
@@ -20,12 +19,13 @@ const TanstackOut = (props: Props) => {
     //cacheTime: 0,//to fetch new data all the time, no cached data!
     queryFn: async () => {
       const { data } = await axios.get('/api/item')
-      console.log("🚀 tanstackQuery.ts:11 ~ queryFn: ~ data:", data)
+      console.log("🚀 data:", data)
       //const res = await fetch('..');
       //if (!res.ok) throw new Error('...')
       //const data = await res.json();
       return data.boxes as BoxT[];
-    }
+    },
+    enabled: false,
   });
   /**
   fetch data, load, render loading & error
@@ -40,7 +40,7 @@ const TanstackOut = (props: Props) => {
       <div className='flex flex-col gap-2'>
         {isLoading ? "Loading..." : ""}
         {isError ? "Error" : ""}
-        {data && data.map(box => (
+        {data && Array.isArray(data) && data.map(box => (
           <BoxCard key={box._id!} {...box} />
         ))}
       </div>

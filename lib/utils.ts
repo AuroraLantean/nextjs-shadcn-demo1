@@ -67,3 +67,8 @@ export const parseFloatSafe = (f: any) => {
   }
   return out;
 }
+
+export const delayFunc = (delay: number): Promise<boolean> => new Promise((resolve, reject) => setTimeout(() => {
+  console.log("delay:", delay);
+  resolve(true)
+}, delay))

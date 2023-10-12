@@ -3,9 +3,12 @@ import React, { useEffect, useState } from 'react'
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { useToast } from './ui/use-toast';
+import { BoxT } from '@/lib/models/box.model';
+import { Switch } from './ui/switch';
+import { delayFunc } from '@/lib/utils';
 
 type Props = {}
 const TanstackIn = (props: Props) => {
@@ -13,6 +16,7 @@ const TanstackIn = (props: Props) => {
   const [id, setId] = useState("");
   const [title, setTitle] = useState("");
   const [total, setTotal] = useState("");
+  const [isToFetch, setIsToFetch] = useState(false);
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
     setIsClient(true)
@@ -55,6 +59,38 @@ const TanstackIn = (props: Props) => {
       toast({ description: `Failed: ${err.message}`, variant: 'destructive' })
     },
   })
+  //status: status1, dataUpdatedAt, error, isFetched,  isSuccess, refresh..
+  const { data: data1, isLoading: isLoading1, isSuccess: isSuccess1, isError: isError1 } = useQuery({
+    queryKey: ['box'],
+    queryFn: async () => {
+      console.log("to fetch one box. id:", id)
+      let out;
+      if (id === "") {
+        const mesg = "id is empty. reset to 1"
+        console.log(mesg)
+        setId("1");//throw new Error("id is undefined");
+        toast({ description: `${mesg}` })
+        out = await axios.get(`/api/item/?id=1`)
+      } else {
+        out = await axios.get(`/api/item/?id=${id}`)
+      }
+      const { data } = out;
+      console.log("🚀 data1:", data)
+      return data.box as BoxT;
+    },
+    enabled: isToFetch,
+  });
+  useEffect(() => {
+    console.log(data1, 'Has changed')
+    if (isSuccess1 && data1) {
+      setTitle(data1.title); setTotal(data1.total + "");
+    }
+  }, [data1])
+  const fetchOne = async (bool: boolean) => {
+    console.log("fetchOne: bool:", bool)
+    setIsToFetch(bool)
+  }
+
 
   return (
     <div className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
@@ -68,7 +104,8 @@ const TanstackIn = (props: Props) => {
         <Input placeholder='total' value={total}
           onChange={e => setTotal(e.target.value)} disabled={isLoading || isLoadingU || isLoadingD} />
       </div>
-      <div>
+      <div className='flex justify-center'>
+        <Switch className='my-2' id="airplane-mode" checked={isToFetch} onCheckedChange={(checked) => fetchOne(checked)} />
         <Button
           onClick={() => addBox()}
           isLoading={isLoading}

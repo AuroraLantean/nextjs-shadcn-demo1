@@ -1,14 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import box_data from '@/mockdata/box_data.json'
 import { BoxT } from '@/lib/models/box.model';
 import z from 'zod';
-import { addOrUpdateOne, deleteOne, findAll } from '@/lib/actions/box.actions';
+import { addOrUpdateOne, deleteOne, findAll, findOne } from '@/lib/actions/box.actions';
 import { Split } from 'lucide-react';
-
-const delayFunc = (delay: number): Promise<boolean> => new Promise((resolve, reject) => setTimeout(() => {
-  console.log("delay:", delay);
-  resolve(true)
-}, delay))
 
 const mockResponse = () => {
   const box = { "id": "7", "title": "integer", "seller_id": "9nXgU0GWjowSDQfR", "available": 74, "total": 292, "status": "open", "detail_link": "http://angelfire.com/tristique/tortor.js", "img_link": "http://dummyimage.com/209x119.png/5fa2dd/ffffff", "compo_addr": "1MMjjVKgYv5FovSXGz1VMkmnyM4QsHvzKs", "interest": 13.94, "fixed_price": 428.14, "min_price": 382.18, "bid_price": 179.7, "votes": 47 };
@@ -20,15 +15,21 @@ const mockResponse = () => {
   return res;
 }
 //http://localhost:3000/api/item/
-export async function GET(req: Request) {
+//http://localhost:3000/api/item/?id=1
+export async function GET(req: NextRequest) {
   console.log("🚀 GET")
   const id = req.url.split('=')[1];
   console.log("🚀 GET ~ id:", id);
   try {
-    const boxes = await findAll();
-    //await delayFunc(1000);
-    //const boxes: BoxT[] = box_data;
-    return NextResponse.json({ boxes });// output will be data.boxes
+    if (id) {
+      const box = await findOne(id);
+      return NextResponse.json({ box });// output will be data.boxe
+    } else {
+      const boxes = await findAll();
+      return NextResponse.json({ boxes });// output will be data.boxes
+      //await delayFunc(1000);
+      //const boxes: BoxT[] = box_data;
+    }
   } catch (err: any) {
     if (err instanceof z.ZodError) return new Response(err.issues[0].message, { status: 422 });
     return new Response(err.message, { status: 500 });
@@ -87,7 +88,6 @@ export async function PUT(req: Request) {
   const box: Partial<BoxT> = body.box;
   const { id, title, total } = box;
 
-  //const { seller_id, id, title, status }: BoxT = await req.json()
   console.log("🚀 PUT ~ id, title, total:", id, title, total)
 
   //|| typeof (status) !== 'boolean'
