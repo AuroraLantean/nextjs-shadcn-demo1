@@ -17,7 +17,7 @@ const TanstackIn = (props: Props) => {
   const [title, setTitle] = useState("");
   const [total, setTotal] = useState("");
   const [isToFetch, setIsToFetch] = useState(false);
-  const [isClient, setIsClient] = useState(false)
+  const [isClient, setIsClient] = useState(false);
   useEffect(() => {
     setIsClient(true)
   }, [])
@@ -61,7 +61,7 @@ const TanstackIn = (props: Props) => {
   })
   //status: status1, dataUpdatedAt, error, isFetched,  isSuccess, refresh..
   const { data: data1, isLoading: isLoading1, isSuccess: isSuccess1, isError: isError1 } = useQuery({
-    queryKey: ['box'],
+    queryKey: ['boxOne'],
     queryFn: async () => {
       console.log("to fetch one box. id:", id)
       let out;
@@ -86,16 +86,10 @@ const TanstackIn = (props: Props) => {
       setTitle(data1.title); setTotal(data1.total + "");
     }
   }, [data1])
-  const fetchOne = async (bool: boolean) => {
-    console.log("fetchOne: bool:", bool)
-    setIsToFetch(bool)
-  }
-
 
   return (
     <div className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
-      <p>Tanstack Query(React Query) Server State Management ... Input</p>
-      <p>{isClient ? Math.random() : 0}</p>
+      <p className='text-2xl font-semibold'>Tanstack Query(React Query) Server State Management Input. {isClient ? Math.trunc(Math.random() * 10000) : 0}</p>
       <div className='flex gap-2 min-w-full'>
         <Input placeholder='id' value={id}
           onChange={e => setId(e.target.value)} disabled={isLoading || isLoadingU || isLoadingD} />
@@ -104,23 +98,29 @@ const TanstackIn = (props: Props) => {
         <Input placeholder='total' value={total}
           onChange={e => setTotal(e.target.value)} disabled={isLoading || isLoadingU || isLoadingD} />
       </div>
-      <div className='flex justify-center'>
-        <Switch className='my-2' id="airplane-mode" checked={isToFetch} onCheckedChange={(checked) => fetchOne(checked)} />
-        <Button
-          onClick={() => addBox()}
-          isLoading={isLoading}
-          disabled={isLoading || isLoadingU || isLoadingD}
-        >Add</Button>
-        <Button
-          onClick={() => updateBox()}
-          isLoading={isLoadingU}
-          disabled={isLoading || isLoadingU || isLoadingD}
-        >Update</Button>
-        <Button
-          onClick={() => deleteBox()}
-          isLoading={isLoadingD}
-          disabled={isLoading || isLoadingU || isLoadingD}
-        >Delete</Button>
+      <div className=''>
+        <div className='flex gap-2 mt-2'>
+          <Switch className='' id="airplane-mode" checked={isToFetch} onCheckedChange={setIsToFetch} />
+          <p>Auto Refresh By Id</p>
+        </div>
+        <div className='flex'>
+          <Button
+            onClick={() => addBox()}
+            isLoading={isLoading}
+            disabled={isLoading || isLoadingU || isLoadingD}
+          >Add</Button>
+          <Button
+            onClick={() => updateBox()}
+            isLoading={isLoadingU}
+            disabled={isLoading || isLoadingU || isLoadingD}
+          >Update</Button>
+          <Button
+            onClick={() => deleteBox()}
+            isLoading={isLoadingD}
+            disabled={isLoading || isLoadingU || isLoadingD}
+          >Delete</Button>
+        </div>
+
       </div>
     </div>
   )

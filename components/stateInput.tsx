@@ -53,8 +53,7 @@ const StateInput = (props: Props) => {
 
   return (
     <div className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
-      <p>StateInput - Accessing Partial State</p>
-      <p>{isClient ? Math.random() : 0}, boxVotes: {box3votes}</p>
+      <p className='text-2xl font-semibold'>StateInput - Partial. {isClient ? Math.trunc(Math.random() * 10000) : 0}, boxVotes: {box3votes}</p>
       <Button className='primary-color m-2' onClick={() => addNum(1.1)}>AddNum</Button>
       <Button className='primary-color m-2' onClick={() => subNum(0.3)}>SubNum</Button>
       <Button className='primary-color m-2' onClick={() => { addObjNum1(1.1); sumObj(); }}>AddObjNum1</Button>

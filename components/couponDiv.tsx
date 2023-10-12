@@ -23,8 +23,7 @@ const CouponDiv = (props: Props) => {
 
   return (
     <div className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
-      <p>CouponDiv</p>
-      <p>{isClient ? Math.random() : 0}</p>
+      <p className='text-2xl font-semibold'>CouponDiv. {isClient ? Math.trunc(Math.random() * 10000) : 0}</p>
       <p>Total Coupon: {totalCoupon}</p>
       <Button className='primary-color m-2' onClick={() => { addCoupon(1) }}>Add Coupon</Button>
       <Button className='primary-color m-2' onClick={() => { subCoupon(1) }}>Substract Coupon</Button>

@@ -62,7 +62,7 @@ const ItemInputForm = (props: Props) => {
   return (
     <Card className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <CardHeader>
-        <CardTitle>ItemInputForm: Zustand State Management</CardTitle>
+        <CardTitle>ItemInputForm: Zustand Client State Management</CardTitle>
       </CardHeader>
       <CardContent>
 

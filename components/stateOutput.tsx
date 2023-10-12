@@ -43,10 +43,9 @@ const StateOutput = (props: Props) => {
   return (
     <Card className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <CardHeader>
-        <CardTitle>StateOutput - Accessing Partial State</CardTitle>
+        <CardTitle>StateOutput - Partial State. {isClient ? Math.trunc(Math.random() * 10000) : 0}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p>{isClient ? Math.random() : 0}</p>
         <p className={style1}>Have Enough Coupon?</p>
         <p>totalCoupon: na</p>
         <p>TotalNum: {totalNum}</p>

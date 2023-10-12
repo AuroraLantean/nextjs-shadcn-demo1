@@ -13,8 +13,8 @@ import { NextThemeProvider } from '@/components/providers/NextThemeProvider';//N
 const inter = Inter({ subsets: ['latin'] }); // font
 
 export const metadata = {
-  title: 'NextJs 13',
-  description: 'A NextJs 13 app'
+  title: 'NextJs 13.5 + Shadcn UI',
+  description: 'NextJs 13.5'
 }
 
 export default function RootLayout({

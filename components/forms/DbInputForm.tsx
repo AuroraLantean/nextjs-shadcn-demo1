@@ -95,7 +95,7 @@ const DbInputForm = (props: Props) => {
   return (
     <Card className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <CardHeader>
-        <CardTitle>DbInputForm - MongoDB</CardTitle>
+        <CardTitle>DbInputForm - MongoDB APIs</CardTitle>
       </CardHeader>
       <CardContent>
 
