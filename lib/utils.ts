@@ -60,8 +60,15 @@ export function formatThreadCount(count: number): string {
   }
 }
 
-export const parseFloatSafe = (f: any) => {
-  const out = Number.parseFloat(f);
+export const parseFloatSafe = (input: any) => {
+  const out = Number.parseFloat(input);
+  if (Number.isNaN(out)) {
+    return 0;
+  }
+  return out;
+}
+export const parseIntSafe = (input: any) => {
+  const out = Number.parseInt(input);
   if (Number.isNaN(out)) {
     return 0;
   }

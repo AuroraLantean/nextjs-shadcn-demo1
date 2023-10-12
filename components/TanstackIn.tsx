@@ -8,14 +8,13 @@ import axios from 'axios';
 import { useToast } from './ui/use-toast';
 import { BoxT } from '@/lib/models/box.model';
 import { Switch } from './ui/switch';
-import { delayFunc } from '@/lib/utils';
+import { delayFunc, parseIntSafe } from '@/lib/utils';
 
 type Props = {}
 const TanstackIn = (props: Props) => {
   const { toast } = useToast();
-  const [id, setId] = useState("");
-  const [title, setTitle] = useState("");
-  const [total, setTotal] = useState("");
+  const box0 = { id: "", title: "", total: 0 }
+  const [box, setBox] = useState<Partial<BoxT>>(box0);
   const [isToFetch, setIsToFetch] = useState(false);
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
@@ -24,11 +23,11 @@ const TanstackIn = (props: Props) => {
 
   const queryClient = useQueryClient();
   const { mutate: addBox, isLoading } = useMutation({
-    mutationFn: async () => await axios.post('/api/item', { box: { id, title, total } }),
+    mutationFn: async (box: Partial<BoxT>) => await axios.post('/api/item', { box }),
     onSuccess: () => {
       toast({ description: "Success" });
-      setId(''); setTitle(''); setTotal('');
-      queryClient.invalidateQueries(["box"])
+      setBox(box0);
+      queryClient.invalidateQueries(["box"], { exact: true })
     },
     onError: (err: any) => {
       console.log("err:", err)
@@ -36,11 +35,11 @@ const TanstackIn = (props: Props) => {
     },
   })
   const { mutate: deleteBox, isLoading: isLoadingD } = useMutation({
-    mutationFn: async () => await axios.delete(`/api/item`, { params: { id } }),//${id} not allowed
+    mutationFn: async (id: string) => await axios.delete(`/api/item`, { params: { id } }),//${id} not allowed
     onSuccess: () => {
       toast({ description: "Success" });
-      setId(''); setTitle(''); setTotal('');
-      queryClient.invalidateQueries(["box"])
+      setBox(box0);
+      queryClient.invalidateQueries(["box"], { exact: true })
     },
     onError: (err: any) => {
       console.log("err:", err)
@@ -48,11 +47,11 @@ const TanstackIn = (props: Props) => {
     },
   })
   const { mutate: updateBox, isLoading: isLoadingU } = useMutation({
-    mutationFn: async () => await axios.put(`/api/item`, { box: { id, title, total } }),
+    mutationFn: async (box: Partial<BoxT>) => await axios.put(`/api/item`, { box }),
     onSuccess: () => {
       toast({ description: "Success" });
-      setId(''); setTitle(''); setTotal('');
-      queryClient.invalidateQueries(["box"])
+      setBox(box0);
+      queryClient.invalidateQueries(["box"], { exact: true })
     },
     onError: (err: any) => {
       console.log("err:", err)
@@ -63,12 +62,13 @@ const TanstackIn = (props: Props) => {
   const { data: data1, isLoading: isLoading1, isSuccess: isSuccess1, isError: isError1 } = useQuery({
     queryKey: ['boxOne'],
     queryFn: async () => {
+      const id = box.id + "";
       console.log("to fetch one box. id:", id)
       let out;
-      if (id === "") {
+      if (box.id === "") {
         const mesg = "id is empty. reset to 1"
         console.log(mesg)
-        setId("1");//throw new Error("id is undefined");
+        setBox(box0);
         toast({ description: `${mesg}` })
         out = await axios.get(`/api/item/?id=1`)
       } else {
@@ -83,7 +83,7 @@ const TanstackIn = (props: Props) => {
   useEffect(() => {
     console.log(data1, 'Has changed')
     if (isSuccess1 && data1) {
-      setTitle(data1.title); setTotal(data1.total + "");
+      setBox({ ...data1 })
     }
   }, [data1])
 
@@ -91,12 +91,12 @@ const TanstackIn = (props: Props) => {
     <div className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <p className='text-2xl font-semibold'>Tanstack Query(React Query) Server State Management Input. {isClient ? Math.trunc(Math.random() * 10000) : 0}</p>
       <div className='flex gap-2 min-w-full'>
-        <Input placeholder='id' value={id}
-          onChange={e => setId(e.target.value)} disabled={isLoading || isLoadingU || isLoadingD} />
-        <Input placeholder='title' value={title}
-          onChange={e => setTitle(e.target.value)} disabled={isLoading || isLoadingU || isLoadingD} />
-        <Input placeholder='total' value={total}
-          onChange={e => setTotal(e.target.value)} disabled={isLoading || isLoadingU || isLoadingD} />
+        <Input placeholder='id' value={box.id}
+          onChange={e => setBox(prev => ({ ...prev, id: e.target.value }))} disabled={isLoading || isLoadingU || isLoadingD} />
+        <Input placeholder='title' value={box.title}
+          onChange={e => setBox(prev => ({ ...prev, title: e.target.value }))} disabled={isLoading || isLoadingU || isLoadingD} />
+        <Input placeholder='total' value={box.total}
+          onChange={e => setBox(prev => ({ ...prev, total: parseIntSafe(e.target.value) }))} disabled={isLoading || isLoadingU || isLoadingD} />
       </div>
       <div className=''>
         <div className='flex gap-2 mt-2'>
@@ -105,17 +105,19 @@ const TanstackIn = (props: Props) => {
         </div>
         <div className='flex'>
           <Button
-            onClick={() => addBox()}
+            onClick={() => addBox(box)}
             isLoading={isLoading}
             disabled={isLoading || isLoadingU || isLoadingD}
           >Add</Button>
           <Button
-            onClick={() => updateBox()}
+            onClick={() => updateBox(box)}
             isLoading={isLoadingU}
             disabled={isLoading || isLoadingU || isLoadingD}
           >Update</Button>
           <Button
-            onClick={() => deleteBox()}
+            onClick={() => {
+              if (box.id) deleteBox(box.id)
+            }}
             isLoading={isLoadingD}
             disabled={isLoading || isLoadingU || isLoadingD}
           >Delete</Button>

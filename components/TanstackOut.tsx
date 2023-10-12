@@ -6,6 +6,7 @@ import axios from "axios";//axios will throw error if received resp status is no
 import BoxCard from './cards/BoxCard';
 import { BoxT } from "@/lib/models/box.model"
 import { Switch } from './ui/switch';
+import { parseIntSafe } from '@/lib/utils';
 
 type Props = {}
 const TanstackOut = (props: Props) => {
@@ -27,6 +28,7 @@ const TanstackOut = (props: Props) => {
       return data.boxes as BoxT[];
     },
     enabled: isToFetch,
+    select: box => box.sort((a, b) => parseIntSafe(b.id) - parseIntSafe(a.id)),
   });
   //{error.message}
 
