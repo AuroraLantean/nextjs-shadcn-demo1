@@ -60,7 +60,24 @@ export async function PATCH(req: Request) {
   console.log("PATCH");
   //console.log("PATCH", req, req.url);
   const body = await req.json();
-  console.log("body:", body)
+  console.log("🚀 PATCH ~ body:", body)
+  const box: Partial<BoxT> = body.box;
+  const { id, title, total } = box;
+
+  console.log("🚀 PATCH ~ id, title, total:", id, title, total)
+
+  if (!total || !id || !title) return NextResponse.json({ message: "Missing required data" })
+
+  try {
+    const newBox = await addOrUpdateOne(box);
+    return new Response("OK", { status: 200 })
+    //await delayFunc(1000);
+    //const res = mockResponse()
+    //return NextResponse.json(updatedBox)
+  } catch (err: any) {
+    if (err instanceof z.ZodError) return new Response(err.issues[0].message, { status: 422 });
+    return new Response(err.message, { status: 500 });
+  }
 }
 export async function PUT(req: Request) {
   console.log("PUT");
@@ -71,7 +88,7 @@ export async function PUT(req: Request) {
   const { id, title, total } = box;
 
   //const { seller_id, id, title, status }: BoxT = await req.json()
-  console.log("🚀 PUT ~ seller_id, id, title, status:", id, title, total)
+  console.log("🚀 PUT ~ id, title, total:", id, title, total)
 
   //|| typeof (status) !== 'boolean'
   if (!total || !id || !title) return NextResponse.json({ message: "Missing required data" })
