@@ -1,7 +1,7 @@
 import React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { ThemeProvider } from '@/components/theme-provider';//NOT next-themes!!!
+import { NextThemeProvider } from "@/components/providers/NextThemeProvider";//NOT next-themes!!!
 import "../globals.css";
 import Topbar from "@/components/shared/Topbar";
 import { Toaster } from "@/components/ui/toaster";
@@ -21,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className={`${inter.className}`}>
-        <ThemeProvider attribute="class"
+        <NextThemeProvider attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange >
@@ -29,7 +29,7 @@ export default function RootLayout({
           <div className="min-h-screen">
             {children}
           </div>
-        </ThemeProvider>
+        </NextThemeProvider>
         <Toaster />
       </body>
     </html>
