@@ -23,17 +23,16 @@ import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import { InputContactForm, contactFormSchema } from "@/lib/validators";
-import { useRouter } from "next/navigation";
 import { Textarea } from "@/components/ui/textarea";
 import { sendEmail } from "@/lib/sendEmail";
 
 export default function ContactForm() {
   const { toast } = useToast();
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   //type Input = z.infer<typeof contactFormSchema>;
   const form = useForm<InputContactForm>({
@@ -49,6 +48,7 @@ export default function ContactForm() {
 
   async function onSubmit(data: InputContactForm) {
     //alert(JSON.stringify(data, null, 4));
+    setIsLoading(true)
     console.log("onSubmit:", data);
     const result = await sendEmail(data);
     console.log("🚀 sendEmail result:", result)
@@ -63,6 +63,7 @@ export default function ContactForm() {
       });
       //reset()
     }
+    setIsLoading(false)
   }
 
   return (
@@ -150,6 +151,7 @@ export default function ContactForm() {
                 <Button
                   type="submit"
                   className={''}
+                  disabled={isLoading}
                 >
                   Submit
                 </Button>
