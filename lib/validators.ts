@@ -26,6 +26,21 @@ export const zustandSchema = z.object({
     message: "input should be a number",
   }),
 });
+export type InputContactForm = z.infer<typeof contactFormSchema>;
+export const contactFormSchema = z.object({
+  email: z.string().email(),
+  name: z
+    .string()
+    .min(2, { message: "name too short" })
+    .max(255),
+  socialMedia: z
+    .string()
+    .max(100, { message: "socialMedia username link too long" }),
+  message: z
+    .string()
+    .min(7, { message: "message too short" })
+    .max(255, { message: "message too long" }),
+});
 
 export const registerSchema = z.object({
   email: z.string().email(),

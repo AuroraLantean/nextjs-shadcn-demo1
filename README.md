@@ -2,7 +2,7 @@
 
 ## Environment Variables
 
-Copy `.env.example` to `.env`, then add your credentials.
+Copy `.env.example` to `.env.local`, then add your credentials. Save it without formatting by your code editor!
 Note: Use a MongoDB user password, not the account password!
 
 ## Install NPM Package Manager and this repo packages

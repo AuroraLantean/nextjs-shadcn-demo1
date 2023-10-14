@@ -18,6 +18,7 @@ const TanstackIn = (props: Props) => {
   const [isToFetch, setIsToFetch] = useState(false);
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
+    console.log("TanstackIn useEffect...")
     setIsClient(true)
   }, [])
 

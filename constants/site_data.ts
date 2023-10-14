@@ -94,6 +94,11 @@ export const sidebarLinks = [
     route: '/login',
     label: 'Login',
   },
+  {
+    imgURL: '/assets/create.svg',
+    route: '/contact-us',
+    label: 'Contact Us',
+  },
 ];
 /**
   {

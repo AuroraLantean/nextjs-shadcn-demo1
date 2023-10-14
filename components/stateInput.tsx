@@ -19,6 +19,7 @@ const StateInput = (props: Props) => {
   const [isClient, setIsClient] = useState(false)
   const [box3votes, setBox3votes] = useState<null | number>(null);
   useEffect(() => {
+    console.log("stateInput useEffect...")
     setIsClient(true)
     //clearStorage() defeat purpose
   }, [])

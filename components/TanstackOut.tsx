@@ -13,6 +13,7 @@ const TanstackOut = (props: Props) => {
   const [isClient, setIsClient] = useState(false);
   const [isToFetch, setIsToFetch] = useState(false);
   useEffect(() => {
+    console.log("TanstackOut useEffect...")
     setIsClient(true)
   }, [])
   const { data, status, dataUpdatedAt, error, isFetched, isLoading, isSuccess, isError, /*refresh... */ } = useQuery({
