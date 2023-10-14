@@ -1,5 +1,4 @@
 "use server"
-//import { EmailTemplate } from '../../components/EmailTemplate';
 import { Resend } from 'resend';
 import { InputContactForm } from './validators';
 import { ContactFormEmailTemplate } from '@/components/emailTemplates/contactForm';
