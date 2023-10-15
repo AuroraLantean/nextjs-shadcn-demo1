@@ -151,12 +151,9 @@ const BasicModal = ({ id, address, price }: Props) => {
 
             <Button
               type="submit"
+              isLoading={isLoading}
               disabled={isLoading}
               className="primary-color">
-
-              {isLoading && (
-                <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-              )}
               Buy Now
             </Button>
           </form>

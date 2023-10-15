@@ -21,7 +21,8 @@ export default async function TablePage() {
 }
 /**
     <Button className='bg-primary-500 rounded'
-        disabled={false}
+        isLoading={isLoading}
+        disabled={isLoading}
         onClick={() => { }}>
         Button1
       </Button>

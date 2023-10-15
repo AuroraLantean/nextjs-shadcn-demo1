@@ -61,7 +61,7 @@ export default function ContactForm() {
       toast({
         title: "Email Sending Success!",
       });
-      //reset()
+      form.reset();
     }
     setIsLoading(false)
   }
@@ -151,6 +151,7 @@ export default function ContactForm() {
                 <Button
                   type="submit"
                   className={''}
+                  isLoading={isLoading}
                   disabled={isLoading}
                 >
                   Submit

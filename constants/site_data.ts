@@ -85,14 +85,9 @@ export const sidebarLinks = [
     label: 'NFT Collections',
   },
   {
-    imgURL: '/assets/create.svg',
-    route: '/register',
-    label: 'Register',
-  },
-  {
     imgURL: '/assets/profile.svg',
     route: '/login',
-    label: 'Login',
+    label: 'Login/Register',
   },
   {
     imgURL: '/assets/create.svg',

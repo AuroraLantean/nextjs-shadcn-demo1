@@ -124,7 +124,7 @@ export const columns: ColumnDef<dataT>[] = [
     id: "actions",
     cell: ({ row }) => {
       const person = row.original;
-      const personId = person.id
+      const personId = person.id;
 
       return (
         <DropdownMenu>
@@ -142,7 +142,9 @@ export const columns: ColumnDef<dataT>[] = [
               Copy item id
             </DropdownMenuItem>
 
-            <DropdownMenuItem>View item details</DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => navigator.clipboard.writeText(JSON.stringify(person))}
+            >Copy item details</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
