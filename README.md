@@ -14,10 +14,12 @@ Then install this repository packages:
 pnpm install
 ```
 
-Notice to use v1.0.4 for Radix UI @radix-ui/react-dialog@1.0.4 and @radix-ui/react-alert-dialog@1.0.4 for the DialogPortalProp error:
+[Notice] use v1.0.4 for Radix UI @radix-ui/react-dialog@1.0.4 and @radix-ui/react-alert-dialog@1.0.4 for the DialogPortalProp error
+
+[Notice] use @react-email/tailwind@^0.0.8 instead of @react-email/tailwind@0.0.9 for the ReactServerComponentsError
 
 ```bash
-pnpm add @radix-ui/react-dialog@1.0.4 @radix-ui/react-alert-dialog@1.0.4
+pnpm add @radix-ui/react-dialog@1.0.4 @radix-ui/react-alert-dialog@1.0.4 @react-email/tailwind@^0.0.8
 ```
 
 ## Run the application
