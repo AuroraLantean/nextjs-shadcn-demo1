@@ -5,6 +5,8 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import useMeasure from "react-use-measure";
 import { DragonT, dragons } from "@/constants/site_data";
 import BasicModal from "@/components/modal/basicModal";
+import { TabsOne } from "@/components/TabOne";
+import { Separator } from "@/components/ui/separator";
 
 const CARD_WIDTH = 350;
 const CARD_HEIGHT = 350;
@@ -86,6 +88,8 @@ const CarouselClickable = () => {
           </motion.button>
         </>
       </div>
+      <Separator className="my-5" />
+      <TabsOne />
     </section>
   );
 };

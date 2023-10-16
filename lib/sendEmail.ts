@@ -11,8 +11,8 @@ export const sendEmail = async (formData: InputContactForm) => {
     console.log(formData.get("message"))
     if(!message || typeof message !== "string") ... */
   if (!process.env.RESEND_API_KEY) {
-    console.log('RESEND_APIKEY not found');
-    return { error: 'RESEND_APIKEY not found' };
+    console.log('RESEND_API_KEY not found');
+    return { error: 'RESEND_API_KEY not found' };
   }
   const destEmail = process.env.CONTACT_EMAIL;
   if (!destEmail) {

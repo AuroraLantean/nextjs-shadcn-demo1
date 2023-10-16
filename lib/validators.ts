@@ -79,7 +79,19 @@ export const formSchema = z.object({
   language: z.string({
     required_error: "Please select a language.",
   }),
-})
+  checkbox1: z.boolean().default(false),
+});
+
+export const settingTabP1Schema = z.object({
+  name: z.string().min(2, { message: "name too short" }).max(50),
+  username: z.string().min(2, {
+    message: "Username must be at least 2 characters.",
+  }).max(50),
+});
+export const settingTabP2Schema = z.object({
+  passwordCurr: z.string().min(6, { message: "passswordOld too short" }).max(100),
+  passwordNew: z.string().min(6, { message: "passswordNew too short" }).max(100),
+});
 
 export const buyNftSchema = z.object({
   nftId: z.string().min(1, {
@@ -104,17 +116,17 @@ export const buyNftSchema = z.object({
 })
 
 export const UserValidation = z.object({
-  profile_photo: z.string().url({ message: "should be an URL" }).nonempty({ message: "cannot be empty" }),
+  profile_photo: z.string().url({ message: "should be an URL" }).min(1, { message: "cannot be empty" }),
   name: z.string().min(3, { message: "minimum 3 characters" }).max(30, { message: "maximum 30 characters" }),
   username: z.string().min(3, { message: "minimum 3 characters" }).max(30, { message: "maximum 30 characters" }),
   bio: z.string().min(3, { message: "minimum 3 characters" }).max(1000, { message: "maximum 1000 characters" })
 });
 
 export const ThreadValidation = z.object({
-  thread: z.string().nonempty({ message: "cannot be empty" }).min(3, { message: "minimum 3 characters" }),
+  thread: z.string().min(1, { message: "cannot be empty" }).min(3, { message: "minimum 3 characters" }),
   accountId: z.string(),
 });
 
 export const CommentValidation = z.object({
-  thread: z.string().nonempty({ message: "cannot be empty" }).min(3, { message: "minimum 3 characters" }),
+  thread: z.string().min(1, { message: "cannot be empty" }).min(3, { message: "minimum 3 characters" }),
 });

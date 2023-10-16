@@ -39,7 +39,9 @@ import { useToast } from "@/components/ui/use-toast"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formSchema } from '@/lib/validators'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { TabsOne } from '@/components/TabOne'
 
 type Props = {}
 
@@ -65,11 +67,12 @@ function FormPage({ }: Props) {
       email: "",
       marketing_emails: false,
       security_emails: true,
+      checkbox1: false,
     },
   })
 
   function onSubmit(values: Input) {
-    console.log("🚀 ~ file: page.tsx:38 ~ onSubmit ~ values:", values)
+    console.log("🚀 onSubmit ~ values:", values)
 
     toast({
       title: "Transaction submitted",
@@ -83,7 +86,7 @@ function FormPage({ }: Props) {
   return (
     <div className="absolute -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2">
       <Card className="w-[350px] my-20">
-        <CardHeader>
+        <CardHeader className='mt-30'>
           <CardTitle>Form</CardTitle>
           <CardDescription>Fill in the form below...</CardDescription>
         </CardHeader>
@@ -239,12 +242,35 @@ function FormPage({ }: Props) {
                 )}
               />
 
+              <FormField
+                control={form.control}
+                name="checkbox1"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Form lable...
+                      </FormLabel>
+                      <FormDescription>
+                        Form description of {" "}
+                        <Link href="/examples/forms">mobile settings</Link> page.
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
               <Button type="submit" className="primary-color">Submit</Button>
             </form>
           </Form>
         </CardContent>
       </Card>
-
     </div>
   )
 }
