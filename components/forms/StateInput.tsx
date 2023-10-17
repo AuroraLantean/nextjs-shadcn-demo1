@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { addNum, addObjNum1, addObjNum2, resetObjNumMemState, setNum, subNum, sumObj, useObjStore } from '@/store/obj';
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import box_data from '@/mockdata/box_data.json'
 import { addBox, addVotes, deleteBox, findBox, resetObjArrMemState, updateBox, useBoxStore } from '@/store/objArray';

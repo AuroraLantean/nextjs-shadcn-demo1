@@ -7,6 +7,7 @@ import { DragonT, dragons } from "@/constants/site_data";
 import BasicModal from "@/components/modal/basicModal";
 import { TabsOne } from "@/components/TabOne";
 import { Separator } from "@/components/ui/separator";
+import ImageUpload from "@/components/forms/ImageUpload";
 
 const CARD_WIDTH = 350;
 const CARD_HEIGHT = 350;
@@ -50,7 +51,7 @@ const CarouselClickable = () => {
         {/* CARDS */}
         <div className="mx-auto max-w-6xl">
           <p className="mb-4 text-2xl font-semibold">
-            Everything. <span className="text-slate-500">Yes, even that.</span>
+            Your mind determines <span className="text-slate-500">your success.</span>
           </p>
           <motion.div
             animate={{
@@ -89,6 +90,7 @@ const CarouselClickable = () => {
         </>
       </div>
       <Separator className="my-5" />
+      <ImageUpload />
       <TabsOne />
     </section>
   );

@@ -6,7 +6,7 @@ import { CarouselDraggable } from "@/components/carousel/CarouselDraggable";
 import ItemInputForm from "@/components/forms/ItemInputForm";
 
 import StateOutput from "@/components/stateOutput";
-import StateInput from "@/components/stateInput";
+import StateInput from "@/components/forms/StateInput";
 import CouponDiv from "@/components/couponDiv";
 import TableRows from "@/components/tableRows";
 import DbInputForm from "@/components/forms/DbInputForm";
