@@ -82,12 +82,22 @@ export const sidebarLinks = [
   {
     imgURL: '/assets/members.svg',
     route: '/collections',
-    label: 'NFT Collections',
+    label: 'Collections',
   },
   {
     imgURL: '/assets/profile.svg',
     route: '/login',
     label: 'Login/Register',
+  },
+  {
+    imgURL: '/assets/create.svg',
+    route: '/web3',
+    label: 'Web3',
+  },
+  {
+    imgURL: '/assets/create.svg',
+    route: '/chart',
+    label: 'Chart',
   },
   {
     imgURL: '/assets/create.svg',

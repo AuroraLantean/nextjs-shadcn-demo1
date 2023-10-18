@@ -1,5 +1,23 @@
 import { z } from "zod";
 
+export const web3InputSchema = z.object({
+  enum1: z.enum(["goldCoin", "erc721Dragon"], {
+    required_error: "You need to select one",
+  }),
+  enum2: z.enum(["transfer", "transferFrom", "allow"], {
+    required_error: "You need to select one",
+  }),
+  floatNum1: z.string().min(1, {
+    message: "input requires at least 1 character.",
+  }).max(7, {
+    message: "input exceeds the maximum length",
+  }).refine((val) => !isNaN(val as unknown as number), {
+    message: "input should be a number",
+  }),
+  addr1: z.string().optional(),
+  addr2: z.string().optional(),
+});
+
 export const dbInputSchema = z.object({
   enum1: z.enum(["addOrUpdateOne", "findAll", "findOne", "deleteOne", "deleteAll"], {
     required_error: "You need to select one radio selection",

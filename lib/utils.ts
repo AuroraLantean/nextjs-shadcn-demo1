@@ -1,4 +1,3 @@
-import { fail } from "assert";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { StoreApi, UseBoundStore } from 'zustand'
@@ -79,3 +78,16 @@ export const delayFunc = (delay: number): Promise<boolean> => new Promise((resol
   console.log("delay:", delay);
   resolve(true)
 }, delay))
+
+export const capitalizeFirst = (str: string) => {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+export const makeAddr = (str: string) => {
+  return str.slice(0, 6) + "...." + str.slice(str.length - 4)
+}
+export const isEmpty = (value: any) =>
+  value === undefined ||
+  value === null ||
+  (typeof value === 'object' && Object.keys(value).length === 0) ||
+  (typeof value === 'string' && value.trim().length === 0) ||
+  (typeof value === 'string' && value === 'undefined');

@@ -34,8 +34,16 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Under Investigation
+
+https://github.com/ethers-io/ethers.js/issues/4428
+Cant resolve 'bufferutil' and 'utf-8-validate'
+=> pnpm add ws bufferutil utf-8-validate
+
 ## Browser Requirement
 
 [NextJs Requirement](https://nextjs.org/docs/getting-started/installation)
 
 [TanStack Query Requirement](https://tanstack.com/query/latest/docs/react/installation) from the creators of Next.js.
+
+[TradingView Lightweight Charts v4.1 Requirement](https://tradingview.github.io/lightweight-charts/docs#requirements): es2016 language specification
