@@ -11,10 +11,10 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Input } from '../ui/input';
 import { toast, useToast } from '../ui/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { capitalizeFirst, makeAddr, parseFloatSafe } from '@/lib/utils';
+import { capitalizeFirst, makeShortAddr, parseFloatSafe } from '@/lib/utils';
 import goldcoin from '@/web3ABIs/ethereum/goldcoin.json';
 import dragonNft from '@/web3ABIs/ethereum/erc721Dragon.json';
-import { OutT, TxnInT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721Transfer, ethersInit, getBalanceEth, getChainObj, getCtrtAddr, txnIn } from '@/lib/ethers';
+import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethersInit, getBalanceEth, getChainObj, getCtrtAddr } from '@/lib/ethers';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -26,9 +26,9 @@ const EthereumDiv = (props: Props) => {
   lg('EthereumDiv. goldcoin addr:', goldcoin.address, ', dragonNft addr:', dragonNft.address);
   const initStates = {
     chainName: '', chainId: '', account: '',
-    balcETH: '', balcToken: '', balcNFT: '', txnHash: ''
+    balcETH: '', balcToken: '', balcNFT: '', str1: ''
   };
-  let out: OutT = { err: '', inEth: '', inWei: bigIntZero, txnHash: '' }
+  let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const effectRan = useRef(false)
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
@@ -94,18 +94,18 @@ const EthereumDiv = (props: Props) => {
 
     if (data.enum2 === "readEthBalc") {
       out = await getBalanceEth(addr)
-      setStates({ ...states, balcETH: out.inEth })
+      setStates({ ...states, balcETH: out.str1 })
 
     } else if (data.enum2 === "readTokenBalc") {
       if (!data.addr1) {
         out = { ...out, err: "Invalid addr1" }
       } else if (data.enum1 === "goldCoin") {
-        out = await erc20BalanceOf({ addrTarget: data.addr1, addrCtrt: addr })
-        setStates({ ...states, balcETH: out.inEth })
+        out = await erc20BalanceOf(data.addr1, addr)
+        setStates({ ...states, balcETH: out.str1 })
 
       } else if (data.enum1 === "erc721Dragon") {
-        out = await erc721BalanceOf({ addrTarget: data.addr1, addrCtrt: addr })
-        setStates({ ...states, balcETH: out.inEth })
+        out = await erc721BalanceOf(data.addr1, addr)
+        setStates({ ...states, balcETH: out.str1 })
 
       } else {
         out = { ...out, err: "Invalid contract choice" }
@@ -117,13 +117,19 @@ const EthereumDiv = (props: Props) => {
         out = { ...out, err: "Invalid addr2" }
 
       } else if (data.enum1 === "goldCoin") {
-        out = await erc20Transfer({ ...txnIn, addr2: data.addr2, amount1: data.floatNum1, ctrtAddr: addr });
+        out = await erc20Transfer(data.addr2, data.floatNum1, addr);
 
       } else if (data.enum1 === "erc721Dragon") {
-        out = await erc721Transfer({ ...txnIn, addr1: data.addr1!, addr2: data.addr2, amount1: data.floatNum1, ctrtAddr: addr });
+        out = await erc721Transfer(data.addr1!, data.addr2, data.floatNum1, addr);
       } else {
         out = { ...out, err: "invalid func 102" }
       }
+    } else if (data.enum2 === "getNFTs") {
+      out = await erc721TokenIds(data.addr1!, addr);
+
+    } else if (data.enum2 === "mintOneNFT") {
+      out = await erc721SafeMint(states.account, data.addr2!, data.floatNum1, addr);
+
     } else if (data.enum2 === "transferFrom") {
       /*  txnIn= { chainName, ctrtAddr, addr1, addr2, amount1, amount2 };
        {chainName, chainId, account, balcETH,  balcToken, balcNFT } = states */
@@ -138,8 +144,8 @@ const EthereumDiv = (props: Props) => {
     if (out.err) {
       toast({ description: `Failed: ${out.err}`, variant: 'destructive' })
     } else {
-      toast({ description: `Success ${out.inEth} ${out.txnHash}` })
-      if (out.txnHash) setStates({ ...states, txnHash: out.txnHash })
+      toast({ description: `Success ${out.str1}` })
+      if (out.str1) setStates({ ...states, str1: out.str1 })
     }
     setIsLoading(false)
   }
@@ -151,9 +157,9 @@ const EthereumDiv = (props: Props) => {
       </CardHeader>
       <CardContent>
         <p className="text-xl font-semibold">Detected Chain: {states.chainName}</p>
-        <p className="break-words text-xl font-semibold">Account: {makeAddr(states.account)}</p>
+        <p className="break-words text-xl font-semibold">Account: {makeShortAddr(states.account)}</p>
         <p className='text-xl font-semibold'>ETH Balance on address: {states.balcETH}</p>
-        <p className='text-xl font-semibold break-words mb-3'>TxnHash: {states.txnHash}</p>
+        <p className='text-xl font-semibold break-words mb-3'>Output: {states.str1}</p>
 
         <Form {...form}>
           <form
@@ -207,6 +213,15 @@ const EthereumDiv = (props: Props) => {
 
                         <FormItem className="radio-item">
                           <FormControl>
+                            <RadioGroupItem value="getNFTs" />
+                          </FormControl>
+                          <FormLabel>
+                            Get NFTs
+                          </FormLabel>
+                        </FormItem>
+
+                        <FormItem className="radio-item">
+                          <FormControl>
                             <RadioGroupItem value="readTokenBalc" />
                           </FormControl>
                           <FormLabel>
@@ -238,6 +253,15 @@ const EthereumDiv = (props: Props) => {
                           </FormControl>
                           <FormLabel>
                             Allow
+                          </FormLabel>
+                        </FormItem>
+
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="mintOneNFT" />
+                          </FormControl>
+                          <FormLabel>
+                            MintOneNFT
                           </FormLabel>
                         </FormItem>
                       </div>

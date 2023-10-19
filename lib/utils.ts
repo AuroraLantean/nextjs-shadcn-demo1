@@ -82,7 +82,7 @@ export const delayFunc = (delay: number): Promise<boolean> => new Promise((resol
 export const capitalizeFirst = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
-export const makeAddr = (str: string) => {
+export const makeShortAddr = (str: string) => {
   return str.slice(0, 6) + "...." + str.slice(str.length - 4)
 }
 export const isEmpty = (value: any) =>

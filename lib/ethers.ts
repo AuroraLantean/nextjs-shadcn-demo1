@@ -1,4 +1,4 @@
-import { ethers, formatEther, formatUnits, parseUnits, Contract, getBigInt } from "ethers";
+import { ethers, formatEther, formatUnits, parseUnits, Contract, getBigInt, toNumber } from "ethers";
 import goldcoin from "@/web3ABIs/ethereum/goldcoin.json"
 import dragonNft from "@/web3ABIs/ethereum/erc721Dragon.json";
 import { isEmpty } from "@/lib/utils";
@@ -16,45 +16,13 @@ type Web3InitOutT = {
   chainId: string
   account: string
 }
-type ReadBalcInT = {
-  addrTarget: string
-  addrCtrt: string
-}
 export type OutT = {
   err: string
-  inEth: string
+  str1: string
   inWei: bigint
-  txnHash: string
+  nums: number[]
 }
-export let out: OutT = { err: '', inEth: '', inWei: bigIntZero, txnHash: '' }
-
-// type OutT = {
-//   err: string
-//   txnHash: string
-// }
-//let txnOut: OutT = { err: '', txnHash: '' }
-export type TxnInT = {
-  chainName: string
-  ctrtAddr: string
-  addr1: string
-  addr2: string
-  amount1: string
-  amount2: string
-}
-export let txnIn: TxnInT = { chainName: '', ctrtAddr: '', addr1: '', addr2: '', amount1: '', amount2: '' };
-
-type Contact = {
-  id: string
-  name: string
-  email: string
-  company: string
-  job: string
-}
-type BcResult = {
-  error: string
-  data: any
-  txn: any
-}
+export let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
 declare global {
   interface Window {
     ethereum: any
@@ -149,15 +117,14 @@ export const getBalanceEth = async (addr: string): Promise<OutT> => {
   if (isEmpty(addr)) {
     return { ...out, err: 'input invalid' };
   }
-  const balanceInWei: bigint = await provider.getBalance(addr)
-  // 182334002436162568n
+  const balanceInWei: bigint = await provider.getBalance(addr);// 182334002436162568n
 
   const balanceInEth = formatEther(balanceInWei);
   // '0.182334002436162568'
   lg('success:', balanceInWei, balanceInEth);
   return {
     ...out,
-    inEth: balanceInEth,
+    str1: balanceInEth,
     inWei: balanceInWei,
   };
 }
@@ -176,84 +143,70 @@ export const getCtrtAddr = (ctrtName: string): string => {
   return ctrtAddr;
 };
 
-export const erc20BalanceOf = async (input: ReadBalcInT): Promise<OutT> => {
-  const userAddr = input.addrTarget;
-  lg('erc20BalanceOf()... userAddr:', userAddr);
-  if (isEmpty(userAddr) || isEmpty(input.addrCtrt)) {
-    return { ...out, err: 'input invalid' };
-  }
-  const goldcoinInst = new Contract(input.addrCtrt, goldcoin.abi, provider);
-
-  const sym = await goldcoinInst.symbol();
-  const decimals = await goldcoinInst.decimals();// 18n
-  const tokenBalcInWei: bigint = await goldcoinInst.balanceOf(userAddr);
-  const tokenBalc = formatUnits(tokenBalcInWei, decimals);
-
-  lg('success:', sym, decimals, tokenBalcInWei, tokenBalc);
-  return { ...out, inEth: tokenBalc, inWei: tokenBalcInWei };
-}
-
-export const erc20Allowance = async (input: TxnInT): Promise<OutT> => {
-  const addr1 = input.addr1;
-  const addr2 = input.addr2;
-  const ctrtAddr = input.ctrtAddr;
-  lg('erc20Allowance()... addr1:', addr1, ', addr2:', addr2);
-  if (isEmpty(addr1) || isEmpty(addr2) || isEmpty(ctrtAddr)) {
+export const erc20BalanceOf = async (addrTarget: string, ctrtAddr: string): Promise<OutT> => {
+  lg('erc20BalanceOf()... addrTarget:', addrTarget, ', ctrtAddr:', ctrtAddr);
+  if (isEmpty(addrTarget) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
   }
   const goldcoinInst = new Contract(ctrtAddr, goldcoin.abi, provider);
 
-  const allowanceInWei: bigint = await goldcoinInst.allowance(addr1, addr2);
+  const sym = await goldcoinInst.symbol();
+  const decimals = await goldcoinInst.decimals();// 18n
+  const tokenBalcInWei: bigint = await goldcoinInst.balanceOf(addrTarget);
+  const tokenBalc = formatUnits(tokenBalcInWei, decimals);
+
+  lg('success:', sym, decimals, tokenBalcInWei, tokenBalc);
+  return { ...out, str1: tokenBalc, inWei: tokenBalcInWei };
+}
+
+export const erc20Allowance = async (addrFrom: string, addrTo: string, ctrtAddr: string): Promise<OutT> => {
+  lg('erc20Allowance()... addrFrom:', addrFrom, ', addrTo:', addrTo);
+  if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(ctrtAddr)) {
+    return { ...out, err: 'input invalid' };
+  }
+  const goldcoinInst = new Contract(ctrtAddr, goldcoin.abi, provider);
+
+  const allowanceInWei: bigint = await goldcoinInst.allowance(addrFrom, addrTo);
   const decimals = await goldcoinInst.decimals();// 18n
   const allowanceInEth = formatUnits(allowanceInWei, decimals);
 
   lg('success,', allowanceInWei, allowanceInEth);
-  return { ...out, inEth: allowanceInEth, inWei: allowanceInWei };
+  return { ...out, str1: allowanceInEth, inWei: allowanceInWei };
 }
 
-export const erc20Transfer = async (input: TxnInT): Promise<OutT> => {
-  const addrTo = input.addr2;
-  const amt = input.amount1;
-  const ctrtAddr = input.ctrtAddr;
-  lg('erc20Transfer()... addrTo:', addrTo, ', amt:', amt, ', ctrtAddr:', ctrtAddr);
-  if (isEmpty(addrTo) || isEmpty(amt) || isEmpty(ctrtAddr)) {
+export const erc20Transfer = async (addrTo: string, amount: string, ctrtAddr: string): Promise<OutT> => {
+  lg('erc20Transfer()... addrTo:', addrTo, ', amount:', amount, ', ctrtAddr:', ctrtAddr);
+  if (isEmpty(addrTo) || isEmpty(amount) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
   }
   const goldcoinInst = new Contract(ctrtAddr, goldcoin.abi, signer);
-  const amountInWei = parseUnits(amt, 18);
+  const amountInWei = parseUnits(amount, 18);
   const tx = await goldcoinInst.transfer(addrTo, amountInWei);
   const receipt = await tx.wait();
   lg('success... txnHash:', receipt, receipt.hash);
   //receipt has properties of provider, to, from, index: number, blockHash, blockNumber: number, logsBloom, cumulativeGasUsed: bigint, gasPrice: bigint, gasUsed: bigint
-  return { ...out, txnHash: receipt.hash };
+  return { ...out, str1: receipt.hash };
 }
 
-export const erc20Approve = async (input: TxnInT): Promise<OutT> => {
-  const addr2 = input.addr2;
-  const amt = input.amount1;
-  const ctrtAddr = input.ctrtAddr;
-  lg('erc20Approve()... addr2:', addr2, ', amt:', amt, ', ctrtAddr:', ctrtAddr);
-  if (isEmpty(addr2) || isEmpty(amt) || isEmpty(ctrtAddr)) {
+export const erc20Approve = async (addrTo: string, amount: string, ctrtAddr: string): Promise<OutT> => {
+  lg('erc20Approve()... addrTo:', addrTo, ', amount:', amount, ', ctrtAddr:', ctrtAddr);
+  if (isEmpty(addrTo) || isEmpty(amount) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
   }
   const goldcoinInst = new Contract(ctrtAddr, goldcoin.abi, signer);
-  const amountInWei = parseUnits(amt, 18);
-  const tx = await goldcoinInst.transfer(addr2, amountInWei);
+  const amountInWei = parseUnits(amount, 18);
+  const tx = await goldcoinInst.transfer(addrTo, amountInWei);
   const receipt = await tx.wait();
   lg('success... txnHash:', receipt, receipt.hash);
   //blockNumber, cumulativeGasUsed, gasPrice, gasUsed
-  return { ...out, txnHash: receipt.hash };
+  return { ...out, str1: receipt.hash };
 }
 
 //----------------== ERC721
-export const erc721Transfer = async (input: TxnInT): Promise<OutT> => {
-  const addr1 = input.addr1;
-  const addr2 = input.addr2;
-  const tokenId = input.amount1;
-  const ctrtAddr = input.ctrtAddr;
-  lg('erc20Allowance()... addr1:', addr1, ', addr2:', addr2, ', tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
+export const erc721Transfer = async (addrFrom: string, addrTo: string, tokenId: string, ctrtAddr: string): Promise<OutT> => {
+  lg('erc20Allowance()... addrFrom:', addrFrom, ', addrTo:', addrTo, ', tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
   const tokId = Number.parseInt(tokenId);
-  if (isEmpty(addr1) || isEmpty(addr2) || isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId)) {
+  if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId)) {
     return { ...out, err: 'input invalid' };
   }
   try {
@@ -263,34 +216,107 @@ export const erc721Transfer = async (input: TxnInT): Promise<OutT> => {
     if (sym !== 'Dragons') {
       return { ...out, err: 'invalid contract' };
     }
-    const tx = await dragonNftInst.safeTransferFrom(addr1, addr2, tokenId);
+    const ownerOut = await dragonNftInst.ownerOf(tokId);
+    lg("ownerOut:", ownerOut)
+    if (ownerOut !== addrFrom) console.warn("addrFrom is not the owner")
+
+    const tx = await dragonNftInst.safeTransferFrom(addrFrom, addrTo, tokId);
     const receipt = await tx.wait();
     lg('success... txnHash:', receipt, receipt.hash);
     //blockNumber, cumulativeGasUsed, gasPrice, gasUsed
-    return { ...out, txnHash: receipt.hash };
+    return { ...out, str1: receipt.hash };
   } catch (error) {
     console.error('@erc721Transfer:', error);
     return { ...out, err: 'invocation failed' };
   }
-
 }
 
-export const erc721BalanceOf = async (input: ReadBalcInT): Promise<OutT> => {
-  const userAddr = input.addrTarget;
-  lg('erc20BalanceOf()... userAddr:', userAddr);
-  if (isEmpty(userAddr) || isEmpty(input.addrCtrt)) {
+export const erc721SafeMint = async (addrFrom: string, addrTo: string, tokenId: string, ctrtAddr: string): Promise<OutT> => {
+  lg('erc721SafeMint()... addrFrom:', addrFrom, ', addrTo:', addrTo, ', tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
+  const tokId = Number.parseInt(tokenId);
+  if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId))
+    return { ...out, err: 'input invalid' };
+
+  try {
+    const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, signer);
+    const sym = await dragonNftInst.name();
+    lg('symbol', sym);
+    if (sym !== 'Dragons') return { ...out, err: 'invalid contract' };
+
+    const ownerOut = await dragonNftInst.owner();
+    lg("ownerOut:", ownerOut)
+    if (ownerOut.toLowerCase() !== addrFrom.toLowerCase()) return { ...out, err: 'invalid contract owner' }
+
+    const isExisting: boolean = await dragonNftInst.exists(tokId);
+    lg("isExisting:", isExisting)
+    if (isExisting) return { ...out, err: 'tokenId was already minted' }
+
+    const tx = await dragonNftInst.safeMint(addrTo, tokId);
+    const receipt = await tx.wait();
+    lg('success... txnHash:', receipt, receipt.hash);
+    //blockNumber, cumulativeGasUsed, gasPrice, gasUsed
+    return { ...out, str1: receipt.hash };
+  } catch (error) {
+    console.error('@erc721SafeMint:', error);
+    return { ...out, err: 'invocation failed' };
+  }
+}
+
+export const erc721BalanceOf = async (addrTarget: string, ctrtAddr: string): Promise<OutT> => {
+  lg('erc20BalanceOf()... addrTarget:', addrTarget, ', ctrtAddr:', ctrtAddr);
+  if (isEmpty(addrTarget) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
   }
-  const dragonNftInst = new Contract(input.addrCtrt, dragonNft.abi, provider);
+  const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, provider);
   const sym = await dragonNftInst.name();
   lg('symbol', sym);
   if (sym !== 'Dragons') {
     return { ...out, err: 'not Dragons contract' };
   }
-  const tokenBalcInWei: bigint = await dragonNftInst.balanceOf(userAddr);
+  const tokenBalcInWei: bigint = await dragonNftInst.balanceOf(addrTarget);
   lg('success,', tokenBalcInWei);
-  return { ...out, inWei: tokenBalcInWei, inEth: ethers.toNumber(tokenBalcInWei) + '' };
+  return { ...out, inWei: tokenBalcInWei, str1: ethers.toNumber(tokenBalcInWei) + '' };
 }
+
+export const ownerOf = async (tokenId: string, ctrtAddr: string): Promise<OutT> => {
+  lg('ownerOf()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr, ', tokenId:', tokenId);
+  if (isEmpty(tokenId) || isEmpty(ctrtAddr)) {
+    return { ...out, err: 'input invalid' };
+  }
+  const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, provider);
+  const sym = await dragonNftInst.name();
+  lg('symbol', sym);
+  if (sym !== 'Dragons') {
+    return { ...out, err: 'not Dragons contract' };
+  }
+  const owner: string = await dragonNftInst.ownerOf(tokenId);
+  lg('success,', owner);
+  return { ...out, str1: owner };
+}
+
+export const erc721TokenIds = async (addrTarget: string, ctrtAddr: string): Promise<OutT> => {
+  lg('erc721TokenIds()... addrTarget:', addrTarget, ', ctrtAddr:', ctrtAddr);
+  if (isEmpty(addrTarget) || isEmpty(ctrtAddr)) {
+    return { ...out, err: 'input invalid' };
+  }
+  const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, provider);
+  const sym = await dragonNftInst.name();
+  lg('symbol', sym);
+  if (sym !== 'Dragons') {
+    return { ...out, err: 'not Dragons contract' };
+  }
+  const balc: bigint = await dragonNftInst.balanceOf(addrTarget);
+  lg('balanceOf:', balc);
+
+  const arr = [];
+  for (let i = 0; i < toNumber(balc); i++) {
+    const tokId: bigint = await dragonNftInst.tokenOfOwnerByIndex(addrTarget, i);
+    arr.push(toNumber(tokId));
+    lg('i:', i, ', tokId:', tokId);
+  }//tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256 tokenId);
+  return { ...out, str1: arr.toString() || "none", nums: arr };
+}
+
 
 export const getChainObj = (input: string) => {
   console.log('getChainObj()... input:', input);
