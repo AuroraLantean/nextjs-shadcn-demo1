@@ -14,10 +14,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { capitalizeFirst, makeAddr, parseFloatSafe } from '@/lib/utils';
 import goldcoin from '@/web3ABIs/ethereum/goldcoin.json';
 import dragonNft from '@/web3ABIs/ethereum/erc721Dragon.json';
-import { ethersInit, getChainObj } from '@/lib/ethers';
+import { OutT, TxnInT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721Transfer, ethersInit, getBalanceEth, getChainObj, getCtrtAddr, txnIn } from '@/lib/ethers';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
-import Link from 'next/link';
 import { Separator } from '../ui/separator';
 
 type Props = {}
@@ -25,45 +24,39 @@ type Props = {}
 const EthereumDiv = (props: Props) => {
   const lg = console.log;
   lg('EthereumDiv. goldcoin addr:', goldcoin.address, ', dragonNft addr:', dragonNft.address);
-  const inputDefault = {
-    chainName: '',
-    chainId: '',
-    ctrtAddr: '',
-    account: '',
-    addr1: '',
-    addr2: '',
-    amount1: '',
-    amount2: '',
-    balcETH: '',
+  const initStates = {
+    chainName: '', chainId: '', account: '',
+    balcETH: '', balcToken: '', balcNFT: '', txnHash: ''
   };
+  let out: OutT = { err: '', inEth: '', inWei: bigIntZero, txnHash: '' }
   const effectRan = useRef(false)
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
-  const [inputs, setInputs] = useState<typeof inputDefault>(inputDefault);
+  const [states, setStates] = useState<typeof initStates>(initStates);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     console.log("useEffect ran")
     if (effectRan.current === true) {
       setIsClient(true);
       const initRun = async () => {
-        const out = { chainId: "0xaa36a7", account: "0xbb0914d6c344ac84b26d165d85fcafdb66f45434", err: "", warn: "" };
-        //const out = await ethersInit();
-        if (out.err) {
-          toast({ description: `Failed: ${JSON.stringify(out.err)}`, variant: 'destructive' })
+        const initOut = await ethersInit();
+        if (initOut.err) {
+          toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
           return true;
         }
-        if (out.warn) {
-          toast({ description: `Failed: ${JSON.stringify(out.warn)}`, variant: 'destructive' })
+        if (initOut.warn) {
+          toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
           return true;
         }
         toast({ description: "web3 initialized successfully!" });
-        lg("out:", out)
-        const { chainHex, chainStr } = getChainObj(out.chainId!)
-        setInputs({
-          ...inputDefault,
+        lg("initOut:", initOut)
+        const { chainHex, chainStr } = getChainObj(initOut.chainId!)
+        setStates({
+          ...states,
           chainName: capitalizeFirst(chainStr),
-          chainId: out.chainId!,
-          account: out.account!,
+          chainId: initOut.chainId!,
+          account: initOut.account!,
         })
       }
       initRun()
@@ -74,55 +67,81 @@ const EthereumDiv = (props: Props) => {
     }
   }, []);
 
-  const pause = async (input: string) => {
-    const tx = await fetch('https');// contract.pause();
-    return { error: "" }//tx.wait();
-  };
-  const queryClient = useQueryClient();
-  const { mutate: sendEth, isLoading } = useMutation({
-    mutationFn: async (input: string) => pause(input),
-    onSuccess: async (): Promise<void> => {
-      toast({ description: "Success" });
-    },
-    onError: (err: any) => {
-      console.log("err:", err)
-      toast({ description: `Failed: ${err}`, variant: 'destructive' })
-    },
-  })
-
   type InputT = z.infer<typeof web3InputSchema>;
   const form = useForm<InputT>({
     resolver: zodResolver(web3InputSchema),
     defaultValues: {
-      enum1: "goldCoin",
-      enum2: "transfer",
+      enum1: "account",
+      enum2: "readEthBalc",
       floatNum1: "",
-      addr1: "",
-      addr2: "",
+      addr1: process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "",
+      addr2: process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "",
     },
   });
   async function onSubmit(data: InputT) {
     console.log("onSubmit", data);
+    setIsLoading(true)
     //alert(JSON.stringify(data, null, 4));
-    let out = null;
-    const floatNum1 = parseFloatSafe(data.floatNum1);
 
-    if (data.enum1 === "goldCoin") {
-      //out = await findAll();
-    } else if (data.enum1 === "erc721Dragon") {
+    const floatNum1 = parseFloatSafe(data.floatNum1);
+    /* {chainName, chainId, account, balcETH,  balcToken, balcNFT } = states */
+    let addr = ''
+    if (data.enum1 === "account") {
+      addr = states.account
+    } else {
+      addr = getCtrtAddr(data.enum1)
+    }
+
+    if (data.enum2 === "readEthBalc") {
+      out = await getBalanceEth(addr)
+      setStates({ ...states, balcETH: out.inEth })
+
+    } else if (data.enum2 === "readTokenBalc") {
+      if (!data.addr1) {
+        out = { ...out, err: "Invalid addr1" }
+      } else if (data.enum1 === "goldCoin") {
+        out = await erc20BalanceOf({ addrTarget: data.addr1, addrCtrt: addr })
+        setStates({ ...states, balcETH: out.inEth })
+
+      } else if (data.enum1 === "erc721Dragon") {
+        out = await erc721BalanceOf({ addrTarget: data.addr1, addrCtrt: addr })
+        setStates({ ...states, balcETH: out.inEth })
+
+      } else {
+        out = { ...out, err: "Invalid contract choice" }
+      }
+      /* {chainName, chainId, account, balcETH,  balcToken, balcNFT } = states */
+    } else if (data.enum2 === "transfer") {
+
+      if (!data.addr2) {
+        out = { ...out, err: "Invalid addr2" }
+
+      } else if (data.enum1 === "goldCoin") {
+        out = await erc20Transfer({ ...txnIn, addr2: data.addr2, amount1: data.floatNum1, ctrtAddr: addr });
+
+      } else if (data.enum1 === "erc721Dragon") {
+        out = await erc721Transfer({ ...txnIn, addr1: data.addr1!, addr2: data.addr2, amount1: data.floatNum1, ctrtAddr: addr });
+      } else {
+        out = { ...out, err: "invalid func 102" }
+      }
+    } else if (data.enum2 === "transferFrom") {
+      /*  txnIn= { chainName, ctrtAddr, addr1, addr2, amount1, amount2 };
+       {chainName, chainId, account, balcETH,  balcToken, balcNFT } = states */
+
+    } else if (data.enum2 === "allow") {
 
     } else {
-      console.error("invalid enum1")
+      console.warn("Invalid enum2")
+      out = { ...out, err: "Invalid enum2" }
     }
     lg("out:", out)
-    toast({
-      title: "result:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(out, null, 2)}</code>
-        </pre>
-      ),
-    });
+    if (out.err) {
+      toast({ description: `Failed: ${out.err}`, variant: 'destructive' })
+    } else {
+      toast({ description: `Success ${out.inEth} ${out.txnHash}` })
+      if (out.txnHash) setStates({ ...states, txnHash: out.txnHash })
+    }
+    setIsLoading(false)
   }
 
   return (
@@ -131,9 +150,10 @@ const EthereumDiv = (props: Props) => {
         <CardTitle>Ethereum Related Chains {isClient ? Math.trunc(Math.random() * 10000) : 0}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-xl font-semibold">Detected Chain: {inputs.chainName}</p>
-        <p className="break-words text-xl font-semibold">Account: {makeAddr(inputs.account)}</p>
-        <p className='text-xl font-semibold mb-3'>ETH Balance: {inputs.balcETH}</p>
+        <p className="text-xl font-semibold">Detected Chain: {states.chainName}</p>
+        <p className="break-words text-xl font-semibold">Account: {makeAddr(states.account)}</p>
+        <p className='text-xl font-semibold'>ETH Balance on address: {states.balcETH}</p>
+        <p className='text-xl font-semibold break-words mb-3'>TxnHash: {states.txnHash}</p>
 
         <Form {...form}>
           <form
@@ -154,6 +174,7 @@ const EthereumDiv = (props: Props) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="account">Current Account</SelectItem>
                       <SelectItem value="goldCoin">GoldCoin</SelectItem>
                       <SelectItem value="erc721Dragon">Dragon NFT</SelectItem>
                     </SelectContent>
@@ -175,6 +196,24 @@ const EthereumDiv = (props: Props) => {
                       className="flex flex-col space-y-1"
                     >
                       <div className='flex flex-wrap'>
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="readEthBalc" />
+                          </FormControl>
+                          <FormLabel>
+                            Read Balance
+                          </FormLabel>
+                        </FormItem>
+
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="readTokenBalc" />
+                          </FormControl>
+                          <FormLabel>
+                            Read Token Balance
+                          </FormLabel>
+                        </FormItem>
+
                         <FormItem className="radio-item">
                           <FormControl>
                             <RadioGroupItem value="transfer" />
@@ -263,7 +302,7 @@ const EthereumDiv = (props: Props) => {
               )}
             />
             <Separator />
-            <Button className='destructive-color mt-5' type="submit">Submit To Blockchain</Button>
+            <Button className='!bg-primary-500 mt-5' type="submit" isLoading={isLoading} >Submit to Blockchain</Button>
           </form>
         </Form>
 
