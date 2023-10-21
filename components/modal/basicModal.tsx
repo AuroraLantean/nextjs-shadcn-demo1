@@ -28,6 +28,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { buyNftSchema } from '@/lib/validators'
 import Icons from "@/components/Icons";
 import { buyNFT } from '@/lib/actions/radix.actions'
+import { OutT, bigIntZero } from '@/lib/actions/ethers'
 
 type Props = {
   id: number
@@ -50,16 +51,17 @@ const BasicModal = ({ id, address, price }: Props) => {
     },
   })
 
+  let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const onSubmit = async (values: Input) => {
     console.log("🚀onSubmit:", values)
     setIsLoading(true);
-    const { hash, error } = await buyNFT(values);
-    console.log("🚀onSubmit. hash:", hash, ", error:", error)
+    const { str1: hash, err } = await buyNFT(values);
+    console.log("🚀onSubmit. hash:", hash, ", err:", err)
 
-    if (error || !hash) {
+    if (err || !hash) {
       toast({
         title: "Failed",
-        description: "Your transaction has failed with error: " + error,
+        description: "Your transaction has failed with err: " + err,
         variant: "destructive",
       })
     } else {

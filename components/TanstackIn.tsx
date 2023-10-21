@@ -82,7 +82,7 @@ const TanstackIn = (props: Props) => {
     enabled: isToFetch,
   });
   useEffect(() => {
-    console.log(data1, 'Has changed')
+    console.log("new out data1:", data1)
     if (isSuccess1 && data1) {
       setBox({ ...data1 })
     }
