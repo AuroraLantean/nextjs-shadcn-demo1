@@ -35,8 +35,8 @@ const EthereumDiv = (props: Props) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    console.log("useEffect ran")
     if (effectRan.current === true) {
+      console.log("EthereumDiv useEffect ran")
       setIsClient(true);
       const initRun = async () => {
         const initOut = await ethersInit();
@@ -61,7 +61,7 @@ const EthereumDiv = (props: Props) => {
       initRun()
     }
     return () => {
-      lg("unmounted useeffect()...")
+      lg("EthereumDiv unmounted useeffect()...")
       effectRan.current = true
     }
   }, []);
@@ -133,7 +133,7 @@ const EthereumDiv = (props: Props) => {
       /*  txnIn= { chainName, ctrtAddr, addr1, addr2, amount1, amount2 };
        {chainName, chainId, account, balcETH,  balcToken, balcNFT } = states */
 
-    } else if (data.enum2 === "allow") {
+    } else if (data.enum2 === "allowance") {
 
     } else {
       console.warn("Invalid enum2")
@@ -248,10 +248,10 @@ const EthereumDiv = (props: Props) => {
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="allow" />
+                            <RadioGroupItem value="allowance" />
                           </FormControl>
                           <FormLabel>
-                            Allow
+                            Allowance
                           </FormLabel>
                         </FormItem>
 

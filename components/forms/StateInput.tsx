@@ -14,8 +14,6 @@ const StateInput = (props: Props) => {
   const box2 = box_data[1];
   const box3 = box_data[2];
   const box4 = box_data[3];
-  console.log("StateInput")
-
   const [isClient, setIsClient] = useState(false)
   const [box3votes, setBox3votes] = useState<null | number>(null);
   useEffect(() => {

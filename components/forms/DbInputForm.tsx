@@ -22,10 +22,10 @@ const DbInputForm = (props: Props) => {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
+    console.log("DbInputForm...")
     setIsClient(true);
   }, []);
 
-  console.log("DbInputForm...")
   type Input = z.infer<typeof dbInputSchema>;
   const form = useForm<Input>({
     resolver: zodResolver(dbInputSchema),

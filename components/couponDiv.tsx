@@ -12,9 +12,9 @@ const CouponDiv = (props: Props) => {
   //const totalCoupon = useCouponStore((state)=> state.totalCoupon);
   //const totalCoupon = useCouponStore.getState().totalCoupon;//Non-reactive! used in init functions
 
-  console.log("CouponDiv")
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
+    console.log("CouponDiv")
     setIsClient(true)
     //resetCouponStorage(); defeat purpose
     //useCouponStore.persist.clearStorage();

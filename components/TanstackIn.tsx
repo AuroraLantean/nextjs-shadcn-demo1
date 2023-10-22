@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -12,14 +12,22 @@ import { delayFunc, parseIntSafe } from '@/lib/utils';
 
 type Props = {}
 const TanstackIn = (props: Props) => {
+  const lg = console.log;
+  const effectRan = useRef(false)
   const { toast } = useToast();
   const box0 = { id: "", title: "", total: 0 }
   const [box, setBox] = useState<Partial<BoxT>>(box0);
   const [isToFetch, setIsToFetch] = useState(false);
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
-    console.log("TanstackIn useEffect...")
-    setIsClient(true)
+    if (effectRan.current === true) {
+      lg("TanstackIn useEffect...")
+      setIsClient(true);
+    }
+    return () => {
+      lg("TanstackIn unmounted useeffect()...")
+      effectRan.current = true
+    }
   }, [])
 
   const queryClient = useQueryClient();
@@ -31,7 +39,7 @@ const TanstackIn = (props: Props) => {
       queryClient.invalidateQueries(["box"], { exact: true })
     },
     onError: (err: any) => {
-      console.log("err:", err)
+      lg("err:", err)
       toast({ description: `Failed: ${err.message}`, variant: 'destructive' })
     },
   })
@@ -43,7 +51,7 @@ const TanstackIn = (props: Props) => {
       queryClient.invalidateQueries(["box"], { exact: true })
     },
     onError: (err: any) => {
-      console.log("err:", err)
+      lg("err:", err)
       toast({ description: `Failed: ${err.message}`, variant: 'destructive' })
     },
   })
@@ -55,7 +63,7 @@ const TanstackIn = (props: Props) => {
       queryClient.invalidateQueries(["box"], { exact: true })
     },
     onError: (err: any) => {
-      console.log("err:", err)
+      lg("err:", err)
       toast({ description: `Failed: ${err.message}`, variant: 'destructive' })
     },
   })
@@ -64,11 +72,11 @@ const TanstackIn = (props: Props) => {
     queryKey: ['boxOne'],
     queryFn: async () => {
       const id = box.id + "";
-      console.log("to fetch one box. id:", id)
+      lg("to fetch one box. id:", id)
       let out;
       if (box.id === "") {
         const mesg = "id is empty. reset to 1"
-        console.log(mesg)
+        lg(mesg)
         setBox(box0);
         toast({ description: `${mesg}` })
         out = await axios.get(`/api/item/?id=1`)
@@ -76,13 +84,13 @@ const TanstackIn = (props: Props) => {
         out = await axios.get(`/api/item/?id=${id}`)
       }
       const { data } = out;
-      console.log("🚀 data1:", data)
+      lg("🚀 data1:", data)
       return data.box as BoxT;
     },
     enabled: isToFetch,
   });
   useEffect(() => {
-    console.log("new out data1:", data1)
+    lg("new out data1:", data1)
     if (isSuccess1 && data1) {
       setBox({ ...data1 })
     }

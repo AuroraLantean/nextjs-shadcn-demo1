@@ -70,6 +70,11 @@ export const sidebarLinks = [
     label: 'Home',
   },
   {
+    imgURL: '/assets/create.svg',
+    route: '/web3',
+    label: 'Web3',
+  },
+  {
     imgURL: '/assets/community.svg',
     route: '/table',
     label: 'Table',
@@ -85,17 +90,12 @@ export const sidebarLinks = [
     label: 'Login/Register',
   },
   {
-    imgURL: '/assets/create.svg',
-    route: '/web3',
-    label: 'Web3',
-  },
-  {
-    imgURL: '/assets/create.svg',
+    imgURL: '/assets/profile.svg',
     route: '/chart',
     label: 'Chart',
   },
   {
-    imgURL: '/assets/create.svg',
+    imgURL: '/assets/community.svg',
     route: '/contact-us',
     label: 'Contact Us',
   },

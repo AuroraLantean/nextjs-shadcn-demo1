@@ -26,7 +26,7 @@ const ImageUpload = (props: Props) => {
   const effectRan = useRef(false)
   useEffect(() => {
     if (effectRan.current === true) {
-      console.log("ImageUpload useEffect...")
+      console.log("ImageUpload useEffect ran...")
       setIsClient(true)
       const fetchSigAndPolicy = async () => {
         const res = await fetch("/api/filestack-security", {

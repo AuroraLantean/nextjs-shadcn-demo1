@@ -4,7 +4,7 @@ export const web3InputSchema = z.object({
   enum1: z.enum(["goldCoin", "erc721Dragon", "account"], {
     required_error: "You need to select one",
   }),
-  enum2: z.enum(["readEthBalc", "readTokenBalc", "transfer", "transferFrom", "allow", "getNFTs", "mintOneNFT"], {
+  enum2: z.enum(["readEthBalc", "readTokenBalc", "transfer", "transferFrom", "allowance", "getNFTs", "mintOneNFT"], {
     required_error: "You need to select one",
   }),
   floatNum1: z.string().max(24, {

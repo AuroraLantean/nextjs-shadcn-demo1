@@ -26,13 +26,13 @@ export const CarouselDraggable = () => {
   };
   const [states, setStates] = useState<typeof initStates>(initStates);
   useEffect(() => {
-    lg("CarouselDraggable useEffect ran")
     if (effectRan.current === true) {
+      lg("CarouselDraggable useEffect ran")
       //lg(carousel.current?.scrollWidth, carousel.current?.offsetWidth);
       if (carousel.current?.scrollWidth) setLeftLimit(carousel.current?.scrollWidth - carousel.current?.offsetWidth);
     }
     return () => {
-      lg("unmounted useeffect()...")
+      lg("CarouselDraggable unmounted useeffect()...")
       effectRan.current = true
     }
   }, []);

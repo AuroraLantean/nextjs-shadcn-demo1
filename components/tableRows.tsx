@@ -6,12 +6,12 @@ import { useShallow } from 'zustand/react/shallow'
 type Props = {}
 
 const TableRows = (props: Props) => {
-  console.log("TableRows")
   const [isClient, setIsClient] = useState(false)
   const { totalLength, boxes } = useBoxStore(
     useShallow((state) => ({ totalLength: state.totalLength, boxes: state.boxes, }))
   )
   useEffect(() => {
+    console.log("TableRows")
     setIsClient(true);
   }, []);
 

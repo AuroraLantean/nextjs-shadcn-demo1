@@ -1,4 +1,4 @@
-import EthereumDiv from '@/components/web3/ethereum'
+import EthereumDiv from '@/components/web3/EthereumDiv'
 import React from 'react'
 
 type Props = {}
