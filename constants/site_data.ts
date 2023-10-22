@@ -76,11 +76,6 @@ export const sidebarLinks = [
   },
   {
     imgURL: '/assets/members.svg',
-    route: '/form',
-    label: 'Form',
-  },
-  {
-    imgURL: '/assets/members.svg',
     route: '/collections',
     label: 'Collections',
   },

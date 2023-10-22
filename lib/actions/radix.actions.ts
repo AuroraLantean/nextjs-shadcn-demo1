@@ -14,7 +14,7 @@ export const buyNFT = async ({ nftId, address, amount }: TypeBuyNFT): Promise<Ou
   try {
     await delayFunc(3000)
     console.log("radix.actions: buyNFT")
-    if (Math.random() < 0.5) {
+    if (Math.random() < 0.2) {
       const hash = "abc123456789";
       return { ...out, str1: hash };
     } else {

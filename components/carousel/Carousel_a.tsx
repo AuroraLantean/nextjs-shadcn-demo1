@@ -61,3 +61,28 @@ const Card = ({ item }: { item: DragonT }) => {
     </div>
   );
 };
+/*
+import { HorizontalScrollCarousel } from "@/components/carousel";
+
+const CarouselPage = () => {
+  return (
+    <>
+      <div className="flex h-48 items-center justify-center">
+        <span className="font-semibold uppercase ">
+          Scroll down
+        </span>
+      </div>
+
+      <HorizontalScrollCarousel />
+
+      <div className="flex h-48 items-center justify-center">
+        <span className="font-semibold uppercase ">
+          Scroll up
+        </span>
+      </div>
+    </>
+  );
+};
+
+export default CarouselPage;
+*/

@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useRef, useState } from 'react'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '../ui/button';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { cn } from '@/lib/utils';
@@ -69,35 +70,42 @@ const ImageUpload = (props: Props) => {
   }
 
   return (
-    <div className={`w-[${APP_WIDTH_MIN}px] gap-2 mb-4`}>
-      <h1 className='text-4xl font-bold mb-2'>ImageUpload & Transform. {isClient ? Math.trunc(Math.random() * 10000) : 0}</h1>
-      <p className='text-xl mb-4'>Upload your photo... Assuming you have logged in</p>
+    <Card className={`w-[${APP_WIDTH_MIN}px]`}>
+      <CardHeader className=''>
+        <CardTitle>Form</CardTitle>
+        <CardDescription>Fill in the form below...</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <h1 className='text-4xl font-bold mb-2'>ImageUpload & Transform. {isClient ? Math.trunc(Math.random() * 10000) : 0}</h1>
+        <p className='text-xl mb-4'>Upload your photo... Assuming you have logged in</p>
 
-      <button className={cn("bg-blue hover:bg-purple-500 font-bold py-2 px-4 rounded")} onClick={() => clickToUpload()}>Upload Image File</button>
+        <button className={cn("bg-blue hover:bg-purple-500 font-bold py-2 px-4 rounded")} onClick={() => clickToUpload()}>Upload Image File</button>
 
-      <section className='flex gap-x-[30px] mt-10'>
-        <div>
-          <h2>Uploaded Image</h2>
-          {uploadedFileHandle && security !== null && (
-            <Image
-              src={`https://cdn.filestackcontent.com/${uploadedFileHandle}?policy=${security.policy}&signature=${security.signature}`}
-              alt='uploaded image'
-              width={350} height={350}
-            />
-          )}
-        </div>
-        <div>
-          <h2>Transformed Image</h2>
-          {uploadedFileHandle && security !== null && (
-            <Image
-              src={`https://cdn.filestackcontent.com/auto_image/quality=value:95/sepia=tone:85/polaroid/security=policy:${security.policy},signature:${security.signature}/${uploadedFileHandle}`}
-              alt='transformed image'
-              width={350} height={350}
-            />
-          )}
-        </div>
-      </section>
-    </div>
+        <section className='flex gap-x-[30px] mt-10'>
+          <div>
+            <h2>Uploaded Image</h2>
+            {uploadedFileHandle && security !== null && (
+              <Image
+                src={`https://cdn.filestackcontent.com/${uploadedFileHandle}?policy=${security.policy}&signature=${security.signature}`}
+                alt='uploaded image'
+                width={350} height={350}
+              />
+            )}
+          </div>
+          <div>
+            <h2>Transformed Image</h2>
+            {uploadedFileHandle && security !== null && (
+              <Image
+                src={`https://cdn.filestackcontent.com/auto_image/quality=value:95/sepia=tone:85/polaroid/security=policy:${security.policy},signature:${security.signature}/${uploadedFileHandle}`}
+                alt='transformed image'
+                width={350} height={350}
+              />
+            )}
+          </div>
+        </section>
+
+      </CardContent>
+    </Card>
   )
 }
 //onClose={()=> setShowPicker(false)}

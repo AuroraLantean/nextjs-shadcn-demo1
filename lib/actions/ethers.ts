@@ -3,8 +3,8 @@ import goldcoin from "@/web3ABIs/ethereum/goldcoin.json"
 import dragonNft from "@/web3ABIs/ethereum/erc721Dragon.json";
 import { isEmpty } from "@/lib/utils";
 
-let signer: any;
-let provider: any;
+let signer: any;//TODO: store this in a client state
+let provider: any;//TODO: store this in a client state
 let isInitialized = false;
 const lg = console.log;
 let mesg = '';
