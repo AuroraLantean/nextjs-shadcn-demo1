@@ -15,6 +15,8 @@ import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc72
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
+import { useWeb3Store } from '@/store/web3Store';
+import { useShallow } from 'zustand/react/shallow';
 
 type Props = {}
 
@@ -33,7 +35,9 @@ const NftSales = (props: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const nativeTokenName = 'ETH'
   const tokenName = 'USDT'
-
+  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, error } = useWeb3Store(
+    useShallow((state) => ({ ...state }))
+  )
   useEffect(() => {
     if (effectRan.current === true) {
       console.log("NftSales useEffect ran")
@@ -77,8 +81,8 @@ const NftSales = (props: Props) => {
         <CardTitle>NFT Sales {isClient ? Math.trunc(Math.random() * 10000) : 0}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-xl font-semibold">Detected Chain: {states.chainName}</p>
-        <p className="break-words text-xl font-semibold">Account: {makeShortAddr(states.account)}</p>
+        <p className="text-xl font-semibold">Chain: {chainName} {chainId}</p>
+        <p className="break-words text-xl font-semibold">Account: {makeShortAddr(account)}</p>
         <p className='text-xl font-semibold'>Account {nativeTokenName} Balance: {states.accBalcNative}</p>
         <p className='text-xl font-semibold'>Account {tokenName} Balance: {states.accBalcToken}</p>
         <p className='text-xl font-semibold'>Account NFT(s): {states.accBalcNFT} {states.accNftArray}</p>

@@ -7,6 +7,8 @@ import { OutT, bigIntZero, ethersInit, getChainObj } from "@/lib/actions/ethers"
 import { useToast } from "../ui/use-toast";
 import { capitalizeFirst } from "@/lib/utils";
 import { Button } from "../ui/button";
+import { initializeWallet, useWeb3Store } from "@/store/web3Store";
+import { useShallow } from 'zustand/react/shallow'
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
@@ -20,11 +22,9 @@ export const CarouselDraggable = () => {
   const effectRan = useRef(false)
   const { toast } = useToast();
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
-  const initStates = {
-    chainName: '', chainId: '', account: '',
-    balcETH: '', balcToken: '', balcNFT: '', str1: ''
-  };
-  const [states, setStates] = useState<typeof initStates>(initStates);
+  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, error } = useWeb3Store(
+    useShallow((state) => ({ ...state }))
+  )
   useEffect(() => {
     if (effectRan.current === true) {
       lg("CarouselDraggable useEffect ran")
@@ -39,34 +39,33 @@ export const CarouselDraggable = () => {
 
   const connectToWallet = async () => {
     lg("connectToWallet")
-    const initOut = await ethersInit();
-    if (initOut.err) {
-      toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
-      return true;
+    if (isInitialized) {
+      lg("already initialized")
+      toast({ description: "web3 already initialized" });
+    } else {
+      const initOut = await initializeWallet('evm');
+      //const initOut = await ethersInit();
+      if (initOut.err) {
+        toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
+        return true;
+      }
+      if (initOut.warn) {
+        toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
+        return true;
+      }
+      toast({ description: "web3 initialized successfully!" });
+      lg("initOut:", initOut)
     }
-    if (initOut.warn) {
-      toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
-      return true;
-    }
-    toast({ description: "web3 initialized successfully!" });
-    lg("initOut:", initOut)
-    const { chainHex, chainStr } = getChainObj(initOut.chainId!)
-    setStates({
-      ...states,
-      chainName: capitalizeFirst(chainStr),
-      chainId: initOut.chainId!,
-      account: initOut.account!,
-    })
   }
   //relative max-auto
   return (
     <section className="overflow-hidden my-2">
       <div className="w-full md:w-auto max-w-6xl">
-        <div className="text-2xl font-semibold">
-          Mystical Creatures... <span className="text-slate-500">Even beyond your imagination</span>
-          <Button
+        <div className="text-2xl font-semibold flex">
+          Mystical Creatures... <span className="text-slate-500">Even beyond your imagination.</span>
+          {isInitialized ? <p>Wallet Connected</p> : <Button
             className="primary-color ml-2"
-            onClick={connectToWallet}>Connect to wallet</Button>
+            onClick={connectToWallet}>Connect to wallet</Button>}
         </div>
         <motion.div ref={carousel} className="my-2 " whileHover={{ cursor: "grab" }} whileTap={{ cursor: "grabbing" }}>
           <motion.div drag="x"

@@ -10,55 +10,58 @@ import { web3InputSchema } from '@/lib/validators';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Input } from '../ui/input';
 import { useToast } from '../ui/use-toast';
-import { capitalizeFirst, makeShortAddr, parseFloatSafe } from '@/lib/utils';
+import { makeShortAddr, parseFloatSafe } from '@/lib/utils';
 import goldcoin from '@/web3ABIs/ethereum/goldcoin.json';
 import dragonNft from '@/web3ABIs/ethereum/erc721Dragon.json';
-import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethersInit, getBalanceEth, getChainObj, getCtrtAddr } from '@/lib/actions/ethers';
+import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getCtrtAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
+import { initializeWallet, useWeb3Store } from '@/store/web3Store';
+import { useShallow } from 'zustand/react/shallow';
 
 type Props = {}
 
 const EthereumDiv = (props: Props) => {
   const lg = console.log;
   lg('EthereumDiv. goldcoin addr:', goldcoin.address, ', dragonNft addr:', dragonNft.address);
-  const initStates = {
-    chainName: '', chainId: '', account: '',
-    balcETH: '', balcToken: '', balcNFT: '', str1: ''
-  };
+  const initStates = { balcETH: '', balcToken: '', balcNFT: '', str1: '' };
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const effectRan = useRef(false)
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [states, setStates] = useState<typeof initStates>(initStates);
   const [isLoading, setIsLoading] = useState(false);
+  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, error } = useWeb3Store(
+    useShallow((state) => ({ ...state }))
+  )
+
+  const connectToWallet = async () => {
+    lg("connectToWallet")
+    if (isInitialized) {
+      lg("already initialized")
+      toast({ description: "web3 already initialized" });
+    } else {
+      const initOut = await initializeWallet('evm');
+      //const initOut = await ethersInit();
+      if (initOut.err) {
+        toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
+        return true;
+      }
+      if (initOut.warn) {
+        toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
+        return true;
+      }
+      toast({ description: "web3 initialized successfully!" });
+      lg("initOut:", initOut)
+    }
+  }
 
   useEffect(() => {
     if (effectRan.current === true) {
       console.log("EthereumDiv useEffect ran")
       setIsClient(true);
-      const initRun = async () => {
-        const initOut = await ethersInit();
-        if (initOut.err) {
-          toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
-          return true;
-        }
-        if (initOut.warn) {
-          toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
-          return true;
-        }
-        toast({ description: "web3 initialized successfully!" });
-        lg("initOut:", initOut)
-        const { chainHex, chainStr } = getChainObj(initOut.chainId!)
-        setStates({
-          ...states,
-          chainName: capitalizeFirst(chainStr),
-          chainId: initOut.chainId!,
-          account: initOut.account!,
-        })
-      }
-      initRun()
+      connectToWallet();
     }
     return () => {
       lg("EthereumDiv unmounted useeffect()...")
@@ -83,10 +86,10 @@ const EthereumDiv = (props: Props) => {
     //alert(JSON.stringify(data, null, 4));
 
     const floatNum1 = parseFloatSafe(data.floatNum1);
-    /* {chainName, chainId, account, balcETH,  balcToken, balcNFT } = states */
+    /* { balcETH,  balcToken, balcNFT } = states */
     let addr = ''
     if (data.enum1 === "account") {
-      addr = states.account
+      addr = account
     } else {
       addr = getCtrtAddr(data.enum1)
     }
@@ -109,7 +112,7 @@ const EthereumDiv = (props: Props) => {
       } else {
         out = { ...out, err: "Invalid contract choice" }
       }
-      /* {chainName, chainId, account, balcETH,  balcToken, balcNFT } = states */
+      /* { balcETH,  balcToken, balcNFT } = states */
     } else if (data.enum2 === "transfer") {
 
       if (!data.addr2) {
@@ -127,11 +130,11 @@ const EthereumDiv = (props: Props) => {
       out = await erc721TokenIds(data.addr1!, addr);
 
     } else if (data.enum2 === "mintOneNFT") {
-      out = await erc721SafeMint(states.account, data.addr2!, data.floatNum1, addr);
+      out = await erc721SafeMint(account, data.addr2!, data.floatNum1, addr);
 
     } else if (data.enum2 === "transferFrom") {
-      /*  txnIn= { chainName, ctrtAddr, addr1, addr2, amount1, amount2 };
-       {chainName, chainId, account, balcETH,  balcToken, balcNFT } = states */
+      /*txnIn= { ctrtAddr, addr1, addr2, amount1, amount2 };
+       { balcETH,  balcToken, balcNFT } = states */
 
     } else if (data.enum2 === "allowance") {
 
@@ -155,8 +158,8 @@ const EthereumDiv = (props: Props) => {
         <CardTitle>Ethereum Related Chains {isClient ? Math.trunc(Math.random() * 10000) : 0}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-xl font-semibold">Detected Chain: {states.chainName}</p>
-        <p className="break-words text-xl font-semibold">Account: {makeShortAddr(states.account)}</p>
+        <p className="text-xl font-semibold">Detected Chain: {chainName}, Id: {chainId}</p>
+        <p className="break-words text-xl font-semibold">Account: {makeShortAddr(account)}</p>
         <p className='text-xl font-semibold'>ETH Balance on address: {states.balcETH}</p>
         <p className='text-xl font-semibold break-words mb-3'>Output: {states.str1}</p>
 

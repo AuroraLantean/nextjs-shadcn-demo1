@@ -2,20 +2,15 @@ import { ethers, formatEther, formatUnits, parseUnits, Contract, getBigInt, toNu
 import goldcoin from "@/web3ABIs/ethereum/goldcoin.json"
 import dragonNft from "@/web3ABIs/ethereum/erc721Dragon.json";
 import { isEmpty } from "@/lib/utils";
+import { Web3InitOutT } from "@/store/web3Store";
 
-let signer: any;//TODO: store this in a client state
-let provider: any;//TODO: store this in a client state
+let signer: any = undefined;
+let provider: any = undefined;
 let isInitialized = false;
 const lg = console.log;
 let mesg = '';
 export const bigIntZero = getBigInt(0)
 
-type Web3InitOutT = {
-  err: string
-  warn: string
-  chainId: string
-  account: string
-}
 export type OutT = {
   err: string
   str1: string
@@ -52,6 +47,7 @@ export const ethersInit = async (): Promise<Partial<Web3InitOutT>> => {
       return { err: mesg };
     });
     lg('detected chainId:', chainId);
+    const { chainHex, chainName } = getChainObj(chainId)
 
     const accounts = await window.ethereum.request({ method: 'eth_accounts' }).catch((err: any) => {
       mesg = '@eth_accounts:' + err;
@@ -71,6 +67,7 @@ export const ethersInit = async (): Promise<Partial<Web3InitOutT>> => {
 
     return {
       chainId,
+      chainName,
       account,
     };
   }
@@ -116,6 +113,8 @@ export const getBalanceEth = async (addr: string): Promise<OutT> => {
   lg('getBalanceEth()... addr:', addr);
   if (isEmpty(addr)) {
     return { ...out, err: 'input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
   }
   const balanceInWei: bigint = await provider.getBalance(addr);// 182334002436162568n
 
@@ -147,6 +146,8 @@ export const erc20BalanceOf = async (addrTarget: string, ctrtAddr: string): Prom
   lg('erc20BalanceOf()... addrTarget:', addrTarget, ', ctrtAddr:', ctrtAddr);
   if (isEmpty(addrTarget) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
   }
   const goldcoinInst = new Contract(ctrtAddr, goldcoin.abi, provider);
 
@@ -163,6 +164,8 @@ export const erc20Allowance = async (addrFrom: string, addrTo: string, ctrtAddr:
   lg('erc20Allowance()... addrFrom:', addrFrom, ', addrTo:', addrTo);
   if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
   }
   const goldcoinInst = new Contract(ctrtAddr, goldcoin.abi, provider);
 
@@ -178,6 +181,8 @@ export const erc20Transfer = async (addrTo: string, amount: string, ctrtAddr: st
   lg('erc20Transfer()... addrTo:', addrTo, ', amount:', amount, ', ctrtAddr:', ctrtAddr);
   if (isEmpty(addrTo) || isEmpty(amount) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
+  } else if (!signer) {
+    return { ...out, err: 'signer invalid' };
   }
   const goldcoinInst = new Contract(ctrtAddr, goldcoin.abi, signer);
   const amountInWei = parseUnits(amount, 18);
@@ -192,6 +197,8 @@ export const erc20Approve = async (addrTo: string, amount: string, ctrtAddr: str
   lg('erc20Approve()... addrTo:', addrTo, ', amount:', amount, ', ctrtAddr:', ctrtAddr);
   if (isEmpty(addrTo) || isEmpty(amount) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
+  } else if (!signer) {
+    return { ...out, err: 'signer invalid' };
   }
   const goldcoinInst = new Contract(ctrtAddr, goldcoin.abi, signer);
   const amountInWei = parseUnits(amount, 18);
@@ -208,6 +215,8 @@ export const erc721Transfer = async (addrFrom: string, addrTo: string, tokenId: 
   const tokId = Number.parseInt(tokenId);
   if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId)) {
     return { ...out, err: 'input invalid' };
+  } else if (!signer) {
+    return { ...out, err: 'signer invalid' };
   }
   try {
     const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, signer);
@@ -234,9 +243,11 @@ export const erc721Transfer = async (addrFrom: string, addrTo: string, tokenId: 
 export const erc721SafeMint = async (addrFrom: string, addrTo: string, tokenId: string, ctrtAddr: string): Promise<OutT> => {
   lg('erc721SafeMint()... addrFrom:', addrFrom, ', addrTo:', addrTo, ', tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
   const tokId = Number.parseInt(tokenId);
-  if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId))
+  if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId)) {
     return { ...out, err: 'input invalid' };
-
+  } else if (!signer) {
+    return { ...out, err: 'signer invalid' };
+  }
   try {
     const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, signer);
     const sym = await dragonNftInst.name();
@@ -266,6 +277,8 @@ export const erc721BalanceOf = async (addrTarget: string, ctrtAddr: string): Pro
   lg('erc20BalanceOf()... addrTarget:', addrTarget, ', ctrtAddr:', ctrtAddr);
   if (isEmpty(addrTarget) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
   }
   const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, provider);
   const sym = await dragonNftInst.name();
@@ -282,6 +295,8 @@ export const ownerOf = async (tokenId: string, ctrtAddr: string): Promise<OutT> 
   lg('ownerOf()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr, ', tokenId:', tokenId);
   if (isEmpty(tokenId) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
   }
   const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, provider);
   const sym = await dragonNftInst.name();
@@ -298,6 +313,8 @@ export const erc721TokenIds = async (addrTarget: string, ctrtAddr: string): Prom
   lg('erc721TokenIds()... addrTarget:', addrTarget, ', ctrtAddr:', ctrtAddr);
   if (isEmpty(addrTarget) || isEmpty(ctrtAddr)) {
     return { ...out, err: 'input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
   }
   const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, provider);
   const sym = await dragonNftInst.name();
@@ -321,71 +338,71 @@ export const erc721TokenIds = async (addrTarget: string, ctrtAddr: string): Prom
 export const getChainObj = (input: string) => {
   console.log('getChainObj()... input:', input);
   let chainHex;
-  let chainStr = '';
+  let chainName = '';
   switch (input) {
     case 'ethereum':
     case '0x1':
       chainHex = '0x1';
-      chainStr = 'ethereum';
+      chainName = 'ethereum';
       break;
     case 'sepolia':
     case '0xaa36a7':
       chainHex = '0xaa36a7';
-      chainStr = 'sepolia';
+      chainName = 'sepolia';
       break;
     case 'goerli':
     case '0x5':
       chainHex = '0x5';
-      chainStr = 'goerli';
+      chainName = 'goerli';
       break;
     case 'polygon':
     case '0x89':
       chainHex = '0x89';
-      chainStr = 'polygon';
+      chainName = 'polygon';
       break;
     case 'mumbai':
     case '0x13881':
       chainHex = '0x13881';
-      chainStr = 'mumbai';
+      chainName = 'mumbai';
       break;
     case 'bsc':
     case '0x38':
       chainHex = '0x38';
-      chainStr = 'bsc';
+      chainName = 'bsc';
       break;
     case 'bsc_testnet':
     case '0x61':
       chainHex = '0x61';
-      chainStr = 'bsc_testnet';
+      chainName = 'bsc_testnet';
       break;
     case 'avalanche':
     case '0xa86a':
       chainHex = '0xa86a';
-      chainStr = 'avalanche';
+      chainName = 'avalanche';
       break;
     case 'fantom':
     case '0xfa':
       chainHex = '0xfa';
-      chainStr = 'fantom';
+      chainName = 'fantom';
       break;
     case 'cronos':
     case '0x19':
       chainHex = '0x19';
-      chainStr = 'cronos';
+      chainName = 'cronos';
       break;
     case 'palm':
     case '0x2a15c308d':
       chainHex = '0x2a15c308d';
-      chainStr = 'palm';
+      chainName = 'palm';
       break;
     case 'arbitrum':
     case '0xa4b1':
       chainHex = '0xa4b1';
-      chainStr = 'arbitrum';
+      chainName = 'arbitrum';
       break;
     default:
       chainHex = 'invalid';
-      chainStr = 'invalid';
+      chainName = 'invalid';
   }
-  return { chainHex, chainStr };
+  return { chainHex, chainName };
 }
