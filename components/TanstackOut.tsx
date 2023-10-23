@@ -42,7 +42,7 @@ const TanstackOut = (props: Props) => {
       </div>
       <div className='flex flex-col gap-2'>
         {isLoading ? "Loading..." : ""}
-        {isError ? "Error" : ""}
+        {isError ? `Error: ${error}` : ""}
         {data && Array.isArray(data) && data.map(box => (
           <BoxCard key={box._id!} {...box} />
         ))}

@@ -31,36 +31,36 @@ const TanstackIn = (props: Props) => {
   }, [])
 
   const queryClient = useQueryClient();
-  const { mutate: addBox, isLoading } = useMutation({
+  const { mutate: addBox, isPending: isLoadingA } = useMutation({
     mutationFn: async (box: Partial<BoxT>) => await axios.post('/api/item', { box }),
     onSuccess: () => {
       toast({ description: "Success" });
       setBox(box0);
-      queryClient.invalidateQueries(["box"], { exact: true })
+      queryClient.invalidateQueries({ queryKey: ["box"], exact: true })
     },
     onError: (err: any) => {
       lg("err:", err)
       toast({ description: `Failed: ${err.message}`, variant: 'destructive' })
     },
   })
-  const { mutate: deleteBox, isLoading: isLoadingD } = useMutation({
+  const { mutate: deleteBox, isPending: isLoadingD } = useMutation({
     mutationFn: async (id: string) => await axios.delete(`/api/item`, { params: { id } }),//${id} not allowed
     onSuccess: () => {
       toast({ description: "Success" });
       setBox(box0);
-      queryClient.invalidateQueries(["box"], { exact: true })
+      queryClient.invalidateQueries({ queryKey: ["box"], exact: true })
     },
     onError: (err: any) => {
       lg("err:", err)
       toast({ description: `Failed: ${err.message}`, variant: 'destructive' })
     },
   })
-  const { mutate: updateBox, isLoading: isLoadingU } = useMutation({
+  const { mutate: updateBox, isPending: isLoadingU } = useMutation({
     mutationFn: async (box: Partial<BoxT>) => await axios.put(`/api/item`, { box }),
     onSuccess: () => {
       toast({ description: "Success" });
       setBox(box0);
-      queryClient.invalidateQueries(["box"], { exact: true })
+      queryClient.invalidateQueries({ queryKey: ["box"], exact: true })
     },
     onError: (err: any) => {
       lg("err:", err)
@@ -101,11 +101,11 @@ const TanstackIn = (props: Props) => {
       <p className='text-2xl font-semibold'>Tanstack Query(React Query) Server State Management Input. {isClient ? Math.trunc(Math.random() * 10000) : 0}</p>
       <div className='flex gap-2 min-w-full'>
         <Input placeholder='id' value={box.id}
-          onChange={e => setBox(prev => ({ ...prev, id: e.target.value }))} disabled={isLoading || isLoadingU || isLoadingD} />
+          onChange={e => setBox(prev => ({ ...prev, id: e.target.value }))} disabled={isLoadingA || isLoadingU || isLoadingD} />
         <Input placeholder='title' value={box.title}
-          onChange={e => setBox(prev => ({ ...prev, title: e.target.value }))} disabled={isLoading || isLoadingU || isLoadingD} />
+          onChange={e => setBox(prev => ({ ...prev, title: e.target.value }))} disabled={isLoadingA || isLoadingU || isLoadingD} />
         <Input placeholder='total' value={box.total}
-          onChange={e => setBox(prev => ({ ...prev, total: parseIntSafe(e.target.value) }))} disabled={isLoading || isLoadingU || isLoadingD} />
+          onChange={e => setBox(prev => ({ ...prev, total: parseIntSafe(e.target.value) }))} disabled={isLoadingA || isLoadingU || isLoadingD} />
       </div>
       <div className=''>
         <div className='flex gap-2 mt-2'>
@@ -115,20 +115,20 @@ const TanstackIn = (props: Props) => {
         <div className='flex'>
           <Button
             onClick={() => addBox(box)}
-            isLoading={isLoading}
-            disabled={isLoading || isLoadingU || isLoadingD}
+            isLoading={isLoadingA}
+            disabled={isLoadingA || isLoadingU || isLoadingD}
           >Add</Button>
           <Button
             onClick={() => updateBox(box)}
             isLoading={isLoadingU}
-            disabled={isLoading || isLoadingU || isLoadingD}
+            disabled={isLoadingA || isLoadingU || isLoadingD}
           >Update</Button>
           <Button
             onClick={() => {
               if (box.id) deleteBox(box.id)
             }}
             isLoading={isLoadingD}
-            disabled={isLoading || isLoadingU || isLoadingD}
+            disabled={isLoadingA || isLoadingU || isLoadingD}
           >Delete</Button>
         </div>
 
