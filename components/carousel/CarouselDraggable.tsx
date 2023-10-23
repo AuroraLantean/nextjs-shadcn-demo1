@@ -57,7 +57,7 @@ export const CarouselDraggable = () => {
       lg("initOut:", initOut)
     }
   }
-  //relative max-auto
+  //relative max-auto <w3m-button />
   return (
     <section className="overflow-hidden my-2">
       <div className="w-full md:w-auto max-w-6xl">
@@ -66,6 +66,7 @@ export const CarouselDraggable = () => {
           {isInitialized ? <p>Wallet Connected</p> : <Button
             className="primary-color ml-2"
             onClick={connectToWallet}>Connect to wallet</Button>}
+
         </div>
         <motion.div ref={carousel} className="my-2 " whileHover={{ cursor: "grab" }} whileTap={{ cursor: "grabbing" }}>
           <motion.div drag="x"

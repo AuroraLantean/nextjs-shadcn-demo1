@@ -3,7 +3,7 @@ import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
-import { ethersInit } from '@/lib/actions/ethers';
+import { ethersInit, getBalanceEth } from '@/lib/actions/ethers';
 
 export type Web3InitOutT = {
   err: string
@@ -11,6 +11,7 @@ export type Web3InitOutT = {
   chainId: string
   chainName: string
   account: string
+  balcEth: string
 }
 const initialState = {
   chainType: '',
@@ -20,6 +21,7 @@ const initialState = {
   account: '',
   isLoadingWeb3: false,
   error: '',
+  balcEth: '',
   //txnHash: '',
   // signer: undefined,
   // provider: undefined,
@@ -52,6 +54,7 @@ export const initializeWallet = async (chainType = 'evm') => {
   } else {
     console.warn('initializeWallet() failed: Unknown chainType', chainType);
   }
+  //const out = await getBalanceEth(initOut.account!)
   useWeb3Store.setState((state) => ({
     ...state,
     chainType,
@@ -60,6 +63,7 @@ export const initializeWallet = async (chainType = 'evm') => {
     chainId: initOut.chainId!,
     account: initOut.account!,
     isLoadingWeb3: false,
+    //balcEth: out.str1,
     // signer: undefined,
     // provider: undefined,
   }));
@@ -71,6 +75,7 @@ export const initializeWallet = async (chainType = 'evm') => {
   chainId: string
   chainName: string
   account: string
+    balcEth: string
 }*/
 /*without immer
   addObjNum1: (by: number) => set((state) => ({

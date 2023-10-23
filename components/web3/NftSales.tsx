@@ -42,12 +42,17 @@ const NftSales = (props: Props) => {
     if (effectRan.current === true) {
       console.log("NftSales useEffect ran")
       setIsClient(true);
+      const getInit2 = async () => {
+        const out = await getBalanceEth(account)
+        setStates({ ...states, accBalcNative: out.str1 })
+      }
+      getInit2();
     }
     return () => {
       lg("NftSales unmounted useeffect()...")
       effectRan.current = true
     }
-  }, []);
+  }, [isInitialized]);
 
   type InputT = z.infer<typeof web3InputSchema>;
   const form = useForm<InputT>({
