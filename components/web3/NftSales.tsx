@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { useForm } from 'react-hook-form';
-import z from 'zod';
+import z, { number } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { web3InputSchema } from '@/lib/validators';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
@@ -22,10 +22,10 @@ type Props = {}
 
 const NftSales = (props: Props) => {
   const lg = console.log;
-  lg('NftSales. goldcoin addr:', goldcoin.address, ', dragonNft addr:', dragonNft.address);
+  lg('NftSales');
   const initStates = {
     chainName: '', chainId: '', account: '',
-    accBalcNative: '', accBalcToken: '', accBalcNFT: '', accNftArray: [], salesCtrt: '', salesBalcNative: '', salesBalcToken: '', salesBalcNFT: '', salesNftArray: [], str1: ''
+    accBalcNative: '', accBalcToken: '', accBalcNFT: '', accNftArray: [] as number[], salesCtrt: '', salesBalcNative: '', salesBalcToken: '', salesBalcNFT: '', salesNftArray: [] as number[], str1: ''
   };
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const effectRan = useRef(false)
@@ -39,9 +39,10 @@ const NftSales = (props: Props) => {
     useShallow((state) => ({ ...state }))
   )
   useEffect(() => {
+    setIsClient(true);
     if (effectRan.current === true) {
       console.log("NftSales useEffect ran")
-      setIsClient(true);
+      lg('NftSales. goldcoin addr:', goldcoin.address, ', dragonNft addr:', dragonNft.address);
       const getInit2 = async () => {
         const out = await getBalanceEth(account)
         setStates({ ...states, accBalcNative: out.str1 })
@@ -68,15 +69,29 @@ const NftSales = (props: Props) => {
   async function onSubmit(data: InputT) {
     console.log("onSubmit", data);
     setIsLoading(true)
-    //alert(JSON.stringify(data, null, 4));
-    const floatNum1 = parseFloatSafe(data.floatNum1);
-    lg("out:", out)
-    if (out.err) {
-      toast({ description: `Failed: ${out.err}`, variant: 'destructive' })
+    //if(!isInitialized)
+    const user = account;
+    const oUserEth = await getBalanceEth(user);
+    const erc20Addr = getCtrtAddr('usdt');
+    const oUserTok = await erc20BalanceOf(user, erc20Addr)
+    const erc721Addr = getCtrtAddr('erc721Dragon');
+    const oUserNftIds = await erc721TokenIds(user, erc721Addr);
+
+    const salesAddr = getCtrtAddr('erc721Sales');
+    const oSalesEth = await getBalanceEth(salesAddr);
+    const oSalesTok = await erc20BalanceOf(salesAddr, erc20Addr)
+    const oSalesNftIds = await erc721TokenIds(salesAddr, erc721Addr);
+
+    if (oUserEth.err || oUserTok.err || oUserNftIds.err || oSalesEth.err || oSalesTok.err || oSalesNftIds.err) {
+      toast({ description: `${oUserTok.err},${oUserNftIds.err},${oSalesTok.err},${oSalesNftIds.err},${oUserEth.err},${oSalesEth.err}`, variant: 'destructive' })
     } else {
       toast({ description: `Success ${out.str1}` })
-      if (out.str1) setStates({ ...states, str1: out.str1 })
+      setStates({ ...states, accBalcNative: oUserEth.str1, accBalcToken: oUserTok.str1, accBalcNFT: oUserNftIds.str1, accNftArray: oUserNftIds.nums, salesBalcNative: oSalesEth.str1, salesBalcToken: oSalesTok.str1, salesNftArray: oSalesNftIds.nums })
     }
+    /*     const initStates = {
+          chainName: '', chainId: '', account: '',
+          accBalcNative: '', accBalcToken: '', accBalcNFT: '', accNftArray: [], salesCtrt: '', salesBalcNative: '', salesBalcToken: '', salesBalcNFT: '', salesNftArray: [], str1: ''
+        }; */
     setIsLoading(false)
   }
 

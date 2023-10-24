@@ -4,7 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
 import { ethersInit, getBalanceEth } from '@/lib/actions/ethers';
-
+import contracts from "@/web3ABIs/ethereum/contracts.json";
 export type Web3InitOutT = {
   err: string
   warn: string
@@ -48,6 +48,8 @@ export const initializeWallet = async (chainType = 'evm') => {
 
   if (chainType === 'evm') {
     initOut = await ethersInit();
+    const len = contracts.length;
+    if (len < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
 
   } else if (chainType === 'radix') {
 

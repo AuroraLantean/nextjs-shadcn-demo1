@@ -20,9 +20,9 @@ const TanstackIn = (props: Props) => {
   const [isToFetch, setIsToFetch] = useState(false);
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
+    setIsClient(true);
     if (effectRan.current === true) {
       lg("TanstackIn useEffect...")
-      setIsClient(true);
     }
     return () => {
       lg("TanstackIn unmounted useeffect()...")

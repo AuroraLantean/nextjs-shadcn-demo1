@@ -58,9 +58,9 @@ const EthereumDiv = (props: Props) => {
   }
 
   useEffect(() => {
+    setIsClient(true);
     if (effectRan.current === true) {
       console.log("EthereumDiv useEffect ran")
-      setIsClient(true);
       connectToWallet();
     }
     return () => {
