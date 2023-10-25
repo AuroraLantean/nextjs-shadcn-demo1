@@ -9,9 +9,7 @@ import { web3InputSchema } from '@/lib/validators';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '../ui/use-toast';
 import { capitalizeFirst, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import goldcoin from '@/web3ABIs/ethereum/goldcoin.json';
-import dragonNft from '@/web3ABIs/ethereum/erc721Dragon.json';
-import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721TokenIds, erc721Transfer, ethersInit, getBalanceEth, getChainObj, getCtrtAddr } from '@/lib/actions/ethers';
+import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721TokenIds, erc721Transfer, ethersInit, getBalanceEth, getBalances, getChainObj, getCtrtAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -25,7 +23,7 @@ const NftSales = (props: Props) => {
   lg('NftSales');
   const initStates = {
     chainName: '', chainId: '', account: '',
-    accBalcNative: '', accBalcToken: '', accBalcNFT: '', accNftArray: [] as number[], salesCtrt: '', salesBalcNative: '', salesBalcToken: '', salesBalcNFT: '', salesNftArray: [] as number[], str1: ''
+    accBalcNative: '', accBalcToken: '', accBalcNFT: '', accNftArray: [] as number[], salesCtrt: '', salesBalcNative: '', salesBalcToken: '', salesBalcNFT: '', salesNftArray: [] as number[], str1: '', error: '',
   };
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const effectRan = useRef(false)
@@ -38,16 +36,24 @@ const NftSales = (props: Props) => {
   const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, error } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
+  const usdtAddr = getCtrtAddr('usdt')
+  const erc721DragonAddr = getCtrtAddr('erc721Dragon')
+  const erc721SalesAddr = getCtrtAddr('erc721Sales')
+
   useEffect(() => {
     setIsClient(true);
     if (effectRan.current === true) {
       console.log("NftSales useEffect ran")
-      lg('NftSales. goldcoin addr:', goldcoin.address, ', dragonNft addr:', dragonNft.address);
+      lg('NftSales. usdt:', usdtAddr, ', erc721Dragon:', erc721DragonAddr, ', erc721Sales:', erc721SalesAddr);
       const getInit2 = async () => {
-        const out = await getBalanceEth(account)
-        setStates({ ...states, accBalcNative: out.str1 })
+        const out = await getBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr)
+        if (out.err.replaceAll(", ", "")) {
+          console.error("out.err:", out.err)
+          toast({ description: `${out.err}`, variant: 'destructive' })
+        }
+        setStates({ ...states, ...out })
       }
-      getInit2();
+      if (isInitialized) getInit2();
     }
     return () => {
       lg("NftSales unmounted useeffect()...")
@@ -66,6 +72,15 @@ const NftSales = (props: Props) => {
       addr2: process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "",
     },
   });
+  const getBalances1 = async () => {
+    console.log("getBalances1");
+    const out = await getBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr)
+    if (out.err.replaceAll(", ", "")) {
+      console.error("out.err:", out.err)
+      toast({ description: `${out.err}`, variant: 'destructive' })
+    }
+    setStates({ ...states, ...out })
+  }
   async function onSubmit(data: InputT) {
     console.log("onSubmit", data);
     setIsLoading(true)
@@ -88,10 +103,6 @@ const NftSales = (props: Props) => {
       toast({ description: `Success ${out.str1}` })
       setStates({ ...states, accBalcNative: oUserEth.str1, accBalcToken: oUserTok.str1, accBalcNFT: oUserNftIds.str1, accNftArray: oUserNftIds.nums, salesBalcNative: oSalesEth.str1, salesBalcToken: oSalesTok.str1, salesNftArray: oSalesNftIds.nums })
     }
-    /*     const initStates = {
-          chainName: '', chainId: '', account: '',
-          accBalcNative: '', accBalcToken: '', accBalcNFT: '', accNftArray: [], salesCtrt: '', salesBalcNative: '', salesBalcToken: '', salesBalcNFT: '', salesNftArray: [], str1: ''
-        }; */
     setIsLoading(false)
   }
 
@@ -172,6 +183,7 @@ const NftSales = (props: Props) => {
           </form>
         </Form>
 
+        <Button className='!bg-primary-500 mt-5' onClick={getBalances1} isLoading={isLoading} >Check Balances</Button>
       </CardContent>
     </Card>
   )

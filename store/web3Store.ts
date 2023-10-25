@@ -4,7 +4,7 @@ import { immer } from 'zustand/middleware/immer'
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
 import { ethersInit, getBalanceEth } from '@/lib/actions/ethers';
-import contracts from "@/web3ABIs/ethereum/contracts.json";
+import contracts from "@/web3ABIs/ethereum/contractABIsERC721Sales.json";
 export type Web3InitOutT = {
   err: string
   warn: string

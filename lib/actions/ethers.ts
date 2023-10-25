@@ -1,7 +1,7 @@
 import { ethers, formatEther, formatUnits, parseUnits, Contract, getBigInt, toNumber } from "ethers";
 import goldcoin from "@/web3ABIs/ethereum/goldcoin.json"
 import dragonNft from "@/web3ABIs/ethereum/erc721Dragon.json";
-import contracts from "@/web3ABIs/ethereum/contracts.json";
+import contracts from "@/web3ABIs/ethereum/contractABIsERC721Sales.json";
 
 import { isEmpty } from "@/lib/utils";
 import { Web3InitOutT } from "@/store/web3Store";
@@ -139,6 +139,10 @@ export const getBalanceEth = async (addr: string): Promise<OutT> => {
 type CTRT = 'usdt' | 'erc721Dragon' | 'erc721Sales';
 export const getCtrtAddr = (ctrtName: CTRT): string => {
   let ctrtAddr = '';
+  if (contracts.length < 3) {
+    console.error("'Error contracts.length < 3'")
+    return 'Error contracts.length < 3'
+  }
   switch (ctrtName) {
     /*     case 'goldCoin':
           ctrtAddr = goldcoin.address;
@@ -156,7 +160,7 @@ export const getCtrtAddr = (ctrtName: CTRT): string => {
       ctrtAddr = contracts[2].contractAddress;
       break;
   }
-  lg('getCtrtAddr()... ctrtAddr', ctrtAddr);
+  //lg('getCtrtAddr()... ctrtAddr', ctrtAddr);
   return ctrtAddr;
 };
 
@@ -329,9 +333,9 @@ export const erc721BalanceOf = async (addrTarget: string, ctrtAddr: string): Pro
     const dragonNftInst = new Contract(ctrtAddr, dragonNft.abi, provider);
     const sym = await dragonNftInst.name();
     lg('symbol', sym);
-    if (sym !== 'Dragons') {
-      return { ...out, err: 'not Dragons contract' };
-    }
+    // if (sym !== 'Dragons') {
+    //   return { ...out, err: 'not Dragons contract' };
+    // }
     const tokenBalcInWei: bigint = await dragonNftInst.balanceOf(addrTarget);
     lg('success,', tokenBalcInWei);
     return { ...out, inWei: tokenBalcInWei, str1: ethers.toNumber(tokenBalcInWei) + '' };
@@ -395,7 +399,19 @@ export const erc721TokenIds = async (addrTarget: string, ctrtAddr: string): Prom
     return { ...out, err: funcName + ' failed' };
   }
 }
-
+export const getBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string) => {
+  const oAccNative = await getBalanceEth(account)
+  const oAccUSDT = await erc20BalanceOf(account, tokenAddr);
+  const oAccDragonNFT = await erc721BalanceOf(account, nftAddr);
+  const oSalesNative = await getBalanceEth(salesAddr)
+  const oSalesUSDT = await erc20BalanceOf(salesAddr, tokenAddr);
+  const oSalesNDragonNFT = await erc721BalanceOf(salesAddr, nftAddr);
+  const err = oAccNative.err + ", " + oAccUSDT.err + ", " + oAccDragonNFT.err + ", " + oSalesNative.err + ", " + oSalesUSDT.err + ", " + oSalesNDragonNFT.err;
+  const out = {
+    accBalcNative: oAccNative.str1, accBalcToken: oAccUSDT.str1, accBalcNFT: oAccDragonNFT.str1, salesBalcNative: oSalesNative.str1, salesBalcToken: oSalesUSDT.str1, salesBalcNFT: oSalesNDragonNFT.str1, err,
+  }
+  return out;
+}
 
 export const getChainObj = (input: string) => {
   console.log('getChainObj()... input:', input);
@@ -461,6 +477,11 @@ export const getChainObj = (input: string) => {
     case '0xa4b1':
       chainHex = '0xa4b1';
       chainName = 'arbitrum';
+      break;
+    case 'anvil':
+    case '0x539':
+      chainHex = '';
+      chainName = 'anvil';
       break;
     default:
       chainHex = 'invalid';
