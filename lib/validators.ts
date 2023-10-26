@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const web3InputSchema = z.object({
-  enum1: z.enum(["goldCoin", "erc721Dragon", "account"], {
+  enum1: z.enum(["usdt", "erc721Dragon", "account"], {
     required_error: "You need to select one",
   }),
   enum2: z.enum(["readEthBalc", "readTokenBalc", "transfer", "transferFrom", "allowance", "getNFTs", "mintOneNFT"], {

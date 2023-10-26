@@ -101,7 +101,7 @@ const EthereumDiv = (props: Props) => {
     } else if (data.enum2 === "readTokenBalc") {
       if (!data.addr1) {
         out = { ...out, err: "Invalid addr1" }
-      } else if (data.enum1 === "goldCoin") {
+      } else if (data.enum1 === "usdt") {
         out = await erc20BalanceOf(data.addr1, addr)
         setStates({ ...states, balcETH: out.str1 })
 
@@ -118,7 +118,7 @@ const EthereumDiv = (props: Props) => {
       if (!data.addr2) {
         out = { ...out, err: "Invalid addr2" }
 
-      } else if (data.enum1 === "goldCoin") {
+      } else if (data.enum1 === "usdt") {
         out = await erc20Transfer(data.addr2, data.floatNum1, addr);
 
       } else if (data.enum1 === "erc721Dragon") {
