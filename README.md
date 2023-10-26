@@ -34,6 +34,19 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Connect to a Ethereum Local Network
+
+For MetaMask wallet, follow this tutorial: https://docs.metamask.io/wallet/how-to/get-started-building/run-devnet/
+Make sure your wallet settings are correct according to Foundry Anvil:
+
+```
+http://127.0.0.1:8545/  OR  http://localhost:8545
+Anvil chain ID 31337 or 0x7a69 in hexadecimal format
+Hardhat chain ID, 1337 or 0x539 in hexadecimal format)
+```
+
+Settings > Advanced and select Reset account
+
 ## Under Investigation
 
 https://github.com/ethers-io/ethers.js/issues/4428

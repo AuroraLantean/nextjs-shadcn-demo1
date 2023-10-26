@@ -9,7 +9,7 @@ import { web3InputSchema } from '@/lib/validators';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '../ui/use-toast';
 import { capitalizeFirst, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721TokenIds, erc721Transfer, ethersInit, getBalanceEth, getBalances, getChainObj, getCtrtAddr } from '@/lib/actions/ethers';
+import { OutT, balancesDefault, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721TokenIds, erc721Transfer, ethersInit, getBalanceEth, getBalances, getChainObj, getCtrtAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -18,13 +18,10 @@ import { useShallow } from 'zustand/react/shallow';
 
 type Props = {}
 
-const NftSales = (props: Props) => {
+const NftSalesPage = (props: Props) => {
   const lg = console.log;
-  lg('NftSales');
-  const initStates = {
-    chainName: '', chainId: '', account: '',
-    accBalcNative: '', accBalcToken: '', accBalcNFT: '', accNftArray: [] as number[], salesCtrt: '', salesBalcNative: '', salesBalcToken: '', salesBalcNFT: '', salesNftArray: [] as number[], str1: '', error: '',
-  };
+  lg('NftSalesPage');
+  const initStates = { ...balancesDefault, chainName: '', chainId: '', account: '', str1: '' };
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const effectRan = useRef(false)
   const { toast } = useToast();
@@ -43,11 +40,11 @@ const NftSales = (props: Props) => {
   useEffect(() => {
     setIsClient(true);
     if (effectRan.current === true) {
-      console.log("NftSales useEffect ran")
-      lg('NftSales. usdt:', usdtAddr, ', erc721Dragon:', erc721DragonAddr, ', erc721Sales:', erc721SalesAddr);
+      console.log("NftSalesPage useEffect ran... isInitialized:", isInitialized)
+      lg('NftSalesPage. usdt:', usdtAddr, ', erc721Dragon:', erc721DragonAddr, ', erc721Sales:', erc721SalesAddr);
       const getInit2 = async () => {
-        const out = await getBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr)
-        if (out.err.replaceAll(", ", "")) {
+        const out = await getBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr);
+        if (out.err) {
           console.error("out.err:", out.err)
           toast({ description: `${out.err}`, variant: 'destructive' })
         }
@@ -56,7 +53,7 @@ const NftSales = (props: Props) => {
       if (isInitialized) getInit2();
     }
     return () => {
-      lg("NftSales unmounted useeffect()...")
+      lg("NftSalesPage unmounted useeffect()...")
       effectRan.current = true
     }
   }, [isInitialized]);
@@ -74,8 +71,8 @@ const NftSales = (props: Props) => {
   });
   const getBalances1 = async () => {
     console.log("getBalances1");
-    const out = await getBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr)
-    if (out.err.replaceAll(", ", "")) {
+    const out = await getBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr);
+    if (out.err) {
       console.error("out.err:", out.err)
       toast({ description: `${out.err}`, variant: 'destructive' })
     }
@@ -189,4 +186,4 @@ const NftSales = (props: Props) => {
   )
 }
 
-export default NftSales;
+export default NftSalesPage;

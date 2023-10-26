@@ -12,7 +12,7 @@ import TableRows from "@/components/tableRows";
 import DbInputForm from "@/components/forms/DbInputForm";
 import TanstackOut from "@/components/TanstackOut";
 import TanstackIn from "@/components/TanstackIn";
-import NftSales from "@/components/web3/NftSales";
+import NftSales from "@/components/web3/NftSalesPage";
 
 export default async function HomePage() {
   console.log("HomePage")
