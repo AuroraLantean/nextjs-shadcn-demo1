@@ -28,7 +28,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { buyNftSchema } from '@/lib/validators'
 import Icons from "@/components/Icons";
 import { buyNFT } from '@/lib/actions/radix.actions'
-import { OutT, bigIntZero } from '@/lib/actions/ethers'
+import { OutT, bigIntZero, buyNFTviaERC20, buyNFTviaETH } from '@/lib/actions/ethers'
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 
 type Props = {
   id: number
@@ -44,10 +45,10 @@ const BasicModal = ({ id, address, price }: Props) => {
   const form = useForm<Input>({
     resolver: zodResolver(buyNftSchema),
     defaultValues: {
+      enum1: "eth",
       nftId: id?.toString() || "",
       address: address,
       amount: price.toString(),
-
     },
   })
 
@@ -55,7 +56,18 @@ const BasicModal = ({ id, address, price }: Props) => {
   const onSubmit = async (values: Input) => {
     console.log("🚀onSubmit:", values)
     setIsLoading(true);
-    const { str1: hash, err } = await buyNFT(values);
+    let hash = ''; let err = '';
+    if (values.enum1 === "eth") {
+      ({ str1: hash, err } = await buyNFTviaETH(values.nftId, values.amount, values.address));
+
+    } else if (values.enum1 === "erc20") {
+      ({ str1: hash, err } = await buyNFTviaERC20(values.nftId, values.address));
+
+    } else if (values.enum1 === "xrd") {
+      ({ str1: hash, err } = await buyNFT(values));
+    } else if (values.enum1 === "xToken") {
+
+    }
     console.log("🚀onSubmit. hash:", hash, ", err:", err)
 
     if (err || !hash) {
@@ -106,6 +118,60 @@ const BasicModal = ({ id, address, price }: Props) => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
+            <FormField
+              control={form.control}
+              name="enum1"
+              render={({ field }) => (
+                <FormItem className="space-y-1">
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className='flex flex-wrap'>
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="eth" />
+                          </FormControl>
+                          <FormLabel>
+                            Read Balance
+                          </FormLabel>
+                        </FormItem>
+
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="erc20" />
+                          </FormControl>
+                          <FormLabel>
+                            Read Balance
+                          </FormLabel>
+                        </FormItem>
+
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="xrd" />
+                          </FormControl>
+                          <FormLabel>
+                            Read Balance
+                          </FormLabel>
+                        </FormItem>
+
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="xToken" />
+                          </FormControl>
+                          <FormLabel>
+                            Read Balance
+                          </FormLabel>
+                        </FormItem>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="nftId"

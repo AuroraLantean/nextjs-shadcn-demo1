@@ -9,7 +9,7 @@ import { web3InputSchema } from '@/lib/validators';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '../ui/use-toast';
 import { capitalizeFirst, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { OutT, balancesDefault, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721TokenIds, erc721Transfer, ethersInit, getBalanceEth, getBalances, getChainObj, getCtrtAddr } from '@/lib/actions/ethers';
+import { OutT, initBalancesDefault, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721TokenIds, erc721Transfer, ethersInit, getBalanceEth, getInitBalances, getChainObj, getCtrtAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -21,7 +21,7 @@ type Props = {}
 const NftSalesPage = (props: Props) => {
   const lg = console.log;
   lg('NftSalesPage');
-  const initStates = { ...balancesDefault, chainName: '', chainId: '', account: '', str1: '' };
+  const initStates = { ...initBalancesDefault, chainName: '', chainId: '', account: '', str1: '' };
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const effectRan = useRef(false)
   const { toast } = useToast();
@@ -30,7 +30,7 @@ const NftSalesPage = (props: Props) => {
   const [isLoading, setIsLoading] = useState(false);
   const nativeTokenName = 'ETH'
   const tokenName = 'USDT'
-  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, error } = useWeb3Store(
+  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   const usdtAddr = getCtrtAddr('usdt')
@@ -43,7 +43,7 @@ const NftSalesPage = (props: Props) => {
       console.log("NftSalesPage useEffect ran... isInitialized:", isInitialized)
       lg('NftSalesPage. usdt:', usdtAddr, ', erc721Dragon:', erc721DragonAddr, ', erc721Sales:', erc721SalesAddr);
       const getInit2 = async () => {
-        const out = await getBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr);
+        const out = await getInitBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr);
         if (out.err) {
           console.error("out.err:", out.err)
           toast({ description: `${out.err}`, variant: 'destructive' })
@@ -71,7 +71,7 @@ const NftSalesPage = (props: Props) => {
   });
   const getBalances1 = async () => {
     console.log("getBalances1");
-    const out = await getBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr);
+    const out = await getInitBalances(account, usdtAddr, erc721DragonAddr, erc721SalesAddr);
     if (out.err) {
       console.error("out.err:", out.err)
       toast({ description: `${out.err}`, variant: 'destructive' })
@@ -98,7 +98,7 @@ const NftSalesPage = (props: Props) => {
       toast({ description: `${oUserTok.err},${oUserNftIds.err},${oSalesTok.err},${oSalesNftIds.err},${oUserEth.err},${oSalesEth.err}`, variant: 'destructive' })
     } else {
       toast({ description: `Success ${out.str1}` })
-      setStates({ ...states, accBalcNative: oUserEth.str1, accBalcToken: oUserTok.str1, accBalcNFT: oUserNftIds.str1, accNftArray: oUserNftIds.nums, salesBalcNative: oSalesEth.str1, salesBalcToken: oSalesTok.str1, salesNftArray: oSalesNftIds.nums })
+      setStates({ ...states, accBalcNative: oUserEth.str1, accBalcToken: oUserTok.str1, accNftArray: oUserNftIds.nums, salesBalcNative: oSalesEth.str1, salesBalcToken: oSalesTok.str1, salesNftArray: oSalesNftIds.nums })
     }
     setIsLoading(false)
   }
@@ -113,12 +113,12 @@ const NftSalesPage = (props: Props) => {
         <p className="break-words text-xl font-semibold">Account: {makeShortAddr(account)}</p>
         <p className='text-xl font-semibold'>Account {nativeTokenName} Balance: {states.accBalcNative}</p>
         <p className='text-xl font-semibold'>Account {tokenName} Balance: {states.accBalcToken}</p>
-        <p className='text-xl font-semibold'>Account NFT(s): {states.accBalcNFT} {states.accNftArray}</p>
+        <p className='text-xl font-semibold'>Account NFT(s): {states.accNftArray.toString() || "none"}</p>
 
         <p className='text-xl'>Sales Contract: {makeShortAddr(states.salesCtrt)}</p>
         <p className='text-xl'>Sales Contract {nativeTokenName} Balance: {states.salesBalcNative}</p>
         <p className='text-xl'>Sales Contract {tokenName} Balance: {states.salesBalcToken}</p>
-        <p className='text-xl'>Sales Contract NFT(s): {states.salesBalcNFT} {states.salesNftArray}</p>
+        <p className='text-xl'>Sales Contract NFT(s): {states.salesNftArray.toString() || "none"}</p>
 
         <p className='text-xl font-semibold break-words mb-3'>Output: {states.str1}</p>
 

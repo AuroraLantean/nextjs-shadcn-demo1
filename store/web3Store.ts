@@ -5,26 +5,16 @@ import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
 import { contractsJSONdup, ethersInit, getBalanceEth } from '@/lib/actions/ethers';
 
-export type Web3InitOutT = {
-  err: string
-  warn: string
-  chainId: string
-  chainName: string
-  account: string
-  balcEth: string
-}
+export const web3InitDefault = { err: '', warn: '', chainId: '', chainName: '', account: '' };
+
+export type Web3InitOutT = typeof web3InitDefault;
 const initialState = {
+  ...web3InitDefault,
   chainType: '',
   isInitialized: false,
-  chainName: '',
-  chainId: '',
-  account: '',
   isLoadingWeb3: false,
-  error: '',
+  err: '',
   balcEth: '',
-  //txnHash: '',
-  // signer: undefined,
-  // provider: undefined,
 }
 const makeObjSlice: StateCreator<typeof initialState, [
   ["zustand/immer", never],
@@ -39,13 +29,12 @@ export const useWeb3Store = createSelectors(createWithEqualityFn<typeof initialS
 }
 )
 )));
-//extracting functions out of stores
+
 export const initializeWallet = async (chainType = 'evm') => {
   useWeb3Store.setState((state) => ({
     isLoadingWeb3: true,
   }));
-  let initOut: Partial<Web3InitOutT> = { err: '', warn: '', chainId: '', chainName: '', account: '' };
-
+  let initOut = web3InitDefault;
   if (chainType === 'evm') {
     initOut = await ethersInit();
     const len = contractsJSONdup.length;
@@ -61,13 +50,10 @@ export const initializeWallet = async (chainType = 'evm') => {
     ...state,
     chainType,
     isInitialized: true,
-    chainName: capitalizeFirst(initOut.chainName!),
-    chainId: initOut.chainId!,
-    account: initOut.account!,
+    chainName: capitalizeFirst(initOut.chainName),
+    chainId: initOut.chainId,
+    account: initOut.account,
     isLoadingWeb3: false,
-    //balcEth: out.str1,
-    // signer: undefined,
-    // provider: undefined,
   }));
   return initOut;
 }

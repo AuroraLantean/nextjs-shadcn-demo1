@@ -107,6 +107,9 @@ export const settingTabP2Schema = z.object({
 });
 
 export const buyNftSchema = z.object({
+  enum1: z.enum(["eth", "erc20", "xrd", "xToken"], {
+    required_error: "You need to select one payment method",
+  }),
   nftId: z.string().min(1, {
     message: "NFT ID requires at least 1 character.",
   }).max(7, {

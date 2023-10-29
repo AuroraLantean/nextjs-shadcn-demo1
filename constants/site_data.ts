@@ -10,6 +10,22 @@ export type DragonT = {
   imgURL: string
 }
 
+export type contractT = {
+  address: string
+  name: string
+  symbol: string
+}
+export const localDp6contracts: contractT[] = [
+  {
+    name: "usdt", symbol: "usdt", address: "0xbdEd0D2bf404bdcBa897a74E6657f1f12e5C6fb6",
+  },
+]
+export const sepoliaDp6contracts: contractT[] = [
+  {
+    name: "usdt", symbol: "usdt", address: "",
+  },
+]
+export const soldout = "/kisspng-sold512x375.png";
 export const dragons: DragonT[] = [
   {
     id: 1, address: "radix_009923554798xakj8n1",

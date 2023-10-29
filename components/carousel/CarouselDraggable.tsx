@@ -21,8 +21,11 @@ export const CarouselDraggable = () => {
   const carousel = useRef<HTMLDivElement>(null);
   const effectRan = useRef(false)
   const { toast } = useToast();
-  let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
-  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, error } = useWeb3Store(
+  const nftOwner = process.env.NEXT_PUBLIC_ETHEREUM_NFTOWNER || '';
+  lg('nftOwner', nftOwner);
+  let mesg = '';
+  //let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
+  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   useEffect(() => {
@@ -30,6 +33,11 @@ export const CarouselDraggable = () => {
       lg("CarouselDraggable useEffect ran")
       //lg(carousel.current?.scrollWidth, carousel.current?.offsetWidth);
       if (carousel.current?.scrollWidth) setLeftLimit(carousel.current?.scrollWidth - carousel.current?.offsetWidth);
+      if (!nftOwner) {
+        mesg = "env nftOwner invalid";
+        console.error(mesg)
+        toast({ description: mesg });
+      }
     }
     return () => {
       lg("CarouselDraggable unmounted useeffect()...")

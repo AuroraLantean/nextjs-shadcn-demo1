@@ -5,6 +5,15 @@
 Copy `.env.example` to `.env.local`, then add your credentials. Save it without formatting by your code editor!
 Note: Use a MongoDB user password, not the account password!
 
+Fill the Ethereum Network name and its associated contract addresses:
+
+```
+NEXT_PUBLIC_ETHEREUM_NETWORK=
+NEXT_PUBLIC_ETHEREUM_USDT=
+NEXT_PUBLIC_ETHEREUM_NFT=
+NEXT_PUBLIC_ETHEREUM_NFTSALES=
+```
+
 ## Install NPM Package Manager and this repo packages
 
 See [PNPM installation](https://pnpm.io/installation)
