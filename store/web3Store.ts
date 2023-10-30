@@ -3,18 +3,18 @@ import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
-import { contractsJSONdup, ethersInit, getBalanceEth } from '@/lib/actions/ethers';
+import { checkNftStatus, contractsJSONdup, ethersInit, getBalanceEth, nftSalesStatus, nftStatusesDefault, nftStatusesT } from '@/lib/actions/ethers';
 
 export const web3InitDefault = { err: '', warn: '', chainId: '', chainName: '', account: '' };
 
 export type Web3InitOutT = typeof web3InitDefault;
 const initialState = {
   ...web3InitDefault,
+  nftStatuses: [] as nftSalesStatus[],
   chainType: '',
   isInitialized: false,
   isLoadingWeb3: false,
   err: '',
-  balcEth: '',
 }
 const makeObjSlice: StateCreator<typeof initialState, [
   ["zustand/immer", never],
@@ -31,6 +31,7 @@ export const useWeb3Store = createSelectors(createWithEqualityFn<typeof initialS
 )));
 
 export const initializeWallet = async (chainType = 'evm') => {
+  const funcName = 'initializeWallet';
   useWeb3Store.setState((state) => ({
     isLoadingWeb3: true,
   }));
@@ -43,7 +44,7 @@ export const initializeWallet = async (chainType = 'evm') => {
   } else if (chainType === 'radix') {
 
   } else {
-    console.warn('initializeWallet() failed: Unknown chainType', chainType);
+    console.warn(funcName + '() failed: Unknown chainType', chainType);
   }
   //const out = await getBalanceEth(initOut.account!)
   useWeb3Store.setState((state) => ({
@@ -57,18 +58,33 @@ export const initializeWallet = async (chainType = 'evm') => {
   }));
   return initOut;
 }
-/* export type Web3InitOutT = {
-  err: string
-  warn: string
-  chainId: string
-  chainName: string
-  account: string
-    balcEth: string
-}*/
+
+export const updateNftStatus = async (chainType = 'evm', account: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin = 0, nftIdMax = 9) => {
+  const funcName = 'updateNftStatus';
+  useWeb3Store.setState((state) => ({
+    isLoadingWeb3: true,
+  }));
+  let out = nftStatusesDefault;
+  if (chainType === 'evm') {
+    out = await checkNftStatus(account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
+    //console.log("statuses:", out)
+
+  } else if (chainType === 'radix') {
+
+  } else {
+    console.warn(funcName + '() failed: Unknown chainType', chainType);
+  }
+  useWeb3Store.setState((state) => ({
+    ...state,
+    nftStatuses: out.arr,
+    isLoadingWeb3: false,
+  }));
+  return out;
+}
+
 /*without immer
   addObjNum1: (by: number) => set((state) => ({
     obj: {
       ...state.obj, num1: state.obj.num1 + by
     }
   })), */
-//--------------------==

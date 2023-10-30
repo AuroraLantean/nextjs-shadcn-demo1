@@ -28,7 +28,7 @@ export const sepoliaDp6contracts: contractT[] = [
 export const soldout = "/kisspng-sold512x375.png";
 export const dragons: DragonT[] = [
   {
-    id: 1, address: "radix_009923554798xakj8n1",
+    id: 0, address: "radix_009923554798xakj8n1",
     name: "Rendezvous", price: 100,
     artist: "Ethan Byte", category: "dragon",
     description: "will meet you at unexpected times...",
@@ -36,42 +36,42 @@ export const dragons: DragonT[] = [
       "/dragons/0c1987f8-42aa-46d8-9d2d-98e5b7bb5d7f.png",
   },
   {
-    id: 2, address: "radix_009923554798xakj8n2",
+    id: 1, address: "radix_009923554798xakj8n2",
     name: "Awakenings", price: 200,
     artist: "Nina Netcode", category: "dragon", description: "to appear soon",
     imgURL:
       "/dragons/8e25da39-6895-4ad4-88b2-34a31ac1bfa4.png",
   },
   {
-    id: 3, address: "radix_009923554798xakj8n3",
+    id: 2, address: "radix_009923554798xakj8n3",
     name: "Wolf Dragon", price: 300,
     artist: "Lena Logic", category: "dragon", description: "can tear anything apart",
     imgURL:
       "/dragons/41a691af-f4c3-4242-a223-5b0796b603ec.png",
   },
   {
-    id: 4, address: "radix_009923554798xakj8n4",
+    id: 3, address: "radix_009923554798xakj8n4",
     name: "Predator Dragon", price: 400,
     artist: "Beth Binary", category: "dragon", description: "can hunt anything down",
     imgURL:
       "/dragons/65f6e1c0-f76d-4a1e-869e-dfa6011eaeea.png",
   },
   {
-    id: 5, address: "radix_009923554798xakj8n5",
+    id: 4, address: "radix_009923554798xakj8n5",
     name: "Mystical Dragon", price: 500,
     artist: "Lena Logic", category: "dragon", description: "can wield mystical powers",
     imgURL:
       "/dragons/8599b949-2f76-4ec5-91b6-1a9a6fae3867.png",
   },
   {
-    id: 6, address: "radix_009923554798xakj8n6",
+    id: 5, address: "radix_009923554798xakj8n6",
     name: "Water Dragon", price: 600,
     artist: "Lena Logic", category: "dragon", description: "can dive into the sea",
     imgURL:
       "/dragons/a4a4b0a8-f0a8-4bb7-9b72-c43153390d47.png",
   },
   {
-    id: 7, address: "radix_009923554798xakj8n7",
+    id: 6, address: "radix_009923554798xakj8n7",
     name: "Eagle Dragon", price: 700,
     artist: "Lena Logic", category: "dragon", description: "can fly into the sky",
     imgURL:

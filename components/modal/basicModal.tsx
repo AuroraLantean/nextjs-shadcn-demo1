@@ -38,6 +38,12 @@ type Props = {
 }
 const BasicModal = ({ id, address, price }: Props) => {
   const { toast } = useToast()
+  const inputToken = [
+    { label: "ETH", value: "eth" },
+    { label: "USDT", value: "usdt" },
+    { label: "Radix", value: "radix" },
+    { label: "xUSDT", value: "xusdt" },
+  ] as const
   const [isLoading, setIsLoading] = useState(false)
   const [open, setOpen] = useState(false);
 
@@ -68,7 +74,7 @@ const BasicModal = ({ id, address, price }: Props) => {
     } else if (values.enum1 === "xToken") {
 
     }
-    console.log("🚀onSubmit. hash:", hash, ", err:", err)
+    console.log("onSubmit. hash:", hash, ", err:", err)
 
     if (err || !hash) {
       toast({
@@ -111,7 +117,7 @@ const BasicModal = ({ id, address, price }: Props) => {
         <DialogHeader>
           <DialogTitle>Buy NFT</DialogTitle>
           <DialogDescription>
-            Confirm NFT ID and enter the required price. Click 'Buy' when you're ready.
+            Choose payment type. Confirm NFT ID and enter the required price. Click 'Buy' when you're ready.
           </DialogDescription>
         </DialogHeader>
 
@@ -135,7 +141,7 @@ const BasicModal = ({ id, address, price }: Props) => {
                             <RadioGroupItem value="eth" />
                           </FormControl>
                           <FormLabel>
-                            Read Balance
+                            ETH
                           </FormLabel>
                         </FormItem>
 
@@ -144,7 +150,7 @@ const BasicModal = ({ id, address, price }: Props) => {
                             <RadioGroupItem value="erc20" />
                           </FormControl>
                           <FormLabel>
-                            Read Balance
+                            ERC20 USDT
                           </FormLabel>
                         </FormItem>
 
@@ -153,7 +159,7 @@ const BasicModal = ({ id, address, price }: Props) => {
                             <RadioGroupItem value="xrd" />
                           </FormControl>
                           <FormLabel>
-                            Read Balance
+                            XRD
                           </FormLabel>
                         </FormItem>
 
@@ -162,7 +168,7 @@ const BasicModal = ({ id, address, price }: Props) => {
                             <RadioGroupItem value="xToken" />
                           </FormControl>
                           <FormLabel>
-                            Read Balance
+                            xUSDT
                           </FormLabel>
                         </FormItem>
                       </div>

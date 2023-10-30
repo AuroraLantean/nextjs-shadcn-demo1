@@ -3,7 +3,6 @@ import { APP_WIDTH_MIN, DragonT, dragons } from "@/constants/site_data";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
-import { OutT, bigIntZero, ethersInit, getChainObj } from "@/lib/actions/ethers";
 import { useToast } from "../ui/use-toast";
 import { capitalizeFirst } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -12,35 +11,29 @@ import { useShallow } from 'zustand/react/shallow'
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
-//TODO: use md:xyz to set the carousel width
+//TODO: make mobile carousel work without difficulty... reference: commit before Sep 29
 export const CarouselDraggable = () => {
   const lg = console.log;
+  const compoName = 'CarouselDraggable'
+  lg(compoName)
   //const [ref, { width }] = useMeasure();ref={ref} 
   //lg("width=" + width)
   const [leftLimit, setLeftLimit] = useState(0);
   const carousel = useRef<HTMLDivElement>(null);
   const effectRan = useRef(false)
   const { toast } = useToast();
-  const nftOwner = process.env.NEXT_PUBLIC_ETHEREUM_NFTOWNER || '';
-  lg('nftOwner', nftOwner);
-  let mesg = '';
-  //let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
-  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, err } = useWeb3Store(
+
+  const { chainType, isInitialized, chainName, chainId, account, nftStatuses, isLoadingWeb3, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   useEffect(() => {
     if (effectRan.current === true) {
-      lg("CarouselDraggable useEffect ran")
+      lg(compoName + " useEffect ran")
       //lg(carousel.current?.scrollWidth, carousel.current?.offsetWidth);
       if (carousel.current?.scrollWidth) setLeftLimit(carousel.current?.scrollWidth - carousel.current?.offsetWidth);
-      if (!nftOwner) {
-        mesg = "env nftOwner invalid";
-        console.error(mesg)
-        toast({ description: mesg });
-      }
     }
     return () => {
-      lg("CarouselDraggable unmounted useeffect()...")
+      lg(compoName + " unmounted useeffect()...")
       effectRan.current = true
     }
   }, []);
@@ -52,7 +45,6 @@ export const CarouselDraggable = () => {
       toast({ description: "web3 already initialized" });
     } else {
       const initOut = await initializeWallet('evm');
-      //const initOut = await ethersInit();
       if (initOut.err) {
         toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
         return true;
@@ -65,6 +57,7 @@ export const CarouselDraggable = () => {
       lg("initOut:", initOut)
     }
   }
+
   //relative max-auto <w3m-button />
   return (
     <section className="overflow-hidden my-2">
@@ -80,10 +73,10 @@ export const CarouselDraggable = () => {
           <motion.div drag="x"
             dragConstraints={{ right: 0, left: - leftLimit - (1 / 1) }}
             className="flex flex-row">
-            {dragons.map((item) => {
+            {dragons.map((item, index) => {
               return (
                 <motion.div className="" key={item.id}>
-                  <Card {...item} />
+                  <Card {...item} status1={nftStatuses[index]} />
                 </motion.div>
               );
             })}
@@ -97,7 +90,7 @@ export const CarouselDraggable = () => {
 animate={{ x: 250 }}
 <Image src={item.imgURL} alt="image_alt" width={CARD_WIDTH} height={CARD_HEIGHT} />
 */
-const Card = ({ id, address, price, imgURL, category, name, description }: DragonT) => {
+const Card = ({ id, address, price, imgURL, category, name, description, status1 }: DragonT & { status1: string }) => {
   //
   //bg-gradient-to-b from-black/90 via-black/60 to-black/0 transition-[backdrop-filter]bg-white
   return (
@@ -119,7 +112,7 @@ const Card = ({ id, address, price, imgURL, category, name, description }: Drago
         <p className="my-2 text-3xl font-bold bg-dark-2  w-min">{name}</p>
         <p className="text-lg text-slate-300 bg-dark-2 w-min">{description}</p>
 
-        <div className="absolute bottom-0 left-0"><BasicModal id={id} address={address} price={price} /></div>
+        <div className="absolute bottom-0 left-0"><BasicModal id={id} address={address} price={price} /> <span className="text-lg text-slate-300 bg-secondary-500 w-min">{status1}</span></div>
       </div>
 
     </div>

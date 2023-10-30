@@ -49,18 +49,27 @@ For MetaMask wallet, follow this tutorial: https://docs.metamask.io/wallet/how-t
 Make sure your wallet settings are correct according to Foundry Anvil:
 
 ```
-http://127.0.0.1:8545/  OR  http://localhost:8545
+URL = http://127.0.0.1:8545/  OR  http://localhost:8545
 Anvil chain ID 31337 or 0x7a69 in hexadecimal format
-Hardhat chain ID, 1337 or 0x539 in hexadecimal format)
+Hardhat chain ID, 1337 or 0x539 in hexadecimal format
 ```
 
 Settings > Advanced and select Reset account
+
+## Connect to Ethereum Sepolia Network
+
+URL = use the default Sepolia URL in MetaMask or get one from Infura or Alchemy
+Sepolia chain ID 11155111 or 0xaa36a7 in hexadecimal format
 
 ## Under Investigation
 
 https://github.com/ethers-io/ethers.js/issues/4428
 Cant resolve 'bufferutil' and 'utf-8-validate'
 => pnpm add ws bufferutil utf-8-validate
+
+## Development Requirement
+
+[NextJs 14 requires Node v18.17](https://nextjs.org/blog/next-14)
 
 ## Browser Requirement
 

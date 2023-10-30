@@ -350,7 +350,7 @@ export const erc721TokenIds = async (addrTarget: string, ctrtAddr: string): Prom
     const nft = new Contract(ctrtAddr, erc721JSON.abi, provider);
 
     const balc: bigint = await nft.balanceOf(addrTarget);
-    lg('balanceOf:', balc);
+    //lg('balanceOf:', balc);
     const balcNum = toNumber(balc);
 
     const arr = [] as number[];
@@ -398,13 +398,11 @@ export const initBalancesDefault = {
   accBalcNative: '', accBalcToken: '',
   accNftArray: [] as number[],
   salesBalcNative: '', salesBalcToken: '',
-  salesNftArray: [] as number[],
-  salesCtrt: '', tokenCtrt: '',
-  nftCtrt: '', priceInWeiETH: '', priceInWeiToken: '', decimals: 18, err: '',
+  salesNftArray: [] as number[], priceInWeiETH: '', priceInWeiToken: '', decimals: 18, err: '',
 };
-export type getInitBalancesT = typeof initBalancesDefault;
-export const getInitBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<getInitBalancesT> => {
-  const funcName = 'initBalances';
+export type getCurrBalancesT = typeof initBalancesDefault;
+export const getCurrBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<getCurrBalancesT> => {
+  const funcName = 'getCurrBalances';
   lg(funcName + ' in ethers.ts...');
   try {
     const oAccNative = await getBalanceEth(account)
@@ -426,9 +424,6 @@ export const getInitBalances = async (account: string, tokenAddr: string, nftAdd
       accBalcToken: oAccUSDT.str1,
       accNftArray: oAccDragonNFTids.nums, salesBalcNative: oSalesNative.str1, salesBalcToken: oSalesUSDT.str1,
       salesNftArray: oSalesNDragonNFTids.nums,
-      salesCtrt: getCtrtAddr('erc721Sales'),
-      tokenCtrt: getCtrtAddr('usdt'),
-      nftCtrt: getCtrtAddr('erc721Dragon'),
       priceInWeiETH: priceInWeiETHstr,
       priceInWeiToken: priceInWeiTokenStr, decimals, err,
     }
@@ -525,23 +520,26 @@ export const buyNFTviaERC20 = async (tokenId: string, ctrtAddr: string): Promise
 }
 
 export type nftSalesStatus = 'soldToUser' | 'soldToUnknown' | 'availableFromOriginalOwner' | 'availableFromOthers' | 'availableFromSalesCtrt' | 'notApproved';
-export const checkNftStatus = async (user: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin = 0, nftIdMax = 9) => {
+export const nftStatusesDefault = {
+  arr: [] as nftSalesStatus[],
+  err: ''
+}
+export type nftStatusesT = typeof nftStatusesDefault;
+export const checkNftStatus = async (user: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin = 0, nftIdMax = 9): Promise<nftStatusesT> => {
   const funcName = 'checkNftOwners';
   lg(funcName + ' in ethers.ts...');
-  lg("nftAddr:", nftAddr)
-
   if (isEmpty(user) || isEmpty(nftAddr) || isEmpty(nftOriginalOwner)) {
-    return { err: funcName + ' input invalid' };
+    return { ...nftStatusesDefault, err: funcName + ' input invalid' };
   } else if (!provider) {
-    return { err: 'provider invalid' };
+    return { ...nftStatusesDefault, err: 'provider invalid' };
   }
   try {
     const nft = new Contract(nftAddr, erc721JSON.abi, provider);
 
     const owners: string[] = await nft.ownerOfBatch(nftIdMin, nftIdMax);
-    lg('owners:', owners);
+    lg('owners:', ...owners);
     const approvedAddrs: string[] = await nft.getApprovedBatch(nftIdMin, nftIdMax);
-    lg('approvedAddrs:', approvedAddrs);
+    lg('approvedAddrs:', ...approvedAddrs);
 
     let arr: nftSalesStatus[] = [];
     for (let i = 0; i < owners.length; i++) {
@@ -563,10 +561,10 @@ export const checkNftStatus = async (user: string, nftOriginalOwner: string, nft
       }
     }
     lg(funcName + ' success');
-    return arr;
+    return { arr, err: '' };
   } catch (error) {
     console.error(funcName + ':', error);
-    return { err: funcName + ' failed' };
+    return { ...nftStatusesDefault, err: funcName + ' failed' };
   }
 }
 
