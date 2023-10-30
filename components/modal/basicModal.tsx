@@ -1,7 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { Button } from "@/components/ui/button"
-
 import {
   Dialog,
   DialogContent,
@@ -12,8 +11,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 import {
   Form,
   FormControl,
@@ -23,13 +20,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
+import { Popover, PopoverTrigger } from '../ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command'
+import { PopoverContent } from '../ui/popoverM'
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { Check, ChevronsUpDown } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useToast } from "@/components/ui/use-toast"
-import { buyNftSchema } from '@/lib/validators'
+import { buyNftSchema, tokenOnChains } from '@/lib/validators'
 import Icons from "@/components/Icons";
 import { buyNFT } from '@/lib/actions/radix.actions'
+import { cn } from '@/lib/utils'
 import { OutT, bigIntZero, buyNFTviaERC20, buyNFTviaETH } from '@/lib/actions/ethers'
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 
 type Props = {
   id: number
@@ -38,11 +41,12 @@ type Props = {
 }
 const BasicModal = ({ id, address, price }: Props) => {
   const { toast } = useToast()
-  const inputToken = [
-    { label: "ETH", value: "eth" },
-    { label: "USDT", value: "usdt" },
-    { label: "Radix", value: "radix" },
-    { label: "xUSDT", value: "xusdt" },
+  const inputTokens = [
+    { label: "ETH on Ethereum", value: tokenOnChains[0] },
+    { label: "USDT on Ethereum", value: tokenOnChains[1] },
+    { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
+    { label: "XRD on Radix", value: tokenOnChains[3] },
+    { label: "USDT on Radix", value: tokenOnChains[4] },
   ] as const
   const [isLoading, setIsLoading] = useState(false)
   const [open, setOpen] = useState(false);
@@ -51,28 +55,28 @@ const BasicModal = ({ id, address, price }: Props) => {
   const form = useForm<Input>({
     resolver: zodResolver(buyNftSchema),
     defaultValues: {
-      enum1: "eth",
+      inputToken: tokenOnChains[0],
       nftId: id?.toString() || "",
       address: address,
       amount: price.toString(),
     },
   })
 
-  let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const onSubmit = async (values: Input) => {
     console.log("🚀onSubmit:", values)
     setIsLoading(true);
     let hash = ''; let err = '';
-    if (values.enum1 === "eth") {
+    if (values.inputToken === tokenOnChains[0]) {
       ({ str1: hash, err } = await buyNFTviaETH(values.nftId, values.amount, values.address));
 
-    } else if (values.enum1 === "erc20") {
+    } else if (values.inputToken === tokenOnChains[1] || values.inputToken === tokenOnChains[2]) {
       ({ str1: hash, err } = await buyNFTviaERC20(values.nftId, values.address));
 
-    } else if (values.enum1 === "xrd") {
+    } else if (values.inputToken === tokenOnChains[3]) {
       ({ str1: hash, err } = await buyNFT(values));
-    } else if (values.enum1 === "xToken") {
 
+    } else if (values.inputToken === tokenOnChains[4]) {
+      ({ str1: hash, err } = await buyNFT(values));
     }
     console.log("onSubmit. hash:", hash, ", err:", err)
 
@@ -117,7 +121,7 @@ const BasicModal = ({ id, address, price }: Props) => {
         <DialogHeader>
           <DialogTitle>Buy NFT</DialogTitle>
           <DialogDescription>
-            Choose payment type. Confirm NFT ID and enter the required price. Click 'Buy' when you're ready.
+            Choose input token and blockchain. Confirm NFT ID and enter the required price. Click 'Buy' when you're ready.
           </DialogDescription>
         </DialogHeader>
 
@@ -126,58 +130,66 @@ const BasicModal = ({ id, address, price }: Props) => {
 
             <FormField
               control={form.control}
-              name="enum1"
+              name="inputToken"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="flex flex-col space-y-1"
-                    >
-                      <div className='flex flex-wrap'>
-                        <FormItem className="radio-item">
-                          <FormControl>
-                            <RadioGroupItem value="eth" />
-                          </FormControl>
-                          <FormLabel>
-                            ETH
-                          </FormLabel>
-                        </FormItem>
-
-                        <FormItem className="radio-item">
-                          <FormControl>
-                            <RadioGroupItem value="erc20" />
-                          </FormControl>
-                          <FormLabel>
-                            ERC20 USDT
-                          </FormLabel>
-                        </FormItem>
-
-                        <FormItem className="radio-item">
-                          <FormControl>
-                            <RadioGroupItem value="xrd" />
-                          </FormControl>
-                          <FormLabel>
-                            XRD
-                          </FormLabel>
-                        </FormItem>
-
-                        <FormItem className="radio-item">
-                          <FormControl>
-                            <RadioGroupItem value="xToken" />
-                          </FormControl>
-                          <FormLabel>
-                            xUSDT
-                          </FormLabel>
-                        </FormItem>
-                      </div>
-                    </RadioGroup>
-                  </FormControl>
+                <FormItem className="flex flex-col">
+                  <FormLabel>Input Token</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            "w-[200px] justify-between",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value
+                            ? inputTokens.find(
+                              (inputToken) => inputToken.value === field.value
+                            )?.label
+                            : "Select input token"}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                      <Command>
+                        <CommandInput placeholder="Search token..." />
+                        <CommandEmpty>No token found.</CommandEmpty>
+                        <CommandGroup>
+                          {inputTokens.map((inputToken) => (
+                            <CommandItem
+                              value={inputToken.label}
+                              key={inputToken.value}
+                              onSelect={() => {
+                                form.setValue("inputToken", inputToken.value)
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  inputToken.value === field.value
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                              {inputToken.label}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription>
+                    This is the input token
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="nftId"

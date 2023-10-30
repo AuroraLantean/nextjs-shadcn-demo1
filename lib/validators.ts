@@ -1,21 +1,5 @@
 import { z } from "zod";
 
-export const web3InputSchema = z.object({
-  enum1: z.enum(["usdt", "erc721Dragon", "account"], {
-    required_error: "You need to select one",
-  }),
-  enum2: z.enum(["readEthBalc", "readTokenBalc", "transfer", "transferFrom", "allowance", "getNFTs", "mintOneNFT"], {
-    required_error: "You need to select one",
-  }),
-  floatNum1: z.string().max(24, {
-    message: "input exceeds the maximum length",
-  }).refine((val) => !isNaN(val as unknown as number), {
-    message: "input should be a number",
-  }),
-  addr1: z.string().optional(),
-  addr2: z.string().optional(),
-});
-
 export const dbInputSchema = z.object({
   enum1: z.enum(["addOrUpdateOne", "findAll", "findOne", "deleteOne", "deleteAll"], {
     required_error: "You need to select one radio selection",
@@ -106,9 +90,26 @@ export const settingTabP2Schema = z.object({
   passwordNew: z.string().min(6, { message: "passswordNew too short" }).max(100),
 });
 
+export const web3InputSchema = z.object({
+  enum1: z.enum(["erc20_usdt", "erc721Dragon", "account"], {
+    required_error: "You need to select one",
+  }),
+  enum2: z.enum(["readEthBalc", "readTokenBalc", "transfer", "transferFrom", "allowance", "getNFTs", "mintOneNFT"], {
+    required_error: "You need to select one",
+  }),
+  floatNum1: z.string().max(24, {
+    message: "input exceeds the maximum length",
+  }).refine((val) => !isNaN(val as unknown as number), {
+    message: "input should be a number",
+  }),
+  addr1: z.string().optional(),
+  addr2: z.string().optional(),
+});
+
+export const tokenOnChains = ["eth_ethereum", "usdt_ethereum", "goldcoin_ethereum", "xrd_radix", "usdt_radix"] as const;
 export const buyNftSchema = z.object({
-  enum1: z.enum(["eth", "erc20", "xrd", "xToken"], {
-    required_error: "You need to select one payment method",
+  inputToken: z.enum(tokenOnChains, {
+    required_error: "You need to select one input token and blockchain",
   }),
   nftId: z.string().min(1, {
     message: "NFT ID requires at least 1 character.",

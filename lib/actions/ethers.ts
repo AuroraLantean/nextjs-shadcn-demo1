@@ -7,7 +7,7 @@ export const erc721JSON = contractsJSON[1];
 export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
 import { isEmpty } from "@/lib/utils";
-import { Web3InitOutT, web3InitDefault } from "@/store/web3Store";
+import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
 
 const ethereumNetwork = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK || '';
 const usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || '';
@@ -394,16 +394,10 @@ export const getDataSalesCtrt = async (ctrtAddr: string): Promise<salesCtrtDataT
   }
 }
 
-export const initBalancesDefault = {
-  accBalcNative: '', accBalcToken: '',
-  accNftArray: [] as number[],
-  salesBalcNative: '', salesBalcToken: '',
-  salesNftArray: [] as number[], priceInWeiETH: '', priceInWeiToken: '', decimals: 18, err: '',
-};
-export type getCurrBalancesT = typeof initBalancesDefault;
-export const getCurrBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<getCurrBalancesT> => {
-  const funcName = 'getCurrBalances';
+export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<balancesT> => {
+  const funcName = 'getEvmBalances';
   lg(funcName + ' in ethers.ts...');
+
   try {
     const oAccNative = await getBalanceEth(account)
     const oAccUSDT = await erc20BalanceOf(account, tokenAddr);
@@ -424,8 +418,8 @@ export const getCurrBalances = async (account: string, tokenAddr: string, nftAdd
       accBalcToken: oAccUSDT.str1,
       accNftArray: oAccDragonNFTids.nums, salesBalcNative: oSalesNative.str1, salesBalcToken: oSalesUSDT.str1,
       salesNftArray: oSalesNDragonNFTids.nums,
-      priceInWeiETH: priceInWeiETHstr,
-      priceInWeiToken: priceInWeiTokenStr, decimals, err,
+      priceNativeRaw: priceInWeiETHstr,
+      priceTokenRaw: priceInWeiTokenStr, decimals, err,
     }
     lg(funcName + " out:", out)
 
@@ -568,8 +562,8 @@ export const checkNftStatus = async (user: string, nftOriginalOwner: string, nft
   }
 }
 
-type CTRT = 'usdt' | 'erc721Dragon' | 'erc721Sales';
-export const getCtrtAddr = (ctrtName: CTRT): string => {
+type CTRT = 'erc20_usdt' | 'erc721Dragon' | 'erc721Sales';//must match validator web3InputSchema
+export const getEvmCtrtAddr = (ctrtName: CTRT): string => {
   let ctrtAddr = '';
   if (contractsJSON.length < 3) {
     console.error("'Error contractsJSON.length < 3'")
@@ -579,7 +573,7 @@ export const getCtrtAddr = (ctrtName: CTRT): string => {
     /*case 'goldCoin':
         ctrtAddr = goldcoinAddr === '' ? contractsJSON[3].contractAddress : goldcoinAddr;
       break; */
-    case 'usdt':
+    case 'erc20_usdt':
       ctrtAddr = usdtAddr === '' ? contractsJSON[0].contractAddress : usdtAddr;
       break;
     case 'erc721Dragon':

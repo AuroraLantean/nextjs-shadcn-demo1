@@ -14,6 +14,7 @@ const MARGIN = 20;
 //TODO: make mobile carousel work without difficulty... reference: commit before Sep 29
 export const CarouselDraggable = () => {
   const lg = console.log;
+  let salesCtrtAddr = '';
   const compoName = 'CarouselDraggable'
   lg(compoName)
   //const [ref, { width }] = useMeasure();ref={ref} 

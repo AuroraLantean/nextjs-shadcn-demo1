@@ -13,7 +13,7 @@ import { useToast } from '../ui/use-toast';
 import { makeShortAddr, parseFloatSafe } from '@/lib/utils';
 import goldcoin from '@/web3ABIs/ethereum/goldcoin.json';
 import dragonNft from '@/web3ABIs/ethereum/erc721Dragon.json';
-import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getCtrtAddr } from '@/lib/actions/ethers';
+import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getEvmCtrtAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -24,7 +24,8 @@ type Props = {}
 
 const EthereumDiv = (props: Props) => {
   const lg = console.log;
-  lg('EthereumDiv. goldcoin addr:', goldcoin.address, ', dragonNft addr:', dragonNft.address);
+  const compoName = 'EthereumDiv'
+  lg(compoName + '. goldcoin addr:', goldcoin.address, ', dragonNft addr:', dragonNft.address);
   const initStates = { balcETH: '', balcToken: '', balcNFT: '', str1: '' };
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const effectRan = useRef(false)
@@ -91,7 +92,14 @@ const EthereumDiv = (props: Props) => {
     if (data.enum1 === "account") {
       addr = account
     } else {
-      addr = getCtrtAddr(data.enum1)
+      if (chainType === 'evm') {
+        addr = getEvmCtrtAddr(data.enum1)
+
+      } else if (chainType === 'radix') {
+
+      } else {
+        console.warn(compoName + ' onSubmit() failed: Unknown chainType', chainType);
+      }
     }
 
     if (data.enum2 === "readEthBalc") {
@@ -101,7 +109,7 @@ const EthereumDiv = (props: Props) => {
     } else if (data.enum2 === "readTokenBalc") {
       if (!data.addr1) {
         out = { ...out, err: "Invalid addr1" }
-      } else if (data.enum1 === "usdt") {
+      } else if (data.enum1 === "erc20_usdt") {
         out = await erc20BalanceOf(data.addr1, addr)
         setStates({ ...states, balcETH: out.str1 })
 
@@ -118,7 +126,7 @@ const EthereumDiv = (props: Props) => {
       if (!data.addr2) {
         out = { ...out, err: "Invalid addr2" }
 
-      } else if (data.enum1 === "usdt") {
+      } else if (data.enum1 === "erc20_usdt") {
         out = await erc20Transfer(data.addr2, data.floatNum1, addr);
 
       } else if (data.enum1 === "erc721Dragon") {

@@ -57,8 +57,8 @@ createWeb3Modal({
 const inter = Inter({ subsets: ['latin'] }); // font
 
 export const metadata = {
-  title: 'NextJs 13.5 + Shadcn UI',
-  description: 'NextJs 13.5'
+  title: 'NextJs 14 + Shadcn UI',
+  description: 'NextJs 14 Shadcn UI TailwindCSS TypeScript'
 }
 
 export default function RootLayout({
