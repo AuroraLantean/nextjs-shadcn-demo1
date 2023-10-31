@@ -383,7 +383,7 @@ export const getDataSalesCtrt = async (ctrtAddr: string): Promise<salesCtrtDataT
   try {
     const sales = new Contract(ctrtAddr, salesJSON.abi, provider);
     const out = await sales.getData();
-    lg("getData out:", out);
+    //lg("getData out:", ...out);
     const { 0: priceInWeiETH, 1: priceInWeiToken, 2: erc721Addr, 3: erc20Addr } = out;
     lg("priceInWeiETH:", priceInWeiETH, ', priceInWeiToken:', priceInWeiToken, ', erc721Addr:', erc721Addr, ', erc20Addr:', erc20Addr);
     lg(funcName + ' success:');
@@ -451,7 +451,7 @@ export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr
   }
 }
 
-export const buyNFTviaETH = async (tokenId: string, amountEthInEth: string, ctrtAddr: string): Promise<OutT> => {
+export const buyNFTviaETH = async (tokenId: string, amountInEth: string, ctrtAddr: string): Promise<OutT> => {
   const funcName = "buyNFTviaETH";
   lg(funcName + '()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
   const tokId = Number.parseInt(tokenId);
@@ -471,7 +471,7 @@ export const buyNFTviaETH = async (tokenId: string, amountEthInEth: string, ctrt
     if (!ok) return { ...out, err: 'input error' }
 
     const tx = await sales.buyNFTviaETH(tokId, {
-      value: parseUnits(amountEthInEth, "ether")
+      value: parseUnits(amountInEth, "ether")
     });
     const receipt = await tx.wait();
     lg(funcName + ' success... txnHash:', receipt, receipt.hash);
@@ -519,9 +519,10 @@ export const nftStatusesDefault = {
   err: ''
 }
 export type nftStatusesT = typeof nftStatusesDefault;
-export const checkNftStatus = async (user: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin = 0, nftIdMax = 9): Promise<nftStatusesT> => {
-  const funcName = 'checkNftOwners';
+export const checkEvmNftStatus = async (user: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin = 0, nftIdMax = 9): Promise<nftStatusesT> => {
+  const funcName = 'checkNftStatus';
   lg(funcName + ' in ethers.ts...');
+  lg(funcName + ". user:", user, ', nftAddr:', nftAddr, 'nftOriginalOwner:', nftOriginalOwner)
   if (isEmpty(user) || isEmpty(nftAddr) || isEmpty(nftOriginalOwner)) {
     return { ...nftStatusesDefault, err: funcName + ' input invalid' };
   } else if (!provider) {
@@ -531,9 +532,9 @@ export const checkNftStatus = async (user: string, nftOriginalOwner: string, nft
     const nft = new Contract(nftAddr, erc721JSON.abi, provider);
 
     const owners: string[] = await nft.ownerOfBatch(nftIdMin, nftIdMax);
-    lg('owners:', ...owners);
+    lg(funcName + '. owners:', ...owners);
     const approvedAddrs: string[] = await nft.getApprovedBatch(nftIdMin, nftIdMax);
-    lg('approvedAddrs:', ...approvedAddrs);
+    lg(funcName + ' approvedAddrs:', ...approvedAddrs);
 
     let arr: nftSalesStatus[] = [];
     for (let i = 0; i < owners.length; i++) {
@@ -562,8 +563,8 @@ export const checkNftStatus = async (user: string, nftOriginalOwner: string, nft
   }
 }
 
-type CTRT = 'erc20_usdt' | 'erc721Dragon' | 'erc721Sales';//must match validator web3InputSchema
-export const getEvmCtrtAddr = (ctrtName: CTRT): string => {
+type addrName = 'erc20_usdt' | 'erc721Dragon' | 'erc721Sales' | 'nftOriginalOwner';//must match validator web3InputSchema
+export const getEvmAddr = (ctrtName: addrName): string => {
   let ctrtAddr = '';
   if (contractsJSON.length < 3) {
     console.error("'Error contractsJSON.length < 3'")
@@ -581,6 +582,9 @@ export const getEvmCtrtAddr = (ctrtName: CTRT): string => {
       break;
     case 'erc721Sales':
       ctrtAddr = salesAddr === '' ? contractsJSON[2].contractAddress : salesAddr;
+      break;
+    case 'nftOriginalOwner':
+      ctrtAddr = process.env.NEXT_PUBLIC_ETHEREUM_NFT_ORIGINAL_OWNER || '';
       break;
   }
   return ctrtAddr;

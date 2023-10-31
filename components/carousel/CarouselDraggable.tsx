@@ -1,5 +1,5 @@
 "use client"
-import { APP_WIDTH_MIN, DragonT, dragons } from "@/constants/site_data";
+import { APP_WIDTH_MIN, DragonT } from "@/constants/site_data";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
@@ -11,10 +11,12 @@ import { useShallow } from 'zustand/react/shallow'
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
+//TODO: initially to show NFT array with infura
 //TODO: make mobile carousel work without difficulty... reference: commit before Sep 29
+//TODO: button to refresh token sales status
+//TODO: check buying ETH/Token amount
 export const CarouselDraggable = () => {
   const lg = console.log;
-  let salesCtrtAddr = '';
   const compoName = 'CarouselDraggable'
   lg(compoName)
   //const [ref, { width }] = useMeasure();ref={ref} 
@@ -24,9 +26,10 @@ export const CarouselDraggable = () => {
   const effectRan = useRef(false)
   const { toast } = useToast();
 
-  const { chainType, isInitialized, chainName, chainId, account, nftStatuses, isLoadingWeb3, err } = useWeb3Store(
+  const { chainType, isInitialized, chainName, chainId, account, nftAddr, nftArray, nftStatuses, isLoadingWeb3, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
+  lg(compoName + " nftStatuses:", nftStatuses)
   useEffect(() => {
     if (effectRan.current === true) {
       lg(compoName + " useEffect ran")
@@ -74,10 +77,10 @@ export const CarouselDraggable = () => {
           <motion.div drag="x"
             dragConstraints={{ right: 0, left: - leftLimit - (1 / 1) }}
             className="flex flex-row">
-            {dragons.map((item, index) => {
+            {nftArray.map((nft, index) => {
               return (
-                <motion.div className="" key={item.id}>
-                  <Card {...item} status1={nftStatuses[index]} />
+                <motion.div className="" key={nft.id}>
+                  <Card {...nft} index={index} status={nftStatuses[index]} />
                 </motion.div>
               );
             })}
@@ -91,8 +94,12 @@ export const CarouselDraggable = () => {
 animate={{ x: 250 }}
 <Image src={item.imgURL} alt="image_alt" width={CARD_WIDTH} height={CARD_HEIGHT} />
 */
-const Card = ({ id, address, price, imgURL, category, name, description, status1 }: DragonT & { status1: string }) => {
-  //
+const Card = ({ id, price, imgURL, category, name, description, index, status }: DragonT & { index: number, status: string }) => {
+  /*   const { nftStatuses } = useWeb3Store(
+      useShallow((state) => ({ ...state }))
+    ) 
+    console.log("CarouselDraggable Card: ", nftStatuses[index])*/
+  console.log("CarouselDraggable Card: ", status)
   //bg-gradient-to-b from-black/90 via-black/60 to-black/0 transition-[backdrop-filter]bg-white
   return (
     <div
@@ -113,7 +120,7 @@ const Card = ({ id, address, price, imgURL, category, name, description, status1
         <p className="my-2 text-3xl font-bold bg-dark-2  w-min">{name}</p>
         <p className="text-lg text-slate-300 bg-dark-2 w-min">{description}</p>
 
-        <div className="absolute bottom-0 left-0"><BasicModal id={id} address={address} price={price} /> <span className="text-lg text-slate-300 bg-secondary-500 w-min">{status1}</span></div>
+        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} price={price} /> <span className="text-lg text-slate-300 bg-secondary-500 w-min">{status}</span></div>
       </div>
 
     </div>

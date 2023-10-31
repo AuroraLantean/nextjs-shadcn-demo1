@@ -33,14 +33,18 @@ import Icons from "@/components/Icons";
 import { buyNFT } from '@/lib/actions/radix.actions'
 import { cn } from '@/lib/utils'
 import { OutT, bigIntZero, buyNFTviaERC20, buyNFTviaETH } from '@/lib/actions/ethers'
+import { updateNftStatus, useWeb3Store } from '@/store/web3Store'
+import { useShallow } from 'zustand/react/shallow'
 
 type Props = {
-  id: number
-  address: string
+  nftId: number
   price: number
 }
-const BasicModal = ({ id, address, price }: Props) => {
+const BasicModal = ({ nftId, price }: Props) => {
   const { toast } = useToast()
+  const lg = console.log;
+  const compoName = 'BasicModal'
+  //lg(compoName + ": ", nftId, price)
   const inputTokens = [
     { label: "ETH on Ethereum", value: tokenOnChains[0] },
     { label: "USDT on Ethereum", value: tokenOnChains[1] },
@@ -50,35 +54,46 @@ const BasicModal = ({ id, address, price }: Props) => {
   ] as const
   const [isLoading, setIsLoading] = useState(false)
   const [open, setOpen] = useState(false);
+  const { chainType, isInitialized, chainName, chainId, account, nftOriginalOwner, nftAddr, salesAddr, nftArray, isLoadingWeb3, err } = useWeb3Store(
+    useShallow((state) => ({ ...state }))
+  )
+  //lg("salesAddr", salesAddr)
 
   type Input = z.infer<typeof buyNftSchema>;
   const form = useForm<Input>({
     resolver: zodResolver(buyNftSchema),
     defaultValues: {
       inputToken: tokenOnChains[0],
-      nftId: id?.toString() || "",
-      address: address,
-      amount: price.toString(),
+      nftId: nftId + "",
+      amount: price + "",
     },
   })
 
   const onSubmit = async (values: Input) => {
-    console.log("🚀onSubmit:", values)
+    console.log("🚀onSubmit:", values, salesAddr)
     setIsLoading(true);
     let hash = ''; let err = '';
     if (values.inputToken === tokenOnChains[0]) {
-      ({ str1: hash, err } = await buyNFTviaETH(values.nftId, values.amount, values.address));
+      ({ str1: hash, err } = await buyNFTviaETH(values.nftId, values.amount, salesAddr));
 
     } else if (values.inputToken === tokenOnChains[1] || values.inputToken === tokenOnChains[2]) {
-      ({ str1: hash, err } = await buyNFTviaERC20(values.nftId, values.address));
+      ({ str1: hash, err } = await buyNFTviaERC20(values.nftId, salesAddr));
 
     } else if (values.inputToken === tokenOnChains[3]) {
-      ({ str1: hash, err } = await buyNFT(values));
+      ({ str1: hash, err } = await buyNFT(values.nftId, salesAddr, values.amount));
 
     } else if (values.inputToken === tokenOnChains[4]) {
-      ({ str1: hash, err } = await buyNFT(values));
+      ({ str1: hash, err } = await buyNFT(values.nftId, salesAddr, values.amount));
     }
     console.log("onSubmit. hash:", hash, ", err:", err)
+
+    const nftIdLast = nftArray.length - 1;
+    const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftArray[0].id, nftArray[nftIdLast].id);
+    if (statuses.err) {
+      console.error("status err:", statuses.err)
+      toast({ description: `${statuses.err}`, variant: 'destructive' })
+      return;
+    }
 
     if (err || !hash) {
       toast({
@@ -207,21 +222,6 @@ const BasicModal = ({ id, address, price }: Props) => {
 
             <FormField
               control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                  <FormDescription>NFT Address</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="amount"
               render={({ field }) => (
                 <FormItem>
@@ -257,7 +257,7 @@ export default BasicModal
               NFT ID
             </Label>
             <Input
-              id="nftId"
+              nftId="nftId"
               defaultValue="0"
               className="col-span-3"
             />

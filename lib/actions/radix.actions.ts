@@ -3,13 +3,8 @@ import { revalidatePath } from "next/cache";
 import { delayFunc } from "../utils";
 import { OutT, bigIntZero } from "./ethers";
 
-type TypeBuyNFT = {
-  nftId: string
-  address: string
-  amount: string
-}
 let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
-export const buyNFT = async ({ nftId, address, amount }: TypeBuyNFT): Promise<OutT> => {
+export const buyNFT = async (nftId: string, address: string, amount: string): Promise<OutT> => {
   console.log("radix.actions.. buyNFT: ", nftId, address, amount)
   try {
     await delayFunc(3000)

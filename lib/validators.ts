@@ -118,10 +118,6 @@ export const buyNftSchema = z.object({
   }).refine((val) => !isNaN(val as unknown as number), {
     message: "NFT ID should be a number",
   }),
-  address: z
-    .string({
-      required_error: "Please enter an address",
-    }),
   amount: z
     .string().min(1, {
       message: "amount requires at least 1 character.",

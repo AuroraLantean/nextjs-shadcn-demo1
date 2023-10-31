@@ -69,7 +69,7 @@ Cant resolve 'bufferutil' and 'utf-8-validate'
 
 ## Development Requirement
 
-[NextJs 14 requires Node v18.17](https://nextjs.org/blog/next-14)
+[NextJs 14 requires Node v18.17](https://nextjs.org/blog/next-14) Or Bun 1.0.7
 
 ## Browser Requirement
 
