@@ -13,7 +13,7 @@ import { useToast } from '../ui/use-toast';
 import { makeShortAddr, parseFloatSafe } from '@/lib/utils';
 import goldcoin from '@/web3ABIs/ethereum/goldcoin.json';
 import dragonNft from '@/web3ABIs/ethereum/erc721Dragon.json';
-import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getEvmCtrtAddr } from '@/lib/actions/ethers';
+import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getEvmAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -93,7 +93,7 @@ const EthereumDiv = (props: Props) => {
       addr = account
     } else {
       if (chainType === 'evm') {
-        addr = getEvmCtrtAddr(data.enum1)
+        addr = getEvmAddr(data.enum1)
 
       } else if (chainType === 'radix') {
 

@@ -93,7 +93,7 @@ const CarouselClickable = () => {
 const clickCard = (id: number, address: string) => {
   console.log("clickCard... id:", id, ", address:", address);
 }
-const Card = ({ id, address, price, imgURL, category, name, description }: DragonT) => {
+const Card = ({ id, price, imgURL, category, name, description }: DragonT) => {
   return (
     <div
       className="relative shrink-0 cursor-pointer rounded-2xl bg-white shadow-md transition-all hover:scale-[1.015] hover:shadow-xl"
@@ -113,7 +113,7 @@ const Card = ({ id, address, price, imgURL, category, name, description }: Drago
         <p className="my-2 text-3xl font-bold">{name}</p>
         <p className="text-lg text-slate-300">{description}</p>
 
-        <div className="absolute bottom-0 left-0"><BasicModal id={id} address={address} price={price} /></div>
+        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} price={price} /></div>
       </div>
 
     </div>
