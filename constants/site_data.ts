@@ -1,6 +1,8 @@
 import { parseIntSafe } from "@/lib/utils";
 
 export const APP_WIDTH_MIN = 350;
+export const nftIdMin = 0;
+export const nftIdMax = 9;
 export type DragonT = {
   id: number;
   price: number

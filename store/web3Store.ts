@@ -52,16 +52,26 @@ export const initializeWallet = async (chainType: string) => {
   } else {
     return { ...initOut, err: 'Unknown chainType' };
   }
-  //const out = await getBalanceEth(initOut.account!)
-  useWeb3Store.setState((state) => ({
-    ...state,
-    chainType,
-    isInitialized: true,
-    chainName: capitalizeFirst(initOut.chainName),
-    chainId: initOut.chainId,
-    account: initOut.account,
-    isLoadingWeb3: false,
-  }));
+  if (initOut.err || initOut.warn) {
+    useWeb3Store.setState((state) => ({
+      ...state,
+      chainType,
+      chainName: capitalizeFirst(initOut.chainName),
+      chainId: initOut.chainId,
+      account: initOut.account,
+      isLoadingWeb3: false,
+    }));
+  } else {
+    useWeb3Store.setState((state) => ({
+      ...state,
+      chainType,
+      isInitialized: true,
+      chainName: capitalizeFirst(initOut.chainName),
+      chainId: initOut.chainId,
+      account: initOut.account,
+      isLoadingWeb3: false,
+    }));
+  }
   return initOut;
 }
 
@@ -103,7 +113,7 @@ export const updateNftStatus = async (chainType: string, account: string, nftOri
   if (out.err) {
     return { ...out, err: 'checkEvmNftStatus err:' + out.err, };
   }
-  lg(funcName + " out.arr:", out.arr)
+  //lg(funcName + " out.arr:", out.arr)
   useWeb3Store.setState((state) => ({
     ...state,
     nftStatuses: out.arr,

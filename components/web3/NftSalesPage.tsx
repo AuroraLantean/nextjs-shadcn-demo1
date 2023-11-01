@@ -9,7 +9,7 @@ import { web3InputSchema } from '@/lib/validators';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '../ui/use-toast';
 import { capitalizeFirst, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { APP_WIDTH_MIN } from '@/constants/site_data';
+import { APP_WIDTH_MIN, nftIdMax, nftIdMin } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { getCurrBalances, initBalancesDefault, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from '@/store/web3Store';
@@ -54,13 +54,6 @@ const NftSalesPage = (props: Props) => {
         if (balcs.err) {
           console.error("balcs.err:", balcs.err)
           toast({ description: `${balcs.err}`, variant: 'destructive' })
-          return;
-        }
-        const nftIdMin = 0, nftIdMax = 9;
-        const nftsOut = await updateNftArray(nftIdMin, nftIdMax);
-        if (nftsOut.err) {
-          console.error("nftsOut.err:", nftsOut.err)
-          toast({ description: `${nftsOut.err}`, variant: 'destructive' })
           return;
         }
 

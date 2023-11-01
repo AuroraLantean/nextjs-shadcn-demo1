@@ -1,17 +1,15 @@
 "use client"
-import { APP_WIDTH_MIN, DragonT } from "@/constants/site_data";
+import { APP_WIDTH_MIN, DragonT, nftIdMax, nftIdMin } from "@/constants/site_data";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
-import { capitalizeFirst } from "@/lib/utils";
 import { Button } from "../ui/button";
-import { initializeWallet, useWeb3Store } from "@/store/web3Store";
+import { initializeWallet, updateNftArray, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
-//TODO: initially to show NFT array with infura
 //TODO: make mobile carousel work without difficulty... reference: commit before Sep 29
 //TODO: button to refresh token sales status
 //TODO: check buying ETH/Token amount
@@ -26,15 +24,26 @@ export const CarouselDraggable = () => {
   const effectRan = useRef(false)
   const { toast } = useToast();
 
-  const { chainType, isInitialized, chainName, chainId, account, nftAddr, nftArray, nftStatuses, isLoadingWeb3, err } = useWeb3Store(
+  const { isInitialized, nftArray, nftStatuses, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
-  lg(compoName + " nftStatuses:", nftStatuses)
+  //lg(compoName + " nftStatuses:", nftStatuses)
   useEffect(() => {
     if (effectRan.current === true) {
       lg(compoName + " useEffect ran")
       //lg(carousel.current?.scrollWidth, carousel.current?.offsetWidth);
       if (carousel.current?.scrollWidth) setLeftLimit(carousel.current?.scrollWidth - carousel.current?.offsetWidth);
+
+      // fetch nftArray
+      const action = async () => {
+        const nftsOut = await updateNftArray(nftIdMin, nftIdMax);
+        if (nftsOut.err) {
+          console.error("nftsOut.err:", nftsOut.err)
+          toast({ description: `${nftsOut.err}`, variant: 'destructive' })
+          return;
+        }
+      }
+      action();
     }
     return () => {
       lg(compoName + " unmounted useeffect()...")
@@ -99,7 +108,7 @@ const Card = ({ id, price, imgURL, category, name, description, index, status }:
       useShallow((state) => ({ ...state }))
     ) 
     console.log("CarouselDraggable Card: ", nftStatuses[index])*/
-  console.log("CarouselDraggable Card: ", status)
+  //console.log("CarouselDraggable Card: ", status)
   //bg-gradient-to-b from-black/90 via-black/60 to-black/0 transition-[backdrop-filter]bg-white
   return (
     <div

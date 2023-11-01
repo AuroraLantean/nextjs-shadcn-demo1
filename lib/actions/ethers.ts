@@ -6,20 +6,20 @@ export const erc20JSON = contractsJSON[0];
 export const erc721JSON = contractsJSON[1];
 export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
-import { isEmpty } from "@/lib/utils";
+import { capitalizeFirst, isEmpty } from "@/lib/utils";
 import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
 
-const ethereumNetwork = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK || '';
-const usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || '';
-const usdcAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDC || '';
-const nftAddr = process.env.NEXT_PUBLIC_ETHEREUM_NFT || '';
-const salesAddr = process.env.NEXT_PUBLIC_ETHEREUM_NFTSALES || '';
+const ethereumNetwork = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK || 'anvil';
+const erc20_usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || erc20JSON.contractAddress;
+const erc20_usdcAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDC || '';
+const erc721Addr = process.env.NEXT_PUBLIC_ETHEREUM_NFT || erc721JSON.contractAddress;
+const salesAddr = process.env.NEXT_PUBLIC_ETHEREUM_NFTSALES || salesJSON.contractAddress;
 
 let signer: any = undefined;
 let provider: any = undefined;
 let isInitialized = false;
 const lg = console.log;
-let mesg = '';
+let mesg = '', warning = '';
 export const bigIntZero = BigInt(0)
 
 export type OutT = {
@@ -64,6 +64,11 @@ export const ethersInit = async (): Promise<Web3InitOutT> => {
     });
     lg('detected chainId:', chainId);
     const { chainHex, chainName } = getChainObj(chainId)
+    lg('detected chainName:', chainName);
+
+    if (chainName !== ethereumNetwork) {
+      warning = 'detected chain ' + capitalizeFirst(chainName) + ' is not expected. Switch network to ' + capitalizeFirst(ethereumNetwork);
+    }
 
     const accounts = await window.ethereum.request({ method: 'eth_accounts' }).catch((err: any) => {
       mesg = '@eth_accounts:' + err;
@@ -80,12 +85,14 @@ export const ethersInit = async (): Promise<Web3InitOutT> => {
 
     window.ethereum.on('accountsChanged', handleAccountsChanged);
     window.ethereum.on('chainChanged', handleChainChanged);
+    if (warning) console.warn(warning)
     lg("ethersInit ran successfully")
     return {
       ...web3InitDefault,
       chainId,
       chainName,
       account,
+      warn: warning
     };
   }
 }
@@ -575,10 +582,10 @@ export const getEvmAddr = (ctrtName: addrName): string => {
         ctrtAddr = goldcoinAddr === '' ? contractsJSON[3].contractAddress : goldcoinAddr;
       break; */
     case 'erc20_usdt':
-      ctrtAddr = usdtAddr === '' ? contractsJSON[0].contractAddress : usdtAddr;
+      ctrtAddr = erc20_usdtAddr;
       break;
     case 'erc721Dragon':
-      ctrtAddr = nftAddr === '' ? contractsJSON[1].contractAddress : nftAddr;
+      ctrtAddr = erc721Addr;
       break;
     case 'erc721Sales':
       ctrtAddr = salesAddr === '' ? contractsJSON[2].contractAddress : salesAddr;
@@ -593,7 +600,7 @@ export const getEvmAddr = (ctrtName: addrName): string => {
 export const getDecimals = (addr: string) => {
   //console.log('getDecimals()... input:', input);
   let decimals = 18;
-  if (ethereumNetwork === '') {
+  if (ethereumNetwork === 'anvil') {
     switch (addr) {
       case erc20JSON.contractAddress:
         decimals = 6;
@@ -603,8 +610,7 @@ export const getDecimals = (addr: string) => {
     }
   } else {//for any remote network, set the addresses in the .env file
     switch (addr) {
-      case usdtAddr:
-      case usdcAddr:
+      case erc20_usdtAddr:
         decimals = 6;
         break;
       default:
@@ -621,7 +627,7 @@ export const getChainObj = (input: string) => {
     case 'ethereum':
     case '0x1':
       chainHex = '0x1';
-      chainName = 'ethereum';
+      chainName = 'mainnet';
       break;
     case 'sepolia':
     case '0xaa36a7':
