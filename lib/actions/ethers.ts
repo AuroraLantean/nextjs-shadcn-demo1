@@ -6,9 +6,10 @@ export const erc20JSON = contractsJSON[0];
 export const erc721JSON = contractsJSON[1];
 export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
-import { capitalizeFirst, isEmpty } from "@/lib/utils";
+import { asyncFor, capitalizeFirst, isEmpty } from "@/lib/utils";
 import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
 
+const infuraApiKey = process.env.NEXT_PUBLIC_INFURA_APIKEY || '';
 const ethereumNetwork = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK || 'anvil';
 const erc20_usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || erc20JSON.contractAddress;
 const erc20_usdcAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDC || '';
@@ -35,16 +36,61 @@ declare global {
   }
 }
 
+export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
+  const funcName = "ethersDefaultProvider";
+  lg(funcName + "()...");
+  const ethereumNetworkRaw = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK;
+  let defaultProvider = null;
+  let chainId = ''
+  let chainName = ''
+  if (ethereumNetworkRaw) {
+    // set to remote default network
+    mesg = "Use read-only defaults on " + ethereumNetworkRaw + " test network";
+    const infuraEndpoint = "https://" + ethereumNetworkRaw + ".infura.io/v3/" + infuraApiKey;
+    lg("infuraEndpoint", infuraEndpoint)
+    provider = new ethers.JsonRpcProvider(infuraEndpoint);
+    const chainObj = getChainObj(ethereumNetworkRaw);
+    chainId = chainObj.chainId;
+    chainName = chainObj.chainName;
+  } else {
+    // set to local default network
+    const localEndpoint = "http://localhost:8545";
+    lg("localEndpoint", localEndpoint)
+    provider = new ethers.JsonRpcProvider(localEndpoint);
+    chainId = 'local'
+    chainName = 'local'
+  }
+  //signer = await provider.getSigner()
+  lg('use default chainId:', chainId);
+  lg('use default chainName:', chainName);
+  if (chainName !== ethereumNetwork && process.env.NEXT_PUBLIC_ETHEREUM_NETWORK) {
+    warning = 'use default chain ' + capitalizeFirst(chainName) + ' is not expected. Switch network to ' + capitalizeFirst(ethereumNetwork);
+  }
+  const account = '';
+  lg('use null account:', account);
+
+  if (warning) console.warn(warning)
+  lg(funcName + " ran successfully")
+  return {
+    ...web3InitDefault,
+    chainType: 'evm',
+    chainId,
+    chainName,
+    account,
+    warn: warning,
+  };
+}
 export const ethersInit = async (): Promise<Web3InitOutT> => {
-  lg("ethersInit()...");
+  const funcName = "ethersInit";
+  lg(funcName + "()...");
   if (window.ethereum == null) {
     // If MetaMask is not installed, we use the default provider, which is backed by a variety of third-party services (such as INFURA). They do not have private keys installed so are only have read-only access
-    mesg = "MetaMask not installed; using read-only defaults on sepolia test network";
-    console.warn(mesg)
+    warning = "MetaMask not installed; using read-only defaults on sepolia test network";
+    console.warn(warning)
     provider = ethers.getDefaultProvider("sepolia");
     return {
       ...web3InitDefault,
-      warn: mesg,
+      warn: warning,
       chainId: '11155111',//sepolia
       chainName: 'sepolia',
     };
@@ -86,7 +132,7 @@ export const ethersInit = async (): Promise<Web3InitOutT> => {
     window.ethereum.on('accountsChanged', handleAccountsChanged);
     window.ethereum.on('chainChanged', handleChainChanged);
     if (warning) console.warn(warning)
-    lg("ethersInit ran successfully")
+    lg(funcName + " ran successfully")
     return {
       ...web3InitDefault,
       chainId,
@@ -102,9 +148,9 @@ const handleChainChanged = () => {
 function handleAccountsChanged(accounts: string | any[]): Web3InitOutT {
   let currentAccount = null;
   if (accounts.length === 0) {
-    mesg = 'Please connect to MetaMask';
-    console.warn(mesg);
-    return { ...web3InitDefault, warn: mesg };
+    warning = 'Please connect to MetaMask';
+    console.warn(warning);
+    return { ...web3InitDefault, warn: warning };
   } else if (accounts[0] !== currentAccount) {
     currentAccount = accounts[0];
     lg('currentAccount', currentAccount);
@@ -120,9 +166,9 @@ export async function getAccount(): Promise<Partial<Web3InitOutT>> {
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     .catch((err: any) => {
       if (err.code === 4001) {
-        mesg = 'Please connect to MetaMask';
-        console.warn(mesg);
-        return { warn: mesg };
+        warning = 'Please connect to MetaMask';
+        console.warn(warning);
+        return { warn: warning };
       } else {
         console.error(err);
         return { err };
@@ -326,6 +372,47 @@ export const erc721BalanceOf = async (addrTarget: string, ctrtAddr: string): Pro
   }
 }
 
+export const erc721TokenURI = async (tokenId: number, ctrtAddr: string): Promise<OutT> => {
+  const funcName = 'erc721TokenURI'
+  lg(funcName + '()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
+  if (tokenId < 0 || isEmpty(ctrtAddr)) {
+    return { ...out, err: funcName + ' input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
+  }
+  try {
+    const nft = new Contract(ctrtAddr, erc721JSON.abi, provider);
+    const tokenURI: string = await nft.tokenURI(tokenId);
+    lg(funcName + ' success,', tokenURI);
+    return { ...out, str1: tokenURI };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...out, err: funcName + ' failed' };
+  }
+}
+export const erc721BaseURIDefault = {
+  arr: [] as nftSalesStatus[],
+  err: ''
+}
+export const erc721BaseURI = async (ctrtAddr: string): Promise<OutT> => {
+  const funcName = 'erc721TokenURI'
+  lg(funcName + '()... ctrtAddr:', ctrtAddr);
+  if (isEmpty(ctrtAddr)) {
+    return { ...out, err: funcName + ' input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
+  }
+  try {
+    const nft = new Contract(ctrtAddr, erc721JSON.abi, provider);
+    const baseURI: string = await nft.baseURI();
+    lg(funcName + ' success,', baseURI);
+    return { ...out, str1: baseURI };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...out, err: funcName + ' failed' };
+  }
+}
+
 export const erc721OwnerOf = async (tokenId: string, ctrtAddr: string): Promise<OutT> => {
   const funcName = 'erc721OwnerOf'
   lg(funcName + '()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr, ', tokenId:', tokenId);
@@ -401,6 +488,57 @@ export const getDataSalesCtrt = async (ctrtAddr: string): Promise<salesCtrtDataT
   }
 }
 
+export const evmSalesPrices = async (tokenIds: number[], ctrtAddr: string) => {
+  const funcName = 'evmSalesPrices'
+  lg(funcName + '() in ethers.ts...');
+  try {
+    const output: string[] = []
+    for (const id of tokenIds) {
+      const out = await salesPrice(id, ctrtAddr);
+      if (out.err) {
+        output.push(out.err);
+      } else {
+        output.push(out.str1)
+      }
+    }
+    /*     const output = await asyncFor(tokenIds, async(box) => {
+          const out = await salesPrice(box, ctrtAddr);
+          return out;
+        });
+     */
+    lg(funcName + ' success');
+    return { ...out, output };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...out, output: [], err: funcName + ' failed' };
+  }
+}
+export const salesPrice = async (tokenId: number, ctrtAddr: string): Promise<OutT> => {
+  const funcName = 'salesPrice'
+  lg(funcName + '()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
+  if (tokenId < 0 || isEmpty(ctrtAddr)) {
+    return { ...out, err: funcName + ' input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
+  }
+  try {
+    const sales = new Contract(ctrtAddr, salesJSON.abi, provider);
+    const out = await sales.prices(ctrtAddr, tokenId);
+    lg("prices out:", ...out);
+    const { 0: priceInWeiETH, 1: priceInWeiToken } = out;
+    lg("priceInWeiETH:", priceInWeiETH, ', priceInWeiToken:', priceInWeiToken);
+
+    const priceInEth = formatEther(priceInWeiETH);
+    const decimals = getDecimals(ctrtAddr);
+    const priceInTokStr = formatUnits(priceInWeiToken, decimals);
+
+    lg(funcName + ' success. priceInEth:', priceInEth, ', priceInTokStr:', priceInTokStr);
+    return { ...out, str1: priceInEth + '_' + priceInTokStr };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...out, err: funcName + ' failed' };
+  }
+}
 export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<balancesT> => {
   const funcName = 'getEvmBalances';
   lg(funcName + ' in ethers.ts...');
@@ -621,82 +759,96 @@ export const getDecimals = (addr: string) => {
 }
 export const getChainObj = (input: string) => {
   //console.log('getChainObj()... input:', input);
-  let chainHex;
-  let chainName = '';
+  let chainHex = '', chainName = '', chainId = '';
   switch (input) {
     case 'ethereum':
     case '0x1':
       chainHex = '0x1';
       chainName = 'mainnet';
+      chainId = '1'
       break;
     case 'sepolia':
     case '0xaa36a7':
       chainHex = '0xaa36a7';
       chainName = 'sepolia';
+      chainId = '11155111'
       break;
     case 'goerli':
     case '0x5':
       chainHex = '0x5';
       chainName = 'goerli';
+      chainId = ''
       break;
     case 'polygon':
     case '0x89':
       chainHex = '0x89';
       chainName = 'polygon';
+      chainId = '137'
       break;
     case 'mumbai':
     case '0x13881':
       chainHex = '0x13881';
       chainName = 'mumbai';
+      chainId = '80001'
       break;
     case 'bsc':
     case '0x38':
       chainHex = '0x38';
       chainName = 'bsc';
+      chainId = ''
       break;
     case 'bsc_testnet':
     case '0x61':
       chainHex = '0x61';
       chainName = 'bsc_testnet';
+      chainId = '97'
       break;
     case 'avalanche':
     case '0xa86a':
       chainHex = '0xa86a';
       chainName = 'avalanche';
+      chainId = ''
       break;
     case 'fantom':
     case '0xfa':
       chainHex = '0xfa';
       chainName = 'fantom';
+      chainId = ''
       break;
     case 'cronos':
     case '0x19':
       chainHex = '0x19';
       chainName = 'cronos';
+      chainId = ''
       break;
     case 'palm':
     case '0x2a15c308d':
       chainHex = '0x2a15c308d';
       chainName = 'palm';
+      chainId = ''
       break;
     case 'arbitrum':
     case '0xa4b1':
       chainHex = '0xa4b1';
       chainName = 'arbitrum';
+      chainId = ''
       break;
     case 'anvil':
     case '0x7a69':
       chainHex = '';
       chainName = 'anvil';
+      chainId = 'anvil'
       break;
     case 'hardhat':
     case '0x539':
       chainHex = '';
       chainName = 'hardhat';
+      chainId = 'hardhat'
       break;
     default:
       chainHex = 'invalid';
       chainName = 'invalid';
+      chainId = 'invalid'
   }
-  return { chainHex, chainName };
+  return { chainHex, chainName, chainId };
 }

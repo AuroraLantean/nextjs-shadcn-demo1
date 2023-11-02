@@ -9,10 +9,10 @@ import { web3InputSchema } from '@/lib/validators';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '../ui/use-toast';
 import { capitalizeFirst, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { APP_WIDTH_MIN, nftIdMax, nftIdMin } from '@/constants/site_data';
+import { APP_WIDTH_MIN, chainTypeDefault, nftIdMax, nftIdMin } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
-import { getCurrBalances, initBalancesDefault, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from '@/store/web3Store';
+import { getBaseURI, getCurrBalances, getSalesPrices, initBalancesDefault, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from '@/store/web3Store';
 import { useShallow } from 'zustand/react/shallow';
 
 type Props = {}
@@ -43,7 +43,7 @@ const NftSalesPage = (props: Props) => {
       lg(compoName + " useEffect ran on initialized:", isInitialized)
 
       const getInit2 = async () => {
-        const chainType = 'evm'
+        const chainType = chainTypeDefault;
         const { usdtAddr, nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
         if (updateAddrsErr) {
           console.error("updateAddrsErr:", updateAddrsErr)
@@ -56,6 +56,7 @@ const NftSalesPage = (props: Props) => {
           toast({ description: `${balcs.err}`, variant: 'destructive' })
           return;
         }
+        await getBaseURI(chainType, nftAddr);
 
         const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
         if (statuses.err) {

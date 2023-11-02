@@ -93,3 +93,15 @@ export const isEmpty = (value: any) =>
   (typeof value === 'object' && Object.keys(value).length === 0) ||
   (typeof value === 'string' && value.trim().length === 0) ||
   (typeof value === 'string' && value === 'undefined');
+
+//Sequentially execute an asynchronous callback function in the order of given array of boxes
+export const asyncFor = async<T>(array: Array<T>, callback: <U>(box: T) => Promise<U>) => {
+  const output = [];
+  for (let idx = 0; idx < array.length; idx++) {
+    const out = await callback(array[idx]).catch((err: any) => {
+      console.log("asyncFor callback failed@ %s, box= %s, err: %s", idx, array[idx], err)
+    });
+    output.push(out);
+  }
+  return output;
+}

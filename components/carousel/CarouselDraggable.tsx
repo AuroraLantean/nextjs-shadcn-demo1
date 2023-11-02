@@ -1,12 +1,13 @@
 "use client"
-import { APP_WIDTH_MIN, DragonT, nftIdMax, nftIdMin } from "@/constants/site_data";
+import { APP_WIDTH_MIN, DragonT, chainTypeDefault, extractNftIds, nftIdMax, nftIdMin } from "@/constants/site_data";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
-import { initializeWallet, updateNftArray, useWeb3Store } from "@/store/web3Store";
+import { getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
+import { ethersDefaultProvider } from "@/lib/actions/ethers";
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
@@ -24,7 +25,7 @@ export const CarouselDraggable = () => {
   const effectRan = useRef(false)
   const { toast } = useToast();
 
-  const { isInitialized, nftArray, nftStatuses, err } = useWeb3Store(
+  const { isInitialized, isDefaultProvider, nftArray, nftStatuses, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   //lg(compoName + " nftStatuses:", nftStatuses)
@@ -36,12 +37,32 @@ export const CarouselDraggable = () => {
 
       // fetch nftArray
       const action = async () => {
+        if (isDefaultProvider) {
+          lg("isDefaultProvider already true")
+        } else {
+          const initOut = await initializeDefaultProvider(chainTypeDefault);
+          if (initOut.err) {
+            toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
+            return true;
+          }
+          if (initOut.warn) {
+            toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
+            return true;
+          }
+          toast({ description: "web3 initialized with the DefaultProvider!" });
+          lg("initOut:", initOut)
+        }
+
         const nftsOut = await updateNftArray(nftIdMin, nftIdMax);
         if (nftsOut.err) {
           console.error("nftsOut.err:", nftsOut.err)
           toast({ description: `${nftsOut.err}`, variant: 'destructive' })
           return;
         }
+
+        const { salesAddr, err: updateAddrsErr } = await updateAddrs(chainTypeDefault);
+
+        const out2 = await getSalesPrices(chainTypeDefault, nftsOut.nftIds, salesAddr);
       }
       action();
     }

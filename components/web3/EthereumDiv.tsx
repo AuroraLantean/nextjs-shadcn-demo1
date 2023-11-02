@@ -14,7 +14,7 @@ import { makeShortAddr, parseFloatSafe } from '@/lib/utils';
 import goldcoin from '@/web3ABIs/ethereum/goldcoin.json';
 import dragonNft from '@/web3ABIs/ethereum/erc721Dragon.json';
 import { OutT, bigIntZero, erc20BalanceOf, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getEvmAddr } from '@/lib/actions/ethers';
-import { APP_WIDTH_MIN } from '@/constants/site_data';
+import { APP_WIDTH_MIN, chainTypeDefault } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { initializeWallet, useWeb3Store } from '@/store/web3Store';
@@ -43,8 +43,7 @@ const EthereumDiv = (props: Props) => {
       lg("already initialized")
       toast({ description: "web3 already initialized" });
     } else {
-      const initOut = await initializeWallet('evm');
-      //const initOut = await ethersInit();
+      const initOut = await initializeWallet(chainTypeDefault);
       if (initOut.err) {
         toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
         return true;
