@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -28,7 +28,7 @@ import * as z from "zod"
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useToast } from "@/components/ui/use-toast"
-import { buyNftSchema, tokenOnChains } from '@/lib/validators'
+import { buyNftSchema, buyNftSchemaFixed, tokenOnChains } from '@/lib/validators'
 import Icons from "@/components/Icons";
 import { buyNFT } from '@/lib/actions/radix.actions'
 import { cn } from '@/lib/utils'
@@ -38,9 +38,8 @@ import { useShallow } from 'zustand/react/shallow'
 
 type Props = {
   nftId: number
-  price: number
 }
-const BasicModal = ({ nftId, price }: Props) => {
+const BasicModal = ({ nftId }: Props) => {
   const { toast } = useToast()
   const lg = console.log;
   const compoName = 'BasicModal'
@@ -51,44 +50,60 @@ const BasicModal = ({ nftId, price }: Props) => {
     { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
     { label: "XRD on Radix", value: tokenOnChains[3] },
     { label: "USDT on Radix", value: tokenOnChains[4] },
-  ] as const
-  const [isLoading, setIsLoading] = useState(false)
+  ] as const;
+  const effectRan = useRef(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [nftPrice, setNftPrice] = useState({ priceRawNative: '', priceRawToken: '' });
   const [open, setOpen] = useState(false);
-  const { chainType, isInitialized, chainName, chainId, account, nftOriginalOwner, nftAddr, salesAddr, nftArray, isLoadingWeb3, err } = useWeb3Store(
+  const { chainType, nativeAssetName, tokenName, tokenSymbol, account, nftOriginalOwner, nftAddr, salesAddr, nftIds, prices, baseURI, isLoadingWeb3, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
-  //lg("salesAddr", salesAddr)
 
-  type Input = z.infer<typeof buyNftSchema>;
+  useEffect(() => {
+    if (effectRan.current === true) {
+      const index = nftIds.indexOf(nftId);
+      const priceOne = prices[index];
+      if (priceOne) {
+        lg('index:', index, ', prices:', prices, ', priceOne:', priceOne)
+        const priceRawNative = priceOne.split('_')[0];
+        const priceRawToken = priceOne.split('_')[1];
+        setNftPrice({ priceRawNative, priceRawToken })
+      }
+      lg(`baseURI: ${baseURI}/${nftId}`)
+    }
+    return () => {
+      lg(compoName + " unmounted useeffect()...")
+      effectRan.current = true
+    }
+  }, [nftIds, prices]);
+
+  type Input = z.infer<typeof buyNftSchemaFixed>;
   const form = useForm<Input>({
-    resolver: zodResolver(buyNftSchema),
+    resolver: zodResolver(buyNftSchemaFixed),
     defaultValues: {
       inputToken: tokenOnChains[0],
-      nftId: nftId + "",
-      amount: price + "",
     },
   })
-
   const onSubmit = async (values: Input) => {
-    console.log("🚀onSubmit:", values, salesAddr)
+    lg("onSubmit:", salesAddr)
     setIsLoading(true);
     let hash = ''; let err = '';
     if (values.inputToken === tokenOnChains[0]) {
-      ({ str1: hash, err } = await buyNFTviaETH(values.nftId, values.amount, salesAddr));
+      ({ str1: hash, err } = await buyNFTviaETH(nftId + '', nftPrice.priceRawNative, salesAddr));
 
     } else if (values.inputToken === tokenOnChains[1] || values.inputToken === tokenOnChains[2]) {
-      ({ str1: hash, err } = await buyNFTviaERC20(values.nftId, salesAddr));
+      ({ str1: hash, err } = await buyNFTviaERC20(nftId + '', salesAddr));
 
     } else if (values.inputToken === tokenOnChains[3]) {
-      ({ str1: hash, err } = await buyNFT(values.nftId, salesAddr, values.amount));
+      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, nftPrice.priceRawNative));
 
     } else if (values.inputToken === tokenOnChains[4]) {
-      ({ str1: hash, err } = await buyNFT(values.nftId, salesAddr, values.amount));
+      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, nftPrice.priceRawNative));
     }
-    console.log("onSubmit. hash:", hash, ", err:", err)
+    lg("onSubmit. hash:", hash, ", err:", err)
 
-    const nftIdLast = nftArray.length - 1;
-    const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftArray[0].id, nftArray[nftIdLast].id);
+    const nftIdLast = nftIds.length - 1;
+    const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftIds[0], nftIds[nftIdLast]);
     if (statuses.err) {
       console.error("status err:", statuses.err)
       toast({ description: `${statuses.err}`, variant: 'destructive' })
@@ -116,12 +131,12 @@ const BasicModal = ({ nftId, price }: Props) => {
 
   useEffect(() => {
     if (!open) {
-      form.reset();
+      //form.reset();
     }
-  }, [form, open]);
+  }, [open]);//form
 
   const openDialog = () => {
-    console.log("openDialog")
+    lg("openDialog")
   }
   //must encase the Context Menu or Dropdown Menu component in the Dialog component
   return (
@@ -141,7 +156,7 @@ const BasicModal = ({ nftId, price }: Props) => {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
             <FormField
               control={form.control}
@@ -197,43 +212,32 @@ const BasicModal = ({ nftId, price }: Props) => {
                       </Command>
                     </PopoverContent>
                   </Popover>
-                  <FormDescription>
-                    This is the input token
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="nftId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>NFT ID</FormLabel>
-                  <FormControl>
-                    <Input placeholder="nft id" autoFocus {...field} />
-                  </FormControl>
-                  <FormDescription>This is your public display name.</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Amount</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                  <FormDescription>Amount to buy</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="mt-0">
+              <div>
+                <FormLabel>NFT Price in {nativeAssetName}: <span className='ml-2 mr-1'>{nftPrice.priceRawNative}</span>{nativeAssetName}
+                </FormLabel>
+              </div>
+              <div>
+                <FormLabel>NFT Price in {tokenName}:
+                  <span className='ml-3 mr-1'>{nftPrice.priceRawToken}</span>{tokenSymbol}
+                </FormLabel>
+              </div>
+              <div>
+                <FormLabel>NFT MetaData URI:
+                  <span className='ml-3'>{baseURI}{nftId}</span>
+                </FormLabel>
+              </div>
+              <div className='break-all'>
+                <FormLabel>NFT Contract Address:
+                  <span className='ml-2'>{nftAddr}</span>
+                </FormLabel>
+              </div>
+            </div>
 
             <Button
               type="submit"
@@ -278,7 +282,7 @@ export default BasicModal
           <Button
             type="submit"
             className='!bg-primary !text-light-2'
-            onClick={() => { console.log("action") }}
+            onClick={() => { lg("action") }}
           >Buy Now</Button>
         </DialogFooter>
 

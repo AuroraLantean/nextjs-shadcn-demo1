@@ -8,6 +8,7 @@ export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
 import { asyncFor, capitalizeFirst, isEmpty } from "@/lib/utils";
 import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
+import { number } from "zod";
 
 const infuraApiKey = process.env.NEXT_PUBLIC_INFURA_APIKEY || '';
 const ethereumNetwork = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK || 'anvil';
@@ -40,7 +41,6 @@ export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
   const funcName = "ethersDefaultProvider";
   lg(funcName + "()...");
   const ethereumNetworkRaw = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK;
-  let defaultProvider = null;
   let chainId = ''
   let chainName = ''
   if (ethereumNetworkRaw) {
@@ -80,8 +80,18 @@ export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
     warn: warning,
   };
 }
-export const ethersInit = async (): Promise<Web3InitOutT> => {
-  const funcName = "ethersInit";
+export const checkEvmWalletAfterLoad = async () =>
+  window.addEventListener('load', async () => {
+    let initOut = web3InitDefault;
+    try {
+      initOut = await initializeEvmWallet();
+    } catch (err: any) {
+      console.error('@initializeEvmWallet:', err);
+      return { ...web3InitDefault, err: err.message };
+    }
+  });
+export const initializeEvmWallet = async (): Promise<Web3InitOutT> => {
+  const funcName = "initializeEvmWallet";
   lg(funcName + "()...");
   if (window.ethereum == null) {
     // If MetaMask is not installed, we use the default provider, which is backed by a variety of third-party services (such as INFURA). They do not have private keys installed so are only have read-only access
@@ -215,9 +225,6 @@ export const erc20BalanceOf = async (addrTarget: string, ctrtAddr: string): Prom
   try {
     const token = new Contract(ctrtAddr, erc20JSON.abi, provider);
     const tokenBalcInWei: bigint = await token.balanceOf(addrTarget);
-    /*  const out = await token.getData(addrTarget);
-        lg("getData out:", out);
-        const { 0: sym, 1: decimals, 2: tokenBalcInWei } = out;*/
     const decimals = getDecimals(ctrtAddr);
     const tokenBalcStr = formatUnits(tokenBalcInWei, decimals);
     lg(funcName + ' success:', tokenBalcInWei, decimals, tokenBalcStr);
@@ -225,6 +232,31 @@ export const erc20BalanceOf = async (addrTarget: string, ctrtAddr: string): Prom
   } catch (error) {
     console.error(funcName + ':', error);
     return { ...out, err: funcName + ' failed' };
+  }
+}
+const erc20DataDefault = { err: '', name: '', symbol: '', decimals: -1 }
+export const erc20Data = async (ctrtAddr: string) => {
+  const funcName = "erc20Data";
+  lg(funcName + '()... ctrtAddr:', ctrtAddr);
+  if (isEmpty(ctrtAddr)) {
+    return { ...erc20DataDefault, err: funcName + ' input invalid' };
+  } else if (!provider) {
+    return { ...erc20DataDefault, err: 'provider invalid' };
+  }
+  try {
+    const token = new Contract(ctrtAddr, erc20JSON.abi, provider);
+    const name: string = await token.name();
+    const symbol: string = await token.symbol();
+    const decimals: bigint = await token.decimals();
+    /*  const out = await token.getData(addrTarget);
+        lg("getData out:", out);
+        const { 0: sym, 1: decimals, 2: tokenBalcInWei } = out;*/
+    lg("name:", name, ", symbol:", symbol, ", decimals:", decimals, toNumber(decimals));
+    lg(funcName + ' success');
+    return { ...erc20DataDefault, name, symbol, decimals: toNumber(decimals) };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...erc20DataDefault, err: funcName + ' failed' };
   }
 }
 
@@ -488,49 +520,83 @@ export const getDataSalesCtrt = async (ctrtAddr: string): Promise<salesCtrtDataT
   }
 }
 
-export const evmSalesPrices = async (tokenIds: number[], ctrtAddr: string) => {
-  const funcName = 'evmSalesPrices'
-  lg(funcName + '() in ethers.ts...');
+const evmSalesTokenDataD = { ...erc20DataDefault, erc20Addr: '' }
+export const evmSalesTokenData = async (salesAddr: string) => {
+  const funcName = 'salesTokenData'
+  lg(funcName + '()...');
+  if (isEmpty(salesAddr)) {
+    return { ...evmSalesTokenDataD, err: funcName + ' input invalid' };
+  } else if (!provider) {
+    return { ...evmSalesTokenDataD, err: 'provider invalid' };
+  }
   try {
-    const output: string[] = []
-    for (const id of tokenIds) {
-      const out = await salesPrice(id, ctrtAddr);
-      if (out.err) {
-        output.push(out.err);
-      } else {
-        output.push(out.str1)
-      }
+    const sales = new Contract(salesAddr, salesJSON.abi, provider);
+    const erc20Addr: string = await sales.token();
+    const out = await erc20Data(erc20Addr);
+    //const dp = getDecimals(erc20Addr);
+    lg("token addr:", erc20Addr, ", out:", out);
+    if (out.err) {
+      console.error(funcName + ' -> erc20Data err:', out.err);
+      return { ...evmSalesTokenDataD, err: out.err };
     }
-    /*     const output = await asyncFor(tokenIds, async(box) => {
-          const out = await salesPrice(box, ctrtAddr);
-          return out;
-        });
-     */
     lg(funcName + ' success');
-    return { ...out, output };
-  } catch (error) {
-    console.error(funcName + ':', error);
-    return { ...out, output: [], err: funcName + ' failed' };
+    return { ...evmSalesTokenDataD, ...out };
+  } catch (err) {
+    console.error(funcName + ':', err);
+    return { ...evmSalesTokenDataD, err: err + '' };
   }
 }
-export const salesPrice = async (tokenId: number, ctrtAddr: string): Promise<OutT> => {
+
+export const evmSalesPricesD = { ...evmSalesTokenDataD, priceArrStr: [] as string[] }
+export const evmSalesPrices = async (tokenIds: number[], nftAddr: string, salesAddr: string) => {
+  const funcName = 'evmSalesPrices'
+  lg(funcName + '() in ethers.ts... tokenIds:', tokenIds, ', nftAddr:', nftAddr, ', salesAddr:', salesAddr);
+  try {
+    const out = await evmSalesTokenData(salesAddr)
+    if (out.err) {
+      return { ...evmSalesPricesD, err: out.err };
+    }
+    const decimals = out.decimals;
+    const priceArrStr: string[] = []
+    for (const id of tokenIds) {
+      const out = await salesPrice(id, nftAddr, salesAddr, decimals);
+      if (out.err) {
+        priceArrStr.push(out.err);
+      } else {
+        priceArrStr.push(out.str1)
+      }
+    }
+    lg(funcName + ' success');
+    return { ...evmSalesPricesD, ...out, priceArrStr };
+  } catch (err) {
+    console.error(funcName + ':', err);
+    return { ...evmSalesPricesD, err: funcName + ' failed' };
+  }
+}
+/* decimals < 0 to get the token address from the sales contract, then to get decimals */
+export const salesPrice = async (tokenId: number, nftAddr: string, salesAddr: string, decimals: number): Promise<OutT> => {
   const funcName = 'salesPrice'
-  lg(funcName + '()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
-  if (tokenId < 0 || isEmpty(ctrtAddr)) {
+  lg(funcName + '()... tokenId:', tokenId);
+  if (tokenId < 0 || isEmpty(nftAddr) || isEmpty(salesAddr)) {
     return { ...out, err: funcName + ' input invalid' };
   } else if (!provider) {
     return { ...out, err: 'provider invalid' };
   }
   try {
-    const sales = new Contract(ctrtAddr, salesJSON.abi, provider);
-    const out = await sales.prices(ctrtAddr, tokenId);
-    lg("prices out:", ...out);
+    const sales = new Contract(salesAddr, salesJSON.abi, provider);
+    const out = await sales.prices(nftAddr, tokenId);
+
+    let dp = decimals;
+    if (decimals < 0) {
+      const erc20Addr = await sales.token();
+      dp = getDecimals(erc20Addr);
+    }
+    lg("dp:", dp, ", prices out:(inWeiETH, inWeiToken):", ...out);
     const { 0: priceInWeiETH, 1: priceInWeiToken } = out;
-    lg("priceInWeiETH:", priceInWeiETH, ', priceInWeiToken:', priceInWeiToken);
+    //lg("priceInWeiETH:", priceInWeiETH, ', priceInWeiToken:', priceInWeiToken);
 
     const priceInEth = formatEther(priceInWeiETH);
-    const decimals = getDecimals(ctrtAddr);
-    const priceInTokStr = formatUnits(priceInWeiToken, decimals);
+    const priceInTokStr = formatUnits(priceInWeiToken, dp);
 
     lg(funcName + ' success. priceInEth:', priceInEth, ', priceInTokStr:', priceInTokStr);
     return { ...out, str1: priceInEth + '_' + priceInTokStr };
@@ -539,6 +605,7 @@ export const salesPrice = async (tokenId: number, ctrtAddr: string): Promise<Out
     return { ...out, err: funcName + ' failed' };
   }
 }
+
 export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<balancesT> => {
   const funcName = 'getEvmBalances';
   lg(funcName + ' in ethers.ts...');

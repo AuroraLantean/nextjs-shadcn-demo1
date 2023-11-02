@@ -13,6 +13,7 @@ import DbInputForm from "@/components/forms/DbInputForm";
 import TanstackOut from "@/components/TanstackOut";
 import TanstackIn from "@/components/TanstackIn";
 import NftSales from "@/components/web3/NftSalesPage";
+import NftBuyForm from "@/components/forms/NftBuyForm";
 
 export default async function HomePage() {
   console.log("HomePage")
@@ -27,7 +28,10 @@ export default async function HomePage() {
     <>
       <h1 className="head-text text-left">HomePage</h1>
       <CarouselDraggable />
-      <NftSales />
+      <div className="flex flex-wrap">
+        <NftSales />
+        <NftBuyForm />
+      </div>
       <Separator className="my-2" />
       <div className="flex flex-wrap">
         <TanstackIn />

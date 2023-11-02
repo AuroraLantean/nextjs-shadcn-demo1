@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
-import { getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, useWeb3Store } from "@/store/web3Store";
+import { getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 import { ethersDefaultProvider } from "@/lib/actions/ethers";
 
@@ -25,7 +25,7 @@ export const CarouselDraggable = () => {
   const effectRan = useRef(false)
   const { toast } = useToast();
 
-  const { isInitialized, isDefaultProvider, nftArray, nftStatuses, err } = useWeb3Store(
+  const { isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   //lg(compoName + " nftStatuses:", nftStatuses)
@@ -37,21 +37,19 @@ export const CarouselDraggable = () => {
 
       // fetch nftArray
       const action = async () => {
-        if (isDefaultProvider) {
-          lg("isDefaultProvider already true")
-        } else {
-          const initOut = await initializeDefaultProvider(chainTypeDefault);
-          if (initOut.err) {
-            toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
-            return true;
-          }
-          if (initOut.warn) {
-            toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
-            return true;
-          }
-          toast({ description: "web3 initialized with the DefaultProvider!" });
-          lg("initOut:", initOut)
+
+        const initOut = await initializeDefaultProvider(chainTypeDefault);
+        if (initOut.err) {
+          toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
+          return true;
         }
+        if (initOut.warn) {
+          toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
+          return true;
+        }
+        toast({ description: "web3 initialized with the DefaultProvider!" });
+        lg("initOut:", initOut)
+
 
         const nftsOut = await updateNftArray(nftIdMin, nftIdMax);
         if (nftsOut.err) {
@@ -60,11 +58,16 @@ export const CarouselDraggable = () => {
           return;
         }
 
-        const { salesAddr, err: updateAddrsErr } = await updateAddrs(chainTypeDefault);
+        const { usdtAddr, nftAddr, salesAddr, err: updateAddrsErr } = await updateAddrs(chainTypeDefault);
 
-        const out2 = await getSalesPrices(chainTypeDefault, nftsOut.nftIds, salesAddr);
+        const out2 = await getSalesPrices(chainTypeDefault, nftsOut.nftIds, nftAddr, salesAddr);
+        await getBaseURI(chainTypeDefault, nftAddr);
       }
-      action();
+      if (isDefaultProvider) {
+        lg("isDefaultProvider already true")
+      } else {
+        action();
+      }
     }
     return () => {
       lg(compoName + " unmounted useeffect()...")
@@ -150,7 +153,7 @@ const Card = ({ id, price, imgURL, category, name, description, index, status }:
         <p className="my-2 text-3xl font-bold bg-dark-2  w-min">{name}</p>
         <p className="text-lg text-slate-300 bg-dark-2 w-min">{description}</p>
 
-        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} price={price} /> <span className="text-lg text-slate-300 bg-secondary-500 w-min">{status}</span></div>
+        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} /> <span className="text-lg text-slate-300 bg-secondary-500 w-min">{status}</span></div>
       </div>
 
     </div>

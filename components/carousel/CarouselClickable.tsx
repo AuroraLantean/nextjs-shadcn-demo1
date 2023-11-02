@@ -113,7 +113,7 @@ const Card = ({ id, price, imgURL, category, name, description }: DragonT) => {
         <p className="my-2 text-3xl font-bold">{name}</p>
         <p className="text-lg text-slate-300">{description}</p>
 
-        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} price={price} /></div>
+        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} /></div>
       </div>
 
     </div>

@@ -127,6 +127,11 @@ export const buyNftSchema = z.object({
       message: "Amount should be a number",
     }),
 })
+export const buyNftSchemaFixed = z.object({
+  inputToken: z.enum(tokenOnChains, {
+    required_error: "You need to select one input token and blockchain",
+  }),
+})
 
 export const UserValidation = z.object({
   profile_photo: z.string().url({ message: "should be an URL" }).min(1, { message: "cannot be empty" }),
