@@ -94,6 +94,10 @@ export const isEmpty = (value: any) =>
   (typeof value === 'string' && value.trim().length === 0) ||
   (typeof value === 'string' && value === 'undefined');
 
+export const isEqualStr = (str1: any, str2: any): boolean => (str1 + '').trim().toLowerCase() === (str2 + '').trim().toLowerCase();
+
+export const isObjEqualStr = (obj1: object, obj2: object): boolean => JSON.stringify(obj1) === JSON.stringify(obj2)
+
 //Sequentially execute an asynchronous callback function in the order of given array of boxes
 export const asyncFor = async<T>(array: Array<T>, callback: <U>(box: T) => Promise<U>) => {
   const output = [];

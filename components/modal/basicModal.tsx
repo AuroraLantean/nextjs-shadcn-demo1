@@ -38,27 +38,28 @@ import { useShallow } from 'zustand/react/shallow'
 
 type Props = {
   nftId: number,
-  priceRawNative: string,
-  priceRawToken: string,
+  priceNative: string,
+  priceToken: string,
 }
-const BasicModal = ({ nftId, priceRawNative, priceRawToken }: Props) => {
+const BasicModal = ({ nftId, priceNative, priceToken }: Props) => {
   const { toast } = useToast()
   const lg = console.log;
   const compoName = 'BasicModal'
   //lg(compoName + ": ", nftId, price)
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const { chainType, nativeAssetName, tokenName, tokenSymbol, account, nftOriginalOwner, nftAddr, tokenAddr, salesAddr, nftIds, prices, baseURI, err } = useWeb3Store(
+    useShallow((state) => ({ ...state }))
+  )
+  const tokenSelectionStr = tokenSymbol + ' on Ethereum';
   const inputTokens = [
     { label: "ETH on Ethereum", value: tokenOnChains[0] },
-    { label: "USDT on Ethereum", value: tokenOnChains[1] },
+    { label: tokenSelectionStr, value: tokenOnChains[1] },
     { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
     { label: "XRD on Radix", value: tokenOnChains[3] },
     { label: "USDT on Radix", value: tokenOnChains[4] },
-  ] as const;
-  const effectRan = useRef(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const { chainType, nativeAssetName, tokenName, tokenSymbol, account, nftOriginalOwner, nftAddr, salesAddr, nftIds, prices, baseURI, err } = useWeb3Store(
-    useShallow((state) => ({ ...state }))
-  )
+  ];// as const;
 
   type Input = z.infer<typeof buyNftSchemaFixed>;
   const form = useForm<Input>({
@@ -68,20 +69,20 @@ const BasicModal = ({ nftId, priceRawNative, priceRawToken }: Props) => {
     },
   })
   const onSubmit = async (values: Input) => {
-    lg("onSubmit:", salesAddr)
+    lg("onSubmit. nftId:", nftId, ", nftAddr:", nftAddr, ", salesAddr:", salesAddr, ', account:', account)
     setIsLoading(true);
     let hash = ''; let err = '';
     if (values.inputToken === tokenOnChains[0]) {
-      ({ str1: hash, err } = await buyNFTviaETH(nftId + '', priceRawNative, salesAddr));
+      ({ str1: hash, err } = await buyNFTviaETH(nftAddr, nftId + '', priceNative, salesAddr, account));
 
     } else if (values.inputToken === tokenOnChains[1] || values.inputToken === tokenOnChains[2]) {
-      ({ str1: hash, err } = await buyNFTviaERC20(nftId + '', salesAddr));
+      ({ str1: hash, err } = await buyNFTviaERC20(nftAddr, nftId, salesAddr, account, tokenAddr, priceToken));
 
     } else if (values.inputToken === tokenOnChains[3]) {
-      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, priceRawNative));
+      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, priceNative));
 
     } else if (values.inputToken === tokenOnChains[4]) {
-      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, priceRawNative));
+      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, priceNative));
     }
     lg("onSubmit. hash:", hash, ", err:", err)
     if (err) {
@@ -128,18 +129,18 @@ const BasicModal = ({ nftId, priceRawNative, priceRawToken }: Props) => {
     lg("openDialog")
   }
   //must encase the Context Menu or Dropdown Menu component in the Dialog component
-  //{priceRawNative} {nativeAssetName} / {priceRawToken} {tokenSymbol}
+  //{priceNative} {nativeAssetName} / {priceToken} {tokenSymbol}
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className='!bg-primary text-light-2'
           onClick={() => openDialog()}
-        >Buy NFT
+        >Buy NFT #{nftId}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Buy NFT</DialogTitle>
+          <DialogTitle>Buy NFT  #{nftId}</DialogTitle>
           <DialogDescription>
             Choose input token and blockchain. Confirm NFT ID and enter the required price. Click 'Buy' when you're ready.
           </DialogDescription>
@@ -153,7 +154,7 @@ const BasicModal = ({ nftId, priceRawNative, priceRawToken }: Props) => {
               name="inputToken"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Input Token</FormLabel>
+                  <FormLabel>Input Asset</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -209,12 +210,12 @@ const BasicModal = ({ nftId, priceRawNative, priceRawToken }: Props) => {
 
             <div className="mt-0">
               <div>
-                <FormLabel>NFT Price in {nativeAssetName}: <span className='ml-2 mr-1'>{priceRawNative}</span>{nativeAssetName}
+                <FormLabel>NFT Price in {nativeAssetName}: <span className='ml-2 mr-1'>{priceNative}</span>{nativeAssetName}
                 </FormLabel>
               </div>
               <div>
                 <FormLabel>NFT Price in {tokenName}:
-                  <span className='ml-3 mr-1'>{priceRawToken}</span>{tokenSymbol}
+                  <span className='ml-3 mr-1'>{priceToken}</span>{tokenSymbol}
                 </FormLabel>
               </div>
               <div>

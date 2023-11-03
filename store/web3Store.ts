@@ -11,7 +11,7 @@ const lg = console.log;
 
 export type Web3InitOutT = typeof web3InitDefault;
 const initialState = {
-  ...web3InitDefault, erc20Addr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: '',
+  ...web3InitDefault, tokenAddr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: '',
   nftStatuses: [] as nftSalesStatus[],
   isInitialized: false, isDefaultProvider: false,
   err: '', baseURI: '', nativeAssetName: '', tokenName: '', tokenSymbol: '',
@@ -185,12 +185,12 @@ export const getSalesPrices = async (chainType: string, tokenIds: number[], nftA
     return { ...out, err: 'Unknown chainType' };
   }
   if (out.err) {
-    return { ...out };
+    return { ...out, err: out.err };
   }
-  lg(funcName + " out:", out)
+  lg(funcName + " successful. out:", out)
   useWeb3Store.setState((state) => ({
     ...state,
-    erc20Addr: out.erc20Addr,
+    tokenAddr: out.tokenAddr,
     tokenName: out.name,
     tokenSymbol: out.symbol,
     decimals: out.decimals,
@@ -202,27 +202,27 @@ export const getSalesPrices = async (chainType: string, tokenIds: number[], nftA
 
 export const updateAddrs = async (chainType: string) => {
   const funcName = 'updateAddrs';
-  let erc20Addr = '', nftAddr = '', salesAddr = '', nftOriginalOwner = '';
+  let nftAddr = '', salesAddr = '', nftOriginalOwner = '';
   const outDefault = {
-    erc20Addr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: ''
+    tokenAddr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: ''
   }
   if (chainType === 'evm') {
-    erc20Addr = getEvmAddr('erc20_usdt')
+    //tokenAddr = getEvmAddr('erc20_usdt')
     nftAddr = getEvmAddr('erc721Dragon')
     salesAddr = getEvmAddr('erc721Sales')
     nftOriginalOwner = getEvmAddr('nftOriginalOwner')
-    if (isEmpty(erc20Addr) || isEmpty(nftAddr) || isEmpty(salesAddr) || isEmpty(nftOriginalOwner)) return { ...outDefault, err: 'found empty address' };
+    if (isEmpty(nftAddr) || isEmpty(salesAddr) || isEmpty(nftOriginalOwner)) return { ...outDefault, err: 'found empty address' };
   } else if (chainType === 'radix') {
 
   } else {
     return { ...outDefault, err: 'Unknown chainType' };
   }
-  lg(funcName + '. erc20Addr:', erc20Addr, ', nftAddr:', nftAddr, ', salesAddr:', salesAddr);
+  lg(funcName + ', nftAddr:', nftAddr, ', salesAddr:', salesAddr);
   useWeb3Store.setState((state) => ({
     ...state,
-    erc20Addr, nftAddr, salesAddr, nftOriginalOwner
+    nftAddr, salesAddr, nftOriginalOwner
   }));
-  return { erc20Addr, nftAddr, salesAddr, nftOriginalOwner, err: '' }
+  return { nftAddr, salesAddr, nftOriginalOwner, err: '' }
 }
 
 export const initBalancesDefault = {

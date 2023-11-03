@@ -26,18 +26,19 @@ type Props = {}
 const NftBuyForm = (props: Props) => {
   const lg = console.log;
   const compoName = 'NftBuyForm'
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const { chainType, isInitialized, chainName, chainId, account, nftOriginalOwner, nftAddr, tokenAddr, salesAddr, nftIds, tokenSymbol, prices, baseURI, err } = useWeb3Store(
+    useShallow((state) => ({ ...state }))
+  )
+  const tokenSelectionStr = tokenSymbol + ' on Ethereum';
   const inputTokens = [
     { label: "ETH on Ethereum", value: tokenOnChains[0] },
-    { label: "USDT on Ethereum", value: tokenOnChains[1] },
+    { label: tokenSelectionStr, value: tokenOnChains[1] },
     { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
     { label: "XRD on Radix", value: tokenOnChains[3] },
     { label: "USDT on Radix", value: tokenOnChains[4] },
-  ] as const;
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  const { chainType, isInitialized, chainName, chainId, account, nftOriginalOwner, nftAddr, salesAddr, nftIds, prices, baseURI, err } = useWeb3Store(
-    useShallow((state) => ({ ...state }))
-  )
+  ];// as const;
 
   lg(compoName + "()...")
   type Input = z.infer<typeof buyNftSchema>;
@@ -55,10 +56,27 @@ const NftBuyForm = (props: Props) => {
     setIsLoading(true);
     let hash = ''; let err = '';
     if (values.inputToken === tokenOnChains[0]) {
-      ({ str1: hash, err } = await buyNFTviaETH(values.nftId, values.amount, salesAddr));
+      ({ str1: hash, err } = await buyNFTviaETH(nftAddr, values.nftId, values.amount, salesAddr, account));
 
     } else if (values.inputToken === tokenOnChains[1] || values.inputToken === tokenOnChains[2]) {
-      ({ str1: hash, err } = await buyNFTviaERC20(values.nftId, salesAddr));
+      const nftId = Number.parseInt(values.nftId);
+      if (Number.isNaN(nftId)) {
+        console.error('nftId is not a valid integer');
+        toast({ description: `nftId is not a valid integer`, variant: 'destructive' })
+        return;
+      }
+      const index = nftIds.indexOf(nftId);
+      const priceOne = prices[index];
+      if (!priceOne) {
+        console.error("price is not found")
+        toast({ description: `price is not found by index ${index}`, variant: 'destructive' })
+        return;
+      }
+      const priceNative = priceOne.split('_')[0];
+      const priceToken = priceOne.split('_')[1].replace('.0', '');
+      lg('index:', index, ', priceOne:', priceOne);
+      lg(priceNative, priceToken);
+      ({ str1: hash, err } = await buyNFTviaERC20(nftAddr, nftId, salesAddr, account, tokenAddr, priceToken));
 
     } else if (values.inputToken === tokenOnChains[3]) {
       ({ str1: hash, err } = await buyNFT(values.nftId, salesAddr, values.amount));
@@ -101,7 +119,7 @@ const NftBuyForm = (props: Props) => {
       <CardContent>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 
             <FormField
               control={form.control}

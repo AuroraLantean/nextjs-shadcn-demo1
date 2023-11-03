@@ -12,8 +12,6 @@ const CARD_HEIGHT = 350;
 const MARGIN = 20;
 const lg = console.log;
 //TODO: make mobile carousel work without difficulty... reference: commit before Sep 29
-//TODO: button to refresh token sales status
-//TODO: check buying ETH/Token amount
 export const CarouselDraggable = () => {
   const lg = console.log;
   const compoName = 'CarouselDraggable'
@@ -27,7 +25,7 @@ export const CarouselDraggable = () => {
   const { account, isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, nativeAssetName, tokenName, tokenSymbol, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
-  lg(compoName, ', account:', account, "nftStatuses:", nftStatuses)
+  //lg(compoName, ', account:', account, "nftStatuses:", nftStatuses)
   useEffect(() => {
     if (effectRan.current === true) {
       lg(compoName + " useEffect ran")
@@ -56,9 +54,19 @@ export const CarouselDraggable = () => {
           return;
         }
 
-        const { erc20Addr, nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
+        const { nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
+        if (updateAddrsErr) {
+          console.error("updateAddrsErr:", updateAddrsErr)
+          toast({ description: `${updateAddrsErr}`, variant: 'destructive' })
+          return;
+        }
 
         const out2 = await getSalesPrices(chainType, nftsOut.nftIds, nftAddr, salesAddr);
+        if (out2.err) {
+          console.error("getSalesPrices err:", out2.err)
+          toast({ description: `${out2.err}`, variant: 'destructive' })
+          return;
+        }
         await getBaseURI(chainType, nftAddr);
 
         const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
@@ -141,11 +149,11 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
   const compoName = 'Carousel Card'
   //const index = nftIds.indexOf(nftId);
   const priceOne = prices[index];
-  let priceRawNative = '', priceRawToken = '';
+  let priceNative = '', priceToken = '';
   if (priceOne) {
-    priceRawNative = priceOne.split('_')[0];
-    priceRawToken = priceOne.split('_')[1].replace('.0', '');
-    //lg('index:', index, ', priceOne:', priceOne, priceRawNative, priceRawToken)
+    priceNative = priceOne.split('_')[0];
+    priceToken = priceOne.split('_')[1].replace('.0', '');
+    //lg('index:', index, ', priceOne:', priceOne, priceNative, priceToken)
   }
   //lg("Card: ", nftStatuses[index])
   lg("Card: ", status)
@@ -172,11 +180,11 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
         </div>
 
         <div className="absolute bottom-0 left-0 flex">
-          <BasicModal nftId={id} priceRawNative={priceRawNative} priceRawToken={priceRawToken} />
+          <BasicModal nftId={id} priceNative={priceNative} priceToken={priceToken} />
           <div className="text-slate-300 bg-dark-2 ">
             <p className="">Price:
-              <span className='ml-2 mr-1'>{priceRawNative}</span>{nativeAssetName} /
-              <span className='ml-2 mr-1'>{priceRawToken}</span>
+              <span className='ml-2 mr-1'>{priceNative}</span>{nativeAssetName} /
+              <span className=''>{priceToken}</span>
               {tokenSymbol}
             </p>
             <p className="text-slate-300 bg-secondary-500 w-min">{status}</p>

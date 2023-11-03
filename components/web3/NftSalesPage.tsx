@@ -31,7 +31,7 @@ const NftSalesPage = (props: Props) => {
   const nativeTokenName = 'ETH'
   const tokenName = 'USDT'
 
-  const { chainType, isInitialized, chainName, chainId, account, err, erc20Addr, nftAddr, salesAddr, accBalcNative, accBalcToken,
+  const { chainType, isInitialized, chainName, chainId, account, err, tokenAddr, nftAddr, salesAddr, accBalcNative, accBalcToken, nftOriginalOwner,
     accNftArray, salesBalcNative, salesBalcToken,
     salesNftArray } = useWeb3Store(
       useShallow((state) => ({ ...state }))
@@ -44,20 +44,14 @@ const NftSalesPage = (props: Props) => {
 
       const getInit2 = async () => {
         const chainType = chainTypeDefault;
-        const { erc20Addr, nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
-        if (updateAddrsErr) {
-          console.error("updateAddrsErr:", updateAddrsErr)
-          toast({ description: `${updateAddrsErr}`, variant: 'destructive' })
-          return;
-        }
-        const balcs = await getCurrBalances(chainType, account, erc20Addr, nftAddr, salesAddr);
+        lg("tokenAddr:", tokenAddr)
+        const balcs = await getCurrBalances(chainType, account, tokenAddr, nftAddr, salesAddr);
         if (balcs.err) {
           console.error("balcs.err:", balcs.err)
           toast({ description: `${balcs.err}`, variant: 'destructive' })
           return;
         }
-        await getBaseURI(chainType, nftAddr);
-
+        lg("getInit2. account:", account)
         const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
         if (statuses.err) {
           console.error("updateNftStatus err:", statuses.err)
@@ -91,7 +85,7 @@ const NftSalesPage = (props: Props) => {
     console.log("onSubmit", data);
     setIsLoading(true)
     //if(!isInitialized)
-    const balcs = await getCurrBalances(chainType, account, erc20Addr, nftAddr, salesAddr);
+    const balcs = await getCurrBalances(chainType, account, tokenAddr, nftAddr, salesAddr);
     //lg("balcs:", balcs)
     if (balcs.err) {
       console.error("balcs.err:", balcs.err)

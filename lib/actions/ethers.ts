@@ -6,7 +6,7 @@ export const erc20JSON = contractsJSON[0];
 export const erc721JSON = contractsJSON[1];
 export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
-import { asyncFor, capitalizeFirst, isEmpty } from "@/lib/utils";
+import { asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
 import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
 import { number } from "zod";
 
@@ -80,7 +80,7 @@ export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
     warn: warning,
   };
 }
-export const checkEvmWalletAfterLoad = async () =>
+export const initEvmWalletAfterLoad = async () =>
   window.addEventListener('load', async () => {
     let initOut = web3InitDefault;
     try {
@@ -260,7 +260,7 @@ export const erc20Data = async (ctrtAddr: string) => {
   }
 }
 
-export const erc20Allowance = async (addrFrom: string, addrTo: string, ctrtAddr: string): Promise<OutT> => {
+export const erc20Allowance = async (addrFrom: string, addrTo: string, ctrtAddr: string, decimals: number): Promise<OutT> => {
   const funcName = 'erc20Allowance';
   lg(funcName + '()... addrFrom:', addrFrom, ', addrTo:', addrTo);
   if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(ctrtAddr)) {
@@ -272,8 +272,11 @@ export const erc20Allowance = async (addrFrom: string, addrTo: string, ctrtAddr:
     const token = new Contract(ctrtAddr, erc20JSON.abi, provider);
 
     const allowanceInWei: bigint = await token.allowance(addrFrom, addrTo);
-    const decimals = await token.decimals();// 18n
-    const allowanceInEth = formatUnits(allowanceInWei, decimals);
+    let dp = decimals;
+    if (decimals < 0) {
+      dp = await token.decimals();// 18n
+    }
+    const allowanceInEth = formatUnits(allowanceInWei, dp);
 
     lg(funcName + ' success:', allowanceInWei, allowanceInEth);
     return { ...out, str1: allowanceInEth, inWei: allowanceInWei };
@@ -305,7 +308,7 @@ export const erc20Transfer = async (addrTo: string, amount: string, ctrtAddr: st
   }
 }
 
-export const erc20Approve = async (addrTo: string, amount: string, ctrtAddr: string): Promise<OutT> => {
+export const erc20Approve = async (addrTo: string, amount: string, decimals: number, ctrtAddr: string): Promise<OutT> => {
   const funcName = 'erc20Approve';
   lg(funcName + '()... addrTo:', addrTo, ', amount:', amount, ', ctrtAddr:', ctrtAddr);
   if (isEmpty(addrTo) || isEmpty(amount) || isEmpty(ctrtAddr)) {
@@ -315,8 +318,13 @@ export const erc20Approve = async (addrTo: string, amount: string, ctrtAddr: str
   }
   try {
     const token = new Contract(ctrtAddr, erc20JSON.abi, signer);
-    const amountInWei = parseUnits(amount, 18);
-    const tx = await token.transfer(addrTo, amountInWei);
+    let dp = 18;
+    if (decimals < 0) {
+      dp = await token.decimals();
+    }
+    lg("dp:", dp);
+    const amountInWei = parseUnits(amount, dp);
+    const tx = await token.approve(addrTo, amountInWei);
     const receipt = await tx.wait();
     lg(funcName + ' success... txnHash:', receipt, receipt.hash);
     //blockNumber, cumulativeGasUsed, gasPrice, gasUsed
@@ -493,7 +501,7 @@ export const erc721TokenIds = async (addrTarget: string, ctrtAddr: string): Prom
   }
 }
 //----------------== ERC721Sales Contract
-const evmSalesTokenDataD = { ...erc20DataDefault, erc20Addr: '' }
+const evmSalesTokenDataD = { ...erc20DataDefault, tokenAddr: '' }
 export const evmSalesTokenData = async (salesAddr: string) => {
   const funcName = 'salesTokenData'
   lg(funcName + '()...');
@@ -504,16 +512,16 @@ export const evmSalesTokenData = async (salesAddr: string) => {
   }
   try {
     const sales = new Contract(salesAddr, salesJSON.abi, provider);
-    const erc20Addr: string = await sales.token();
-    const out = await erc20Data(erc20Addr);
+    const tokenAddr: string = await sales.token();
+    const out = await erc20Data(tokenAddr);
     //const dp = getDecimals(erc20Addr);
-    lg("token addr:", erc20Addr, ", out:", out);
+    lg("token addr:", tokenAddr, ", out:", out);
     if (out.err) {
       console.error(funcName + ' -> erc20Data err:', out.err);
       return { ...evmSalesTokenDataD, err: out.err };
     }
     lg(funcName + ' success');
-    return { ...evmSalesTokenDataD, ...out };
+    return { ...evmSalesTokenDataD, ...out, tokenAddr };
   } catch (err) {
     console.error(funcName + ':', err);
     return { ...evmSalesTokenDataD, err: err + '' };
@@ -539,7 +547,7 @@ export const evmSalesPrices = async (tokenIds: number[], nftAddr: string, salesA
         priceArrStr.push(out.str1)
       }
     }
-    lg(funcName + ' success');
+    lg(funcName + ' success. out:', out);
     return { ...evmSalesPricesD, ...out, priceArrStr };
   } catch (err) {
     console.error(funcName + ':', err);
@@ -588,13 +596,22 @@ export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr
     const oAccUSDT = await erc20BalanceOf(account, tokenAddr);
     const decimals = oAccUSDT.nums[0];
     const oAccDragonNFTids = await erc721TokenIds(account, nftAddr);
+    let err = ''
+    if (oAccNative.err || oAccUSDT.err || oAccDragonNFTids.err) err = oAccNative.err + ", " + oAccUSDT.err + ", " + oAccDragonNFTids.err;
+    if (err) {
+      console.error(funcName + ' err on account:', err);
+      return { ...initBalancesDefault, err };
+    }
+
     const oSalesNative = await getBalanceEth(salesAddr)
     const oSalesUSDT = await erc20BalanceOf(salesAddr, tokenAddr);
     const oSalesNDragonNFTids = await erc721TokenIds(salesAddr, nftAddr);
 
-    let err = ''
-    if (oAccNative.err || oAccUSDT.err || oAccDragonNFTids.err || oSalesNative.err || oSalesUSDT.err || oSalesNDragonNFTids.err) err = oAccNative.err + ", " + oAccDragonNFTids.err + ", " + oSalesNative.err + ", " + oSalesUSDT.err + ", " + oSalesNDragonNFTids.err;
-
+    if (oSalesNative.err || oSalesUSDT.err || oSalesNDragonNFTids.err) err = oSalesNative.err + ", " + oSalesUSDT.err + ", " + oSalesNDragonNFTids.err;
+    if (err) {
+      console.error(funcName + ' err on salesAddr:', err);
+      return { ...initBalancesDefault, err };
+    }
     const out = {
       accBalcNative: oAccNative.str1,
       accBalcToken: oAccUSDT.str1,
@@ -631,26 +648,19 @@ export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr
   }
 }
 
-export const buyNFTviaETH = async (tokenId: string, amountInEth: string, ctrtAddr: string): Promise<OutT> => {
+export const buyNFTviaETH = async (nftAddr: string, tokenId: string, amountInEth: string, salesAddr: string, account: string): Promise<OutT> => {
   const funcName = "buyNFTviaETH";
-  lg(funcName + '()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
+  lg(funcName + '()... tokenId:', tokenId, ', salesAddr:', salesAddr);
   const tokId = Number.parseInt(tokenId);
-  if (isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId)) {
+  if (isEmpty(tokenId) || isEmpty(salesAddr) || Number.isNaN(tokId)) {
     return { ...out, err: funcName + 'input invalid' };
   } else if (!signer) {
     return { ...out, err: 'signer invalid' };
   }
   try {
-    const sales = new Contract(ctrtAddr, salesJSON.abi, signer);
+    const sales = new Contract(salesAddr, salesJSON.abi, signer);
 
-    const ownerOut = await sales.owner();
-    lg("ownerOut:", ownerOut)
-
-    const ok: boolean = await sales.checkBuying(tokId);
-    lg("ok:", ok)
-    if (!ok) return { ...out, err: 'input error' }
-
-    const tx = await sales.buyNFTviaETH(tokId, {
+    const tx = await sales.buyNFTviaETH(nftAddr, tokId, {
       value: parseUnits(amountInEth, "ether")
     });
     const receipt = await tx.wait();
@@ -659,36 +669,52 @@ export const buyNFTviaETH = async (tokenId: string, amountInEth: string, ctrtAdd
     return { ...out, str1: receipt.hash };
   } catch (error) {
     console.error(funcName + ':', error);
+    const nft = new Contract(nftAddr, erc721JSON.abi, provider);
+    const nftExisting: boolean = await nft.exists(tokenId);
+    if (!nftExisting) return { ...out, err: funcName + ' failed: NFT ID ' + tokenId + 'does not exist' };
+
+    const nftOwner: string = await nft.ownerOf(tokenId);
+    lg("nftExisting", nftExisting, ', nftOwner: ' + nftOwner);
+    if (isEqualStr(nftOwner, account)) return { ...out, err: funcName + ' failed: User has already owned this NFT' };
+
     return { ...out, err: funcName + ' failed' };
   }
 }
 
-export const buyNFTviaERC20 = async (tokenId: string, ctrtAddr: string): Promise<OutT> => {
+export const buyNFTviaERC20 = async (nftAddr: string, tokenId: number, salesAddr: string, account: string, erc20Addr: string, priceToken: string): Promise<OutT> => {
   const funcName = "buyNFTviaERC20";
-  lg(funcName + '()... tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
-  const tokId = Number.parseInt(tokenId);
-  if (isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId)) {
+  lg(funcName + '()... tokenId:', tokenId, ", nftAddr:", nftAddr, ", salesAddr:", salesAddr, ', account:', account);
+  const tokId = tokenId;//Number.parseIntSafe(tokenId);
+  const price = Number.parseFloat(priceToken);
+  if (isEmpty(tokenId) || isEmpty(salesAddr) || Number.isNaN(tokId) || Number.isNaN(price)) {
     return { ...out, err: funcName + 'input invalid' };
   } else if (!signer) {
     return { ...out, err: 'signer invalid' };
   }
   try {
-    const sales = new Contract(ctrtAddr, salesJSON.abi, signer);
+    //const out1 = await erc20Approve(salesAddr, amount, decimals, ctrtAddr)
 
-    const ownerOut = await sales.owner();
-    lg("ownerOut:", ownerOut)
-
-    const ok: boolean = await sales.checkBuying(tokId);
-    lg("ok:", ok)
-    if (!ok) return { ...out, err: 'input error' }
-
-    const tx = await sales.buyNFTviaERC20(tokId);
+    const sales = new Contract(salesAddr, salesJSON.abi, signer);
+    const tx = await sales.buyNFTviaERC20(nftAddr, tokId);
     const receipt = await tx.wait();
     lg(funcName + ' success... txnHash:', receipt, receipt.hash);
     //blockNumber, cumulativeGasUsed, gasPrice, gasUsed
     return { ...out, str1: receipt.hash };
   } catch (error) {
     console.error(funcName + ':', error);
+    const nft = new Contract(nftAddr, erc721JSON.abi, provider);
+    const nftExisting: boolean = await nft.exists(tokenId);
+    if (!nftExisting) return { ...out, err: funcName + ' failed: NFT ID ' + tokenId + 'does not exist' };
+
+    const out3 = await erc20Allowance(account, salesAddr, erc20Addr, -1)
+    if (out3.err) return { ...out, err: ' erc20Allowance failed:' + out3.err };
+    const allowance = Number.parseFloat(out3.str1);
+    if (Number.parseFloat(out3.str1) < price) return { ...out, err: `not enough allowance: ${allowance} < ${price}` };
+
+    const nftOwner: string = await nft.ownerOf(tokenId);
+    lg("nftExisting", nftExisting, ', nftOwner: ' + nftOwner);
+    if (isEqualStr(nftOwner, account)) return { ...out, err: funcName + ' failed: User has already owned this NFT' };
+
     return { ...out, err: funcName + ' failed' };
   }
 }
@@ -712,24 +738,25 @@ export const checkEvmNftStatus = async (user: string, nftOriginalOwner: string, 
     const nft = new Contract(nftAddr, erc721JSON.abi, provider);
 
     const owners: string[] = await nft.ownerOfBatch(nftIdMin, nftIdMax);
-    lg(funcName + '. owners:', ...owners);
+    //lg(funcName + '. owners:', ...owners);
     const approvedAddrs: string[] = await nft.getApprovedBatch(nftIdMin, nftIdMax);
-    lg(funcName + ' approvedAddrs:', ...approvedAddrs);
+    //lg(funcName + ' approvedAddrs:', ...approvedAddrs);
 
-    let arr: nftSalesStatus[] = [];
+    const arr: nftSalesStatus[] = [];
     for (let i = 0; i < owners.length; i++) {
-      const isApproved = approvedAddrs[i] == salesAddr;
-      const isNftOriginalOwner = owners[i] === nftOriginalOwner;
+      const isApproved = isEqualStr(approvedAddrs[i], salesAddr);
+      const isNftOriginalOwner = isEqualStr(owners[i], nftOriginalOwner);
+
       if (isApproved) {
         if (isNftOriginalOwner) {
           arr.push('availableFromOriginalOwner');
         } else {
           arr.push('availableFromOthers');
         }
-      } else if (owners[i] == salesAddr) {
+      } else if (isEqualStr(owners[i], salesAddr)) {
         arr.push('availableFromSalesCtrt');
 
-      } else if (!isEmpty(user) && owners[i] === user) {
+      } else if (!isEmpty(user) && isEqualStr(owners[i], user)) {
         arr.push('soldToUser');
       } else {
         arr.push('soldToUnknown');
