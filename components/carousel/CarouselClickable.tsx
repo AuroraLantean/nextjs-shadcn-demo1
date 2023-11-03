@@ -103,11 +103,11 @@ type CardProps = {
 } & DragonT;
 const Card = ({ id, imgURL, category, name, description, index, status, nativeAssetName, tokenName, tokenSymbol, prices }: CardProps) => {
   const priceOne = prices[index];
-  let priceRawNative = '', priceRawToken = '';
+  let priceNative = '', priceToken = '';
   if (priceOne) {
-    priceRawNative = priceOne.split('_')[0];
-    priceRawToken = priceOne.split('_')[1].replace('.0', '');
-    //lg('index:', index, ', priceOne:', priceOne, priceRawNative, priceRawToken)
+    priceNative = priceOne.split('_')[0];
+    priceToken = priceOne.split('_')[1].replace('.0', '');
+    //lg('index:', index, ', priceOne:', priceOne, priceNative, priceToken)
   }
   return (
     <div
@@ -128,7 +128,7 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
         <p className="my-2 text-3xl font-bold">{name}</p>
         <p className="text-lg text-slate-300">{description}</p>
 
-        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} priceRawNative={priceRawNative} priceRawToken={priceRawToken} /></div>
+        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} priceNative={priceNative} priceToken={priceToken} /></div>
       </div>
 
     </div>

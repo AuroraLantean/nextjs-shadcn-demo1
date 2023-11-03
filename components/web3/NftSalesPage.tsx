@@ -73,8 +73,8 @@ const NftSalesPage = (props: Props) => {
   const form = useForm<InputT>({
     resolver: zodResolver(web3InputSchema),
     defaultValues: {
-      enum1: "account",
-      enum2: "readEthBalc",
+      enum1: "eth_ethereum",
+      enum2: "getBalance",
       floatNum1: "",
       addr1: process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "",
       addr2: process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "",
