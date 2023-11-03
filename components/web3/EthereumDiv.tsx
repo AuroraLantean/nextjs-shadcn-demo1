@@ -33,7 +33,7 @@ const EthereumDiv = (props: Props) => {
   const [isClient, setIsClient] = useState(false);
   const [states, setStates] = useState<typeof initStates>(initStates);
   const [isLoading, setIsLoading] = useState(false);
-  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, err } = useWeb3Store(
+  const { chainType, isInitialized, chainName, chainId, account, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
 

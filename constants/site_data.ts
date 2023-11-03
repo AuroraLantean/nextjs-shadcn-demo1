@@ -25,7 +25,7 @@ export type contractT = {
   name: string
   symbol: string
 }
-export const localDp6contracts: contractT[] = [
+/* export const localDp6contracts: contractT[] = [
   {
     name: "usdt", symbol: "usdt", address: "0xbdEd0D2bf404bdcBa897a74E6657f1f12e5C6fb6",
   },
@@ -34,7 +34,7 @@ export const sepoliaDp6contracts: contractT[] = [
   {
     name: "usdt", symbol: "usdt", address: "",
   },
-]
+] */
 export const soldout = "/kisspng-sold512x375.png";
 export const dragons: DragonT[] = [
   {

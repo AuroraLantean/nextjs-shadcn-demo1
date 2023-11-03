@@ -31,9 +31,9 @@ const NftSalesPage = (props: Props) => {
   const nativeTokenName = 'ETH'
   const tokenName = 'USDT'
 
-  const { chainType, isInitialized, chainName, chainId, account, isLoadingWeb3, err, usdtAddr, nftAddr, salesAddr, accBalcNative, accBalcToken,
+  const { chainType, isInitialized, chainName, chainId, account, err, erc20Addr, nftAddr, salesAddr, accBalcNative, accBalcToken,
     accNftArray, salesBalcNative, salesBalcToken,
-    salesNftArray, priceNativeRaw, priceTokenRaw, decimals } = useWeb3Store(
+    salesNftArray } = useWeb3Store(
       useShallow((state) => ({ ...state }))
     )
 
@@ -44,13 +44,13 @@ const NftSalesPage = (props: Props) => {
 
       const getInit2 = async () => {
         const chainType = chainTypeDefault;
-        const { usdtAddr, nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
+        const { erc20Addr, nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
         if (updateAddrsErr) {
           console.error("updateAddrsErr:", updateAddrsErr)
           toast({ description: `${updateAddrsErr}`, variant: 'destructive' })
           return;
         }
-        const balcs = await getCurrBalances(chainType, account, usdtAddr, nftAddr, salesAddr);
+        const balcs = await getCurrBalances(chainType, account, erc20Addr, nftAddr, salesAddr);
         if (balcs.err) {
           console.error("balcs.err:", balcs.err)
           toast({ description: `${balcs.err}`, variant: 'destructive' })
@@ -91,7 +91,7 @@ const NftSalesPage = (props: Props) => {
     console.log("onSubmit", data);
     setIsLoading(true)
     //if(!isInitialized)
-    const balcs = await getCurrBalances(chainType, account, usdtAddr, nftAddr, salesAddr);
+    const balcs = await getCurrBalances(chainType, account, erc20Addr, nftAddr, salesAddr);
     //lg("balcs:", balcs)
     if (balcs.err) {
       console.error("balcs.err:", balcs.err)

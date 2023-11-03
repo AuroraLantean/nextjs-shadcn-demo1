@@ -493,33 +493,6 @@ export const erc721TokenIds = async (addrTarget: string, ctrtAddr: string): Prom
   }
 }
 //----------------== ERC721Sales Contract
-export const initSalesCtrtData = {
-  priceInWeiETH: bigIntZero, priceInWeiToken: bigIntZero,
-  erc721Addr: "", erc20Addr: "", err: "",
-}
-export type salesCtrtDataT = typeof initSalesCtrtData;
-export const getDataSalesCtrt = async (ctrtAddr: string): Promise<salesCtrtDataT> => {
-  const funcName = "getDataSalesCtrt";
-  lg(funcName + '()... ctrtAddr:', ctrtAddr);
-  if (isEmpty(ctrtAddr)) {
-    return { ...initSalesCtrtData, err: funcName + ' input invalid' };
-  } else if (!provider) {
-    return { ...initSalesCtrtData, err: 'provider invalid' };
-  }
-  try {
-    const sales = new Contract(ctrtAddr, salesJSON.abi, provider);
-    const out = await sales.getData();
-    //lg("getData out:", ...out);
-    const { 0: priceInWeiETH, 1: priceInWeiToken, 2: erc721Addr, 3: erc20Addr } = out;
-    lg("priceInWeiETH:", priceInWeiETH, ', priceInWeiToken:', priceInWeiToken, ', erc721Addr:', erc721Addr, ', erc20Addr:', erc20Addr);
-    lg(funcName + ' success:');
-    return { priceInWeiETH, priceInWeiToken, erc721Addr, erc20Addr, err: '' };
-  } catch (error) {
-    console.error(funcName + ':', error);
-    return { ...initSalesCtrtData, err: funcName + ' failed' };
-  }
-}
-
 const evmSalesTokenDataD = { ...erc20DataDefault, erc20Addr: '' }
 export const evmSalesTokenData = async (salesAddr: string) => {
   const funcName = 'salesTokenData'
@@ -618,20 +591,15 @@ export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr
     const oSalesNative = await getBalanceEth(salesAddr)
     const oSalesUSDT = await erc20BalanceOf(salesAddr, tokenAddr);
     const oSalesNDragonNFTids = await erc721TokenIds(salesAddr, nftAddr);
-    const oSalesData = await getDataSalesCtrt(salesAddr);
-    const priceInWeiETHstr = formatUnits(oSalesData.priceInWeiETH, 18);
-    const priceInWeiTokenStr = formatUnits(oSalesData.priceInWeiToken, decimals);
 
     let err = ''
-    if (oAccNative.err || oAccUSDT.err || oAccDragonNFTids.err || oSalesNative.err || oSalesUSDT.err || oSalesNDragonNFTids.err || oSalesData.err) err = oAccNative.err + ", " + oAccDragonNFTids.err + ", " + oSalesNative.err + ", " + oSalesUSDT.err + ", " + oSalesNDragonNFTids.err + ", " + oSalesData.err;
+    if (oAccNative.err || oAccUSDT.err || oAccDragonNFTids.err || oSalesNative.err || oSalesUSDT.err || oSalesNDragonNFTids.err) err = oAccNative.err + ", " + oAccDragonNFTids.err + ", " + oSalesNative.err + ", " + oSalesUSDT.err + ", " + oSalesNDragonNFTids.err;
 
     const out = {
       accBalcNative: oAccNative.str1,
       accBalcToken: oAccUSDT.str1,
       accNftArray: oAccDragonNFTids.nums, salesBalcNative: oSalesNative.str1, salesBalcToken: oSalesUSDT.str1,
-      salesNftArray: oSalesNDragonNFTids.nums,
-      priceNativeRaw: priceInWeiETHstr,
-      priceTokenRaw: priceInWeiTokenStr, decimals, err,
+      salesNftArray: oSalesNDragonNFTids.nums, decimals, err,
     }
     lg(funcName + " out:", out)
 
@@ -735,7 +703,7 @@ export const checkEvmNftStatus = async (user: string, nftOriginalOwner: string, 
   const funcName = 'checkNftStatus';
   lg(funcName + ' in ethers.ts...');
   lg(funcName + ". user:", user, ', nftAddr:', nftAddr, 'nftOriginalOwner:', nftOriginalOwner)
-  if (isEmpty(user) || isEmpty(nftAddr) || isEmpty(nftOriginalOwner)) {
+  if (isEmpty(nftAddr) || isEmpty(nftOriginalOwner)) {
     return { ...nftStatusesDefault, err: funcName + ' input invalid' };
   } else if (!provider) {
     return { ...nftStatusesDefault, err: 'provider invalid' };
@@ -761,7 +729,7 @@ export const checkEvmNftStatus = async (user: string, nftOriginalOwner: string, 
       } else if (owners[i] == salesAddr) {
         arr.push('availableFromSalesCtrt');
 
-      } else if (owners[i] === user) {
+      } else if (!isEmpty(user) && owners[i] === user) {
         arr.push('soldToUser');
       } else {
         arr.push('soldToUnknown');

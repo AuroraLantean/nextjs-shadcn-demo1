@@ -5,6 +5,8 @@ import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import useMeasure from "react-use-measure";
 import { DragonT, dragons } from "@/constants/site_data";
 import BasicModal from "@/components/modal/basicModal";
+import { useWeb3Store } from "@/store/web3Store";
+import { useShallow } from 'zustand/react/shallow'
 
 const CARD_WIDTH = 350;
 const CARD_HEIGHT = 350;
@@ -17,6 +19,9 @@ const BREAKPOINTS = {
 };
 
 const CarouselClickable = () => {
+  const { nftStatuses, prices, baseURI, nativeAssetName, tokenName, tokenSymbol, err } = useWeb3Store(
+    useShallow((state) => ({ ...state }))
+  )
   const [ref, { width }] = useMeasure();
   const [offset, setOffset] = useState(0);
 
@@ -56,8 +61,8 @@ const CarouselClickable = () => {
             }}
             className="flex"
           >
-            {dragons.map((item) => {
-              return <Card key={item.id} {...item} />;
+            {dragons.map((nft, index) => {
+              return <Card key={nft.id} {...nft} index={index} status={nftStatuses[index]} nativeAssetName={nativeAssetName} tokenName={tokenName} tokenSymbol={tokenSymbol} prices={prices} />;
             })}
           </motion.div>
         </div>
@@ -93,7 +98,17 @@ const CarouselClickable = () => {
 const clickCard = (id: number, address: string) => {
   console.log("clickCard... id:", id, ", address:", address);
 }
-const Card = ({ id, price, imgURL, category, name, description }: DragonT) => {
+type CardProps = {
+  index: number, status: string, nativeAssetName: string, tokenName: string, tokenSymbol: string, prices: string[]
+} & DragonT;
+const Card = ({ id, imgURL, category, name, description, index, status, nativeAssetName, tokenName, tokenSymbol, prices }: CardProps) => {
+  const priceOne = prices[index];
+  let priceRawNative = '', priceRawToken = '';
+  if (priceOne) {
+    priceRawNative = priceOne.split('_')[0];
+    priceRawToken = priceOne.split('_')[1].replace('.0', '');
+    //lg('index:', index, ', priceOne:', priceOne, priceRawNative, priceRawToken)
+  }
   return (
     <div
       className="relative shrink-0 cursor-pointer rounded-2xl bg-white shadow-md transition-all hover:scale-[1.015] hover:shadow-xl"
@@ -113,7 +128,7 @@ const Card = ({ id, price, imgURL, category, name, description }: DragonT) => {
         <p className="my-2 text-3xl font-bold">{name}</p>
         <p className="text-lg text-slate-300">{description}</p>
 
-        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} /></div>
+        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} priceRawNative={priceRawNative} priceRawToken={priceRawToken} /></div>
       </div>
 
     </div>

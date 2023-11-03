@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
-import { getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, useWeb3Store } from "@/store/web3Store";
+import { getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 
 const CARD_HEIGHT = 350;
@@ -17,19 +17,17 @@ const lg = console.log;
 export const CarouselDraggable = () => {
   const lg = console.log;
   const compoName = 'CarouselDraggable'
-  lg(compoName)
   //const [ref, { width }] = useMeasure();ref={ref} 
   //lg("width=" + width)
   const [leftLimit, setLeftLimit] = useState(0);
   const carousel = useRef<HTMLDivElement>(null);
   const effectRan = useRef(false)
   const { toast } = useToast();
-  const [nftPrice, setNftPrice] = useState({ priceRawNative: '', priceRawToken: '' });
 
-  const { isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, nativeAssetName, tokenName, tokenSymbol, err } = useWeb3Store(
+  const { account, isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, nativeAssetName, tokenName, tokenSymbol, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
-  //lg(compoName + " nftStatuses:", nftStatuses)
+  lg(compoName, ', account:', account, "nftStatuses:", nftStatuses)
   useEffect(() => {
     if (effectRan.current === true) {
       lg(compoName + " useEffect ran")
@@ -38,7 +36,8 @@ export const CarouselDraggable = () => {
 
       // fetch nftArray
       const action = async () => {
-        const initOut = await initializeDefaultProvider(chainTypeDefault);
+        const chainType = chainTypeDefault;
+        const initOut = await initializeDefaultProvider(chainType);
         if (initOut.err) {
           toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
           return true;
@@ -57,10 +56,18 @@ export const CarouselDraggable = () => {
           return;
         }
 
-        const { usdtAddr, nftAddr, salesAddr, err: updateAddrsErr } = await updateAddrs(chainTypeDefault);
+        const { erc20Addr, nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
 
-        const out2 = await getSalesPrices(chainTypeDefault, nftsOut.nftIds, nftAddr, salesAddr);
-        await getBaseURI(chainTypeDefault, nftAddr);
+        const out2 = await getSalesPrices(chainType, nftsOut.nftIds, nftAddr, salesAddr);
+        await getBaseURI(chainType, nftAddr);
+
+        const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
+        if (statuses.err) {
+          console.error("updateNftStatus err:", statuses.err)
+          toast({ description: `${statuses.err}`, variant: 'destructive' })
+          return;
+        }
+        lg("statuses:", statuses.arr)
       }
       if (isDefaultProvider) {
         lg("isDefaultProvider already true")
@@ -99,7 +106,7 @@ export const CarouselDraggable = () => {
     <section className="overflow-hidden my-2">
       <div className="w-full md:w-auto max-w-6xl">
         <div className="text-2xl font-semibold flex">
-          Mystical Creatures... <span className="text-slate-500">Even beyond your imagination.</span>
+          Mystical Creatures... <span className="ml-2 text-slate-500">Even beyond your imagination.</span>
           {isInitialized ? <p>Wallet Connected</p> : <Button
             className="primary-color ml-2"
             onClick={connectToWallet}>Connect to wallet</Button>}
@@ -141,7 +148,7 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
     //lg('index:', index, ', priceOne:', priceOne, priceRawNative, priceRawToken)
   }
   //lg("Card: ", nftStatuses[index])
-  //lg("Card: ", status)
+  lg("Card: ", status)
   //bg-gradient-to-b from-black/90 via-black/60 to-black/0 transition-[backdrop-filter]bg-white
   return (
     <div
@@ -172,7 +179,7 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
               <span className='ml-2 mr-1'>{priceRawToken}</span>
               {tokenSymbol}
             </p>
-            <p className="text-lg text-slate-300 bg-secondary-500 w-min">{status}</p>
+            <p className="text-slate-300 bg-secondary-500 w-min">{status}</p>
           </div>
         </div>
       </div>

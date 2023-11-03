@@ -56,7 +56,7 @@ const BasicModal = ({ nftId, priceRawNative, priceRawToken }: Props) => {
   const effectRan = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const { chainType, nativeAssetName, tokenName, tokenSymbol, account, nftOriginalOwner, nftAddr, salesAddr, nftIds, prices, baseURI, isLoadingWeb3, err } = useWeb3Store(
+  const { chainType, nativeAssetName, tokenName, tokenSymbol, account, nftOriginalOwner, nftAddr, salesAddr, nftIds, prices, baseURI, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
 
@@ -128,6 +128,7 @@ const BasicModal = ({ nftId, priceRawNative, priceRawToken }: Props) => {
     lg("openDialog")
   }
   //must encase the Context Menu or Dropdown Menu component in the Dialog component
+  //{priceRawNative} {nativeAssetName} / {priceRawToken} {tokenSymbol}
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

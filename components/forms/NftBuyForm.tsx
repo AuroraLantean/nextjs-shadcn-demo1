@@ -35,7 +35,7 @@ const NftBuyForm = (props: Props) => {
   ] as const;
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { chainType, isInitialized, chainName, chainId, account, nftOriginalOwner, nftAddr, salesAddr, nftIds, prices, baseURI, isLoadingWeb3, err } = useWeb3Store(
+  const { chainType, isInitialized, chainName, chainId, account, nftOriginalOwner, nftAddr, salesAddr, nftIds, prices, baseURI, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
 
