@@ -6,7 +6,7 @@ export const nftIdMin = 0;
 export const nftIdMax = 9;
 export type DragonT = {
   id: number;
-  price: number
+  //price: number
   name: string
   artist: string
   category: string
@@ -38,44 +38,44 @@ export const sepoliaDp6contracts: contractT[] = [
 export const soldout = "/kisspng-sold512x375.png";
 export const dragons: DragonT[] = [
   {
-    id: 0, name: "Rendezvous", price: 100,
+    id: 0, name: "Rendezvous",
     artist: "Ethan Byte", category: "dragon",
     description: "will meet you at unexpected times...",
     imgURL:
       "/dragons/0c1987f8-42aa-46d8-9d2d-98e5b7bb5d7f.png",
   },
   {
-    id: 1, name: "Awakenings", price: 200,
+    id: 1, name: "Awakenings",
     artist: "Nina Netcode", category: "dragon", description: "to appear soon",
     imgURL:
       "/dragons/8e25da39-6895-4ad4-88b2-34a31ac1bfa4.png",
   },
   {
-    id: 2, name: "Wolf Dragon", price: 300,
+    id: 2, name: "Wolf Dragon",
     artist: "Lena Logic", category: "dragon", description: "can tear anything apart",
     imgURL:
       "/dragons/41a691af-f4c3-4242-a223-5b0796b603ec.png",
   },
   {
-    id: 3, name: "Predator Dragon", price: 400,
+    id: 3, name: "Predator Dragon",
     artist: "Beth Binary", category: "dragon", description: "can hunt anything down",
     imgURL:
       "/dragons/65f6e1c0-f76d-4a1e-869e-dfa6011eaeea.png",
   },
   {
-    id: 4, name: "Mystical Dragon", price: 500,
+    id: 4, name: "Mystical Dragon",
     artist: "Lena Logic", category: "dragon", description: "can wield mystical powers",
     imgURL:
       "/dragons/8599b949-2f76-4ec5-91b6-1a9a6fae3867.png",
   },
   {
-    id: 5, name: "Water Dragon", price: 600,
+    id: 5, name: "Water Dragon",
     artist: "Lena Logic", category: "dragon", description: "can dive into the sea",
     imgURL:
       "/dragons/a4a4b0a8-f0a8-4bb7-9b72-c43153390d47.png",
   },
   {
-    id: 6, name: "Eagle Dragon", price: 700,
+    id: 6, name: "Eagle Dragon",
     artist: "Lena Logic", category: "dragon", description: "can fly into the sky",
     imgURL:
       "/dragons/b45006c8-2a7a-4950-89f8-bded7fc4dcad.png",

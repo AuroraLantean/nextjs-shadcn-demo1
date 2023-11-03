@@ -37,9 +37,11 @@ import { updateNftStatus, useWeb3Store } from '@/store/web3Store'
 import { useShallow } from 'zustand/react/shallow'
 
 type Props = {
-  nftId: number
+  nftId: number,
+  priceRawNative: string,
+  priceRawToken: string,
 }
-const BasicModal = ({ nftId }: Props) => {
+const BasicModal = ({ nftId, priceRawNative, priceRawToken }: Props) => {
   const { toast } = useToast()
   const lg = console.log;
   const compoName = 'BasicModal'
@@ -53,29 +55,10 @@ const BasicModal = ({ nftId }: Props) => {
   ] as const;
   const effectRan = useRef(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [nftPrice, setNftPrice] = useState({ priceRawNative: '', priceRawToken: '' });
   const [open, setOpen] = useState(false);
   const { chainType, nativeAssetName, tokenName, tokenSymbol, account, nftOriginalOwner, nftAddr, salesAddr, nftIds, prices, baseURI, isLoadingWeb3, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
-
-  useEffect(() => {
-    if (effectRan.current === true) {
-      const index = nftIds.indexOf(nftId);
-      const priceOne = prices[index];
-      if (priceOne) {
-        lg('index:', index, ', prices:', prices, ', priceOne:', priceOne)
-        const priceRawNative = priceOne.split('_')[0];
-        const priceRawToken = priceOne.split('_')[1];
-        setNftPrice({ priceRawNative, priceRawToken })
-      }
-      lg(`baseURI: ${baseURI}/${nftId}`)
-    }
-    return () => {
-      lg(compoName + " unmounted useeffect()...")
-      effectRan.current = true
-    }
-  }, [nftIds, prices]);
 
   type Input = z.infer<typeof buyNftSchemaFixed>;
   const form = useForm<Input>({
@@ -89,24 +72,30 @@ const BasicModal = ({ nftId }: Props) => {
     setIsLoading(true);
     let hash = ''; let err = '';
     if (values.inputToken === tokenOnChains[0]) {
-      ({ str1: hash, err } = await buyNFTviaETH(nftId + '', nftPrice.priceRawNative, salesAddr));
+      ({ str1: hash, err } = await buyNFTviaETH(nftId + '', priceRawNative, salesAddr));
 
     } else if (values.inputToken === tokenOnChains[1] || values.inputToken === tokenOnChains[2]) {
       ({ str1: hash, err } = await buyNFTviaERC20(nftId + '', salesAddr));
 
     } else if (values.inputToken === tokenOnChains[3]) {
-      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, nftPrice.priceRawNative));
+      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, priceRawNative));
 
     } else if (values.inputToken === tokenOnChains[4]) {
-      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, nftPrice.priceRawNative));
+      ({ str1: hash, err } = await buyNFT(nftId + '', salesAddr, priceRawNative));
     }
     lg("onSubmit. hash:", hash, ", err:", err)
-
+    if (err) {
+      console.error("buy action err:", err)
+      toast({ description: `${err}`, variant: 'destructive' })
+      setIsLoading(false);
+      return;
+    }
     const nftIdLast = nftIds.length - 1;
     const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftIds[0], nftIds[nftIdLast]);
     if (statuses.err) {
       console.error("status err:", statuses.err)
       toast({ description: `${statuses.err}`, variant: 'destructive' })
+      setIsLoading(false);
       return;
     }
 
@@ -219,12 +208,12 @@ const BasicModal = ({ nftId }: Props) => {
 
             <div className="mt-0">
               <div>
-                <FormLabel>NFT Price in {nativeAssetName}: <span className='ml-2 mr-1'>{nftPrice.priceRawNative}</span>{nativeAssetName}
+                <FormLabel>NFT Price in {nativeAssetName}: <span className='ml-2 mr-1'>{priceRawNative}</span>{nativeAssetName}
                 </FormLabel>
               </div>
               <div>
                 <FormLabel>NFT Price in {tokenName}:
-                  <span className='ml-3 mr-1'>{nftPrice.priceRawToken}</span>{tokenSymbol}
+                  <span className='ml-3 mr-1'>{priceRawToken}</span>{tokenSymbol}
                 </FormLabel>
               </div>
               <div>

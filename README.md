@@ -63,9 +63,12 @@ Sepolia chain ID 11155111 or 0xaa36a7 in hexadecimal format
 
 ## Under Investigation
 
-https://github.com/ethers-io/ethers.js/issues/4428
 Cant resolve 'bufferutil' and 'utf-8-validate'
 => pnpm add ws bufferutil utf-8-validate
+https://github.com/ethers-io/ethers.js/issues/4428
+
+React-Email
+https://github.com/resendlabs/react-email/issues/977
 
 ## Development Requirement
 

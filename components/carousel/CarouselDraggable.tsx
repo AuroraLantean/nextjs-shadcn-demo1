@@ -7,10 +7,10 @@ import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
 import { getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
-import { ethersDefaultProvider } from "@/lib/actions/ethers";
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
+const lg = console.log;
 //TODO: make mobile carousel work without difficulty... reference: commit before Sep 29
 //TODO: button to refresh token sales status
 //TODO: check buying ETH/Token amount
@@ -24,8 +24,9 @@ export const CarouselDraggable = () => {
   const carousel = useRef<HTMLDivElement>(null);
   const effectRan = useRef(false)
   const { toast } = useToast();
+  const [nftPrice, setNftPrice] = useState({ priceRawNative: '', priceRawToken: '' });
 
-  const { isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, err } = useWeb3Store(
+  const { isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, nativeAssetName, tokenName, tokenSymbol, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   //lg(compoName + " nftStatuses:", nftStatuses)
@@ -37,7 +38,6 @@ export const CarouselDraggable = () => {
 
       // fetch nftArray
       const action = async () => {
-
         const initOut = await initializeDefaultProvider(chainTypeDefault);
         if (initOut.err) {
           toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
@@ -49,7 +49,6 @@ export const CarouselDraggable = () => {
         }
         toast({ description: "web3 initialized with the DefaultProvider!" });
         lg("initOut:", initOut)
-
 
         const nftsOut = await updateNftArray(nftIdMin, nftIdMax);
         if (nftsOut.err) {
@@ -113,7 +112,8 @@ export const CarouselDraggable = () => {
             {nftArray.map((nft, index) => {
               return (
                 <motion.div className="" key={nft.id}>
-                  <Card {...nft} index={index} status={nftStatuses[index]} />
+                  <Card {...nft} index={index} status={nftStatuses[index]} nativeAssetName={nativeAssetName} tokenName={tokenName} tokenSymbol={tokenSymbol} prices={prices}
+                  />
                 </motion.div>
               );
             })}
@@ -127,12 +127,21 @@ export const CarouselDraggable = () => {
 animate={{ x: 250 }}
 <Image src={item.imgURL} alt="image_alt" width={CARD_WIDTH} height={CARD_HEIGHT} />
 */
-const Card = ({ id, price, imgURL, category, name, description, index, status }: DragonT & { index: number, status: string }) => {
-  /*   const { nftStatuses } = useWeb3Store(
-      useShallow((state) => ({ ...state }))
-    ) 
-    console.log("CarouselDraggable Card: ", nftStatuses[index])*/
-  //console.log("CarouselDraggable Card: ", status)
+type CardProps = {
+  index: number, status: string, nativeAssetName: string, tokenName: string, tokenSymbol: string, prices: string[]
+} & DragonT;
+const Card = ({ id, imgURL, category, name, description, index, status, nativeAssetName, tokenName, tokenSymbol, prices }: CardProps) => {
+  const compoName = 'Carousel Card'
+  //const index = nftIds.indexOf(nftId);
+  const priceOne = prices[index];
+  let priceRawNative = '', priceRawToken = '';
+  if (priceOne) {
+    priceRawNative = priceOne.split('_')[0];
+    priceRawToken = priceOne.split('_')[1].replace('.0', '');
+    //lg('index:', index, ', priceOne:', priceOne, priceRawNative, priceRawToken)
+  }
+  //lg("Card: ", nftStatuses[index])
+  //lg("Card: ", status)
   //bg-gradient-to-b from-black/90 via-black/60 to-black/0 transition-[backdrop-filter]bg-white
   return (
     <div
@@ -146,16 +155,27 @@ const Card = ({ id, price, imgURL, category, name, description, index, status }:
         backgroundSize: "cover",
       }}
     >
-      <div className="absolute inset-0 z-20 rounded-2xl p-6 text-white ">
-        <span className="text-xs font-semibold uppercase text-violet-300 bg-dark-2">
-          {category}
-        </span>
-        <p className="my-2 text-3xl font-bold bg-dark-2  w-min">{name}</p>
-        <p className="text-lg text-slate-300 bg-dark-2 w-min">{description}</p>
+      <div className="absolute inset-0 z-20 rounded-2xl p-6">
+        <div>
+          <span className="text-xs font-semibold uppercase text-violet-300 bg-dark-2">
+            {category}
+          </span>
+          <p className="my-2 text-3xl font-bold bg-dark-2  w-min">{name}</p>
+          <p className="text-lg text-slate-300 bg-dark-2 w-min">{description}</p>
+        </div>
 
-        <div className="absolute bottom-0 left-0"><BasicModal nftId={id} /> <span className="text-lg text-slate-300 bg-secondary-500 w-min">{status}</span></div>
+        <div className="absolute bottom-0 left-0 flex">
+          <BasicModal nftId={id} priceRawNative={priceRawNative} priceRawToken={priceRawToken} />
+          <div className="text-slate-300 bg-dark-2 ">
+            <p className="">Price:
+              <span className='ml-2 mr-1'>{priceRawNative}</span>{nativeAssetName} /
+              <span className='ml-2 mr-1'>{priceRawToken}</span>
+              {tokenSymbol}
+            </p>
+            <p className="text-lg text-slate-300 bg-secondary-500 w-min">{status}</p>
+          </div>
+        </div>
       </div>
-
     </div>
   );
 };
