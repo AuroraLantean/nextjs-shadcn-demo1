@@ -108,26 +108,6 @@ export const web3InputSchema = z.object({
   addr2: z.string().optional(),
 });
 
-export const buyNftSchema = z.object({
-  inputToken: z.enum(tokenOnChains, {
-    required_error: "You need to select one input token and blockchain",
-  }),
-  nftId: z.string().min(1, {
-    message: "NFT ID requires at least 1 character.",
-  }).max(7, {
-    message: "NFT ID exceeds the maximum length",
-  }).refine((val) => !isNaN(val as unknown as number), {
-    message: "NFT ID should be a number",
-  }),
-  amount: z
-    .string().min(1, {
-      message: "amount requires at least 1 character.",
-    }).max(20, {
-      message: "amount exceeds the maximum length",
-    }).refine((val) => !isNaN(val as unknown as number), {
-      message: "Amount should be a number",
-    }),
-})
 export const buyNftSchemaFixed = z.object({
   inputToken: z.enum(tokenOnChains, {
     required_error: "You need to select one input token and blockchain",

@@ -214,10 +214,10 @@ export const getBalanceEth = async (addr: string): Promise<OutT> => {
   }
 }
 
-export const erc20BalanceOf = async (addrTarget: string, ctrtAddr: string): Promise<OutT> => {
+export const erc20BalanceOf = async (addrTarget: string, decimals: number, ctrtAddr: string): Promise<OutT> => {
   const funcName = "erc20BalanceOf";
   lg(funcName + '()... addrTarget:', addrTarget, ', ctrtAddr:', ctrtAddr);
-  if (isEmpty(addrTarget) || isEmpty(ctrtAddr)) {
+  if (isEmpty(addrTarget) || isEmpty(decimals) || isEmpty(ctrtAddr)) {
     return { ...out, err: funcName + ' input invalid' };
   } else if (!provider) {
     return { ...out, err: 'provider invalid' };
@@ -225,8 +225,12 @@ export const erc20BalanceOf = async (addrTarget: string, ctrtAddr: string): Prom
   try {
     const token = new Contract(ctrtAddr, erc20JSON.abi, provider);
     const tokenBalcInWei: bigint = await token.balanceOf(addrTarget);
-    const decimals = getDecimals(ctrtAddr);
-    const tokenBalcStr = formatUnits(tokenBalcInWei, decimals);
+    let dp = decimals;
+    if (decimals < 0) {
+      dp = await token.decimals();
+    }
+    lg("dp:", dp);
+    const tokenBalcStr = formatUnits(tokenBalcInWei, dp);
     lg(funcName + ' success:', tokenBalcInWei, decimals, tokenBalcStr);
     return { ...out, str1: tokenBalcStr, inWei: tokenBalcInWei, nums: [decimals] };
   } catch (error) {
@@ -286,17 +290,22 @@ export const erc20Allowance = async (addrFrom: string, addrTo: string, ctrtAddr:
   }
 }
 
-export const erc20Transfer = async (addrTo: string, amount: string, ctrtAddr: string): Promise<OutT> => {
+export const erc20Transfer = async (addrTo: string, amount: string, decimals: number, ctrtAddr: string): Promise<OutT> => {
   const funcName = 'erc20Transfer';
   lg(funcName + '()... addrTo:', addrTo, ', amount:', amount, ', ctrtAddr:', ctrtAddr);
-  if (isEmpty(addrTo) || isEmpty(amount) || isEmpty(ctrtAddr)) {
+  if (isEmpty(addrTo) || isEmpty(amount) || isEmpty(decimals) || isEmpty(ctrtAddr)) {
     return { ...out, err: funcName + ' input invalid' };
   } else if (!signer) {
     return { ...out, err: 'signer invalid' };
   }
   try {
     const token = new Contract(ctrtAddr, erc20JSON.abi, signer);
-    const amountInWei = parseUnits(amount, 18);
+    let dp = decimals;
+    if (decimals < 0) {
+      dp = await token.decimals();
+    }
+    lg("dp:", dp);
+    const amountInWei = parseUnits(amount, dp);
     const tx = await token.transfer(addrTo, amountInWei);
     const receipt = await tx.wait();
     lg(funcName + ' success... txnHash:', receipt, receipt.hash);
@@ -318,7 +327,7 @@ export const erc20Approve = async (addrTo: string, amount: string, decimals: num
   }
   try {
     const token = new Contract(ctrtAddr, erc20JSON.abi, signer);
-    let dp = 18;
+    let dp = decimals;
     if (decimals < 0) {
       dp = await token.decimals();
     }
@@ -593,7 +602,8 @@ export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr
 
   try {
     const oAccNative = await getBalanceEth(account)
-    const oAccUSDT = await erc20BalanceOf(account, tokenAddr);
+    //const decimals = getDecimals(tokenAddr);
+    const oAccUSDT = await erc20BalanceOf(account, -1, tokenAddr);
     const decimals = oAccUSDT.nums[0];
     const oAccDragonNFTids = await erc721TokenIds(account, nftAddr);
     let err = ''
@@ -604,7 +614,7 @@ export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr
     }
 
     const oSalesNative = await getBalanceEth(salesAddr)
-    const oSalesUSDT = await erc20BalanceOf(salesAddr, tokenAddr);
+    const oSalesUSDT = await erc20BalanceOf(salesAddr, decimals, tokenAddr);
     const oSalesNDragonNFTids = await erc721TokenIds(salesAddr, nftAddr);
 
     if (oSalesNative.err || oSalesUSDT.err || oSalesNDragonNFTids.err) err = oSalesNative.err + ", " + oSalesUSDT.err + ", " + oSalesNDragonNFTids.err;
@@ -798,7 +808,7 @@ export const getEvmAddr = (ctrtName: addrName): string => {
 };
 
 export const getDecimals = (addr: string) => {
-  //console.log('getDecimals()... input:', input);
+  //lg('getDecimals. addr:', addr, "erc20JSON.contractAddress:", erc20JSON.contractAddress, isEqualStr(addr, erc20JSON.contractAddress), ', ethereumNetwork:', ethereumNetwork)
   let decimals = 18;
   if (ethereumNetwork === 'anvil') {
     switch (addr) {

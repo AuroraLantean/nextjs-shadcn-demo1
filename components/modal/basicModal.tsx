@@ -28,7 +28,7 @@ import * as z from "zod"
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useToast } from "@/components/ui/use-toast"
-import { buyNftSchema, buyNftSchemaFixed, tokenOnChains } from '@/lib/validators'
+import { buyNftSchemaFixed, tokenOnChains } from '@/lib/validators'
 import Icons from "@/components/Icons";
 import { buyNFT } from '@/lib/actions/radix.actions'
 import { cn } from '@/lib/utils'

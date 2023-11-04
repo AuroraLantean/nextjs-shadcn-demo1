@@ -1,102 +1,46 @@
-'use client'
+"use client"
 import React, { useEffect, useRef, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, } from "@/components/ui/select"
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
-import { useForm } from 'react-hook-form';
+
 import z from 'zod';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tokenOnChains, web3InputSchema } from '@/lib/validators';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Input } from '../ui/input';
+import { makeShortAddr, cn } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
-import { cn, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { OutT, bigIntZero, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { initializeWallet, updateNftStatus, useWeb3Store } from '@/store/web3Store';
+import { OutT, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { buyNFT } from '@/lib/actions/radix.actions';
+import { useShallow } from 'zustand/react/shallow'
 import { APP_WIDTH_MIN, chainTypeDefault } from '@/constants/site_data';
-import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
-import { initializeWallet, updateAddrs, useWeb3Store } from '@/store/web3Store';
-import { useShallow } from 'zustand/react/shallow';
 
 type Props = {}
-
-const EthereumDiv = (props: Props) => {
+//web3 wallet connection should be initialized via another React componenet on the same page
+const Web3Form = (props: Props) => {
   const lg = console.log;
-  const compoName = 'EthereumDiv'
-  lg(compoName + '...');
+  const compoName = 'Web3Form'
+  lg(compoName + "...")
   const effectRan = useRef(false)
   const { toast } = useToast();
-  const [isClient, setIsClient] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] as number[] }
+  const initStates = { ...out, isLoading: false };
+  const [outputs, setOutputs] = useState<typeof initStates>(initStates);
 
-  let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
-  const initOutputs = out;
-  const [outputs, setOutputs] = useState<typeof initOutputs>(initOutputs);
-
-  const web3InitOut = { str1: '', inWei: bigIntZero, nums: [], err: '', name: '', symbol: '', decimals: -1, tokenSymbol: '', tokenAddr: '', salesAddr: '' };
-  const [web3s, setWeb3s] = useState(web3InitOut);
-
-  const { chainType, isInitialized, chainName, chainId, account, err } = useWeb3Store(
+  const { chainType, isInitialized, chainName, chainId, account, nftOriginalOwner, nftAddr, tokenAddr, salesAddr, nftIds, tokenSymbol, prices, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
 
-
-  const connectToWallet = async () => {
-    lg("connectToWallet")
-    if (isInitialized) {
-      lg("already initialized")
-      toast({ description: "web3 already initialized" });
-      return { ...web3InitOut }
-    } else {
-      const initOut = await initializeWallet(chainTypeDefault);
-      if (initOut.err) {
-        toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
-        return { ...web3InitOut, err: initOut.err };
-      }
-      if (initOut.warn) {
-        toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
-        return { ...web3InitOut, err: initOut.warn };
-      }
-      toast({ description: "web3 initialized successfully!" });
-      lg("initOut:", initOut)
-      const chainType = chainTypeDefault;
-      const { nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
-      if (updateAddrsErr) {
-        console.error("updateAddrsErr:", updateAddrsErr)
-        toast({ description: `${updateAddrsErr}`, variant: 'destructive' })
-        return { ...web3InitOut, err: updateAddrsErr };
-      }
-      const tokenAddr = getEvmAddr('erc20_usdt')
-      const out1 = await erc20Data(tokenAddr);
-      ;
-      return { ...web3InitOut, tokenSymbol: out1.symbol, tokenAddr, salesAddr, tokenName: out1.name, decimals: out1.decimals };
-    }
-  }
-
-  useEffect(() => {
-    setIsClient(true);
-    if (effectRan.current === true) {
-      console.log("EthereumDiv useEffect ran")
-      const run = async () => {
-        const out = await connectToWallet();
-        if (out?.err) {
-          console.error("connectToWallet failed. err:", out.err)
-          return;
-        }
-        setWeb3s({ ...web3s, ...out })
-      }
-      run();
-    }
-    return () => {
-      lg("EthereumDiv unmounted useeffect()...")
-      effectRan.current = true
-    }
-  }, []);
-  //lg("EthereumDiv tokenSymbol:", web3s.tokenSymbol)
-  const tokenSelectionStr = web3s.tokenSymbol + ' on Ethereum';
+  const tokenSelectionStr = tokenSymbol + ' on Ethereum';
   const inputTokens = [
     { label: "ETH on Ethereum", value: tokenOnChains[0] },
     { label: tokenSelectionStr, value: tokenOnChains[1] },
@@ -104,32 +48,35 @@ const EthereumDiv = (props: Props) => {
     { label: "XRD on Radix", value: tokenOnChains[3] },
     { label: "USDT on Radix", value: tokenOnChains[4] },
   ];// as const;
+
+  const addr1def = process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "";
+  const addr2def = process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "";
+
   type InputT = z.infer<typeof web3InputSchema>;
   const form = useForm<InputT>({
     resolver: zodResolver(web3InputSchema),
     defaultValues: {
       enum1: tokenOnChains[0],
       enum2: "getBalance",
-      floatNum1: "",
-      addr1: process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "",
-      addr2: process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "",
+      floatNum1: "0.001",
+      addr1: '',
+      addr2: '',
     },
   });
   async function onSubmit(data: InputT) {
     console.log("onSubmit", data);
-    setIsLoading(true)
+    setOutputs(prev => ({ ...prev, isLoading: true }))
     //alert(JSON.stringify(data, null, 4));
 
     const outFloat = Number.parseFloat(data.floatNum1);
     if (Number.isNaN(outFloat)) {
       console.error('floatNum1 invalid');
       toast({ description: `Error: floatNum1 invalid`, variant: 'destructive' })
-      setIsLoading(false)
+      setOutputs(prev => ({ ...prev, isLoading: false }))
       return true;
     }
     let addr1 = data.addr1;
     let addr2 = data.addr2;
-    let outIds: number[] = []
     lg("data.enum1:", data.enum1, ", data.enum2:", data.enum2)
     if (!addr1) {
       addr1 = account;
@@ -138,34 +85,49 @@ const EthereumDiv = (props: Props) => {
 
       if (data.enum2 === "getBalance") {
         out = await getBalanceEth(addr1)
+      } else if (data.enum2 === "transfer") {
+
+      } else {
+
       }
 
     } else if (data.enum1 === tokenOnChains[1]) {
       //usdt_ethereum
       if (data.enum2 === "getBalance") {
-        const decimals = getDecimals(web3s.tokenAddr);
-        out = await erc20BalanceOf(addr1, decimals, web3s.tokenAddr)
+        const decimals = getDecimals(tokenAddr);
+        out = await erc20BalanceOf(addr1, decimals, tokenAddr)
 
       } else if (data.enum2 === "transfer") {
+        if (!addr2) {
+          addr2 = salesAddr
+        }
+        const decimals = getDecimals(tokenAddr);
+        out = await erc20Transfer(addr2, outFloat + '', decimals, tokenAddr);
 
       } else if (data.enum2 === "approve") {
+        lg("addr1", addr1)
+        if (!addr2) {
+          addr2 = salesAddr
+        }
+        const decimals = getDecimals(tokenAddr);
+        out = await erc20Approve(addr2, outFloat + '', decimals, tokenAddr);
 
-
-      } else if (data.enum2 === "mintOneNFT") {
-
+      } else if (data.enum2 === "mintTokens") {
+        //out = await erc20SafeMint(addr2, parseInt(outFloat), tokenAddr);
       }
+
     } else if (data.enum1 === tokenOnChains[2]) {
       //goldcoin_ethereum
-
       if (data.enum2 === "getBalance") {
-
+        out = await erc721TokenIds(addr1, tokenAddr);
       }
+
     } else if (data.enum1 === tokenOnChains[3]) {
       //nftDragon_ethereum
       if (!addr1) {
         out = { ...out, err: "Invalid addr1" }
       }
-
+      //out = await erc721Transfer(addr1!, addr1, outFloat, addr1);
     } else if (data.enum1 === tokenOnChains[4]) {
     } else if (data.enum1 === tokenOnChains[5]) {
     } else {
@@ -177,15 +139,14 @@ const EthereumDiv = (props: Props) => {
       toast({ description: `Failed: ${out.err}`, variant: 'destructive' })
     } else {
       toast({ description: `Success ${out.str1}` })
-      setOutputs(out)
     }
-    setIsLoading(false)
+    setOutputs(prev => ({ ...prev, ...out, isLoading: false }))
   }
-
+  //{isClient ? Math.trunc(Math.random() * 10000) : 0}
   return (
     <Card className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <CardHeader>
-        <CardTitle>Ethereum Related Chains {isClient ? Math.trunc(Math.random() * 10000) : 0}</CardTitle>
+        <CardTitle>Web3Form</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-xl font-semibold">Detected Chain: {chainName}, Id: {chainId}</p>
@@ -213,7 +174,7 @@ const EthereumDiv = (props: Props) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between",
+                            "w-[270px] justify-between",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -398,7 +359,7 @@ const EthereumDiv = (props: Props) => {
               )}
             />
             <Separator />
-            <Button className='!bg-primary-500 mt-5' type="submit" isLoading={isLoading} >Submit to Blockchain</Button>
+            <Button className='!bg-primary-500 mt-5' type="submit" isLoading={outputs.isLoading} >Submit to Blockchain</Button>
           </form>
         </Form>
 
@@ -407,4 +368,28 @@ const EthereumDiv = (props: Props) => {
   )
 }
 
-export default EthereumDiv;
+export default Web3Form
+/** Dropdown selection
+            <FormField
+              control={form.control}
+              name="enum1"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contract</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a verified contract to display" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="account">Current Account</SelectItem>
+                      <SelectItem value="goldCoin">GoldCoin</SelectItem>
+                      <SelectItem value="erc721Dragon">Dragon NFT</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+ */

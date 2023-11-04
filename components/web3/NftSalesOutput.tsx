@@ -17,9 +17,9 @@ import { useShallow } from 'zustand/react/shallow';
 
 type Props = {}
 
-const NftSalesPage = (props: Props) => {
+const NftSalesOutput = (props: Props) => {
   const lg = console.log;
-  const compoName = 'NftSalesPage';
+  const compoName = 'NftSalesOutput';
   lg(compoName + '...');
   const initStates = { ...initBalancesDefault, str1: '' };
   //let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
@@ -99,7 +99,7 @@ const NftSalesPage = (props: Props) => {
   return (
     <Card className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <CardHeader>
-        <CardTitle>NFT Sales {isClient ? Math.trunc(Math.random() * 10000) : 0}</CardTitle>
+        <CardTitle>{compoName} {isClient ? Math.trunc(Math.random() * 10000) : 0}</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="text-xl font-semibold">Chain: {chainName} {chainId}</p>
@@ -159,4 +159,4 @@ const NftSalesPage = (props: Props) => {
   )
 }
 
-export default NftSalesPage;
+export default NftSalesOutput;

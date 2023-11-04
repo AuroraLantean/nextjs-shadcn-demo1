@@ -89,11 +89,6 @@ export const sidebarLinks = [
     label: 'Home',
   },
   {
-    imgURL: '/assets/create.svg',
-    route: '/web3',
-    label: 'Web3',
-  },
-  {
     imgURL: '/assets/community.svg',
     route: '/table',
     label: 'Table',

@@ -156,7 +156,7 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
     //lg('index:', index, ', priceOne:', priceOne, priceNative, priceToken)
   }
   //lg("Card: ", nftStatuses[index])
-  lg("Card: ", status)
+  //lg("Card: ", status)
   //bg-gradient-to-b from-black/90 via-black/60 to-black/0 transition-[backdrop-filter]bg-white
   return (
     <div
@@ -184,7 +184,7 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
           <div className="text-slate-300 bg-dark-2 ">
             <p className="">Price:
               <span className='ml-2 mr-1'>{priceNative}</span>{nativeAssetName} /
-              <span className=''>{priceToken}</span>
+              <span className=''> {priceToken} </span>
               {tokenSymbol}
             </p>
             <p className="text-slate-300 bg-secondary-500 w-min">{status}</p>

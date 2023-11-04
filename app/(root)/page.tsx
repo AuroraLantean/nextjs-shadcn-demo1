@@ -12,8 +12,8 @@ import TableRows from "@/components/tableRows";
 import DbInputForm from "@/components/forms/DbInputForm";
 import TanstackOut from "@/components/TanstackOut";
 import TanstackIn from "@/components/TanstackIn";
-import NftSales from "@/components/web3/NftSalesPage";
-import NftBuyForm from "@/components/forms/NftBuyForm";
+import NftSalesOutput from "@/components/web3/NftSalesOutput";
+import Web3Form from "@/components/forms/Web3Form";
 
 export default async function HomePage() {
   console.log("HomePage")
@@ -29,8 +29,8 @@ export default async function HomePage() {
       <h1 className="head-text text-left">HomePage</h1>
       <CarouselDraggable />
       <div className="flex flex-wrap">
-        <NftSales />
-        <NftBuyForm />
+        <NftSalesOutput />
+        <Web3Form />
       </div>
       <Separator className="my-2" />
       <div className="flex flex-wrap">
