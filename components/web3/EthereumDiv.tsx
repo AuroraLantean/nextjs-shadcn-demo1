@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Input } from '../ui/input';
 import { useToast } from '../ui/use-toast';
 import { cn, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { OutT, bigIntZero, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { OutT, bigIntZero, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN, chainTypeDefault } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -137,7 +137,7 @@ const EthereumDiv = (props: Props) => {
     if (data.enum1 === tokenOnChains[0]) {
 
       if (data.enum2 === "getBalance") {
-        out = await getBalanceEth(addr1)
+        out = await ethBalanceOf(addr1)
       }
 
     } else if (data.enum1 === tokenOnChains[1]) {

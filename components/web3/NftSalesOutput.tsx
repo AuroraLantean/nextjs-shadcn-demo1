@@ -14,6 +14,7 @@ import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { getBaseURI, getCurrBalances, getSalesPrices, initBalancesDefault, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from '@/store/web3Store';
 import { useShallow } from 'zustand/react/shallow';
+import { addr1def, addr2def } from '@/lib/actions/ethers';
 
 type Props = {}
 
@@ -76,8 +77,8 @@ const NftSalesOutput = (props: Props) => {
       enum1: "eth_ethereum",
       enum2: "getBalance",
       floatNum1: "",
-      addr1: process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "",
-      addr2: process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "",
+      addr1: addr1def,
+      addr2: addr2def,
     },
   });
 
@@ -135,7 +136,7 @@ const NftSalesOutput = (props: Props) => {
                       <div className='flex flex-wrap'>
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="readEthBalc" />
+                            <RadioGroupItem value="getBalance" />
                           </FormControl>
                           <FormLabel>
                             Read Balances
@@ -154,6 +155,12 @@ const NftSalesOutput = (props: Props) => {
             <Button className='!bg-primary-500 mt-5' type="submit" isLoading={isLoading} >Go</Button>
           </form>
         </Form>
+        <div className="break-all">
+          <p>Deployed Contract Addresses</p>
+          <p>Token: {tokenAddr}</p>
+          <p>NFT: {nftAddr}</p>
+          <p>Sales: {salesAddr}</p>
+        </div>
       </CardContent>
     </Card>
   )

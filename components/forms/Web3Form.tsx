@@ -15,10 +15,10 @@ import z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tokenOnChains, web3InputSchema } from '@/lib/validators';
-import { makeShortAddr, cn } from '@/lib/utils';
+import { makeShortAddr, cn, isEmpty } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
 import { initializeWallet, updateNftStatus, useWeb3Store } from '@/store/web3Store';
-import { OutT, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, getBalanceEth, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { OutT, addr1def, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
 import { buyNFT } from '@/lib/actions/radix.actions';
 import { useShallow } from 'zustand/react/shallow'
 import { APP_WIDTH_MIN, chainTypeDefault } from '@/constants/site_data';
@@ -49,9 +49,6 @@ const Web3Form = (props: Props) => {
     { label: "USDT on Radix", value: tokenOnChains[4] },
   ];// as const;
 
-  const addr1def = process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "";
-  const addr2def = process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "";
-
   type InputT = z.infer<typeof web3InputSchema>;
   const form = useForm<InputT>({
     resolver: zodResolver(web3InputSchema),
@@ -81,11 +78,19 @@ const Web3Form = (props: Props) => {
     if (!addr1) {
       addr1 = account;
     }
+    if (!addr2) {
+      addr2 = addr1def;
+      if (isEmpty(addr1def)) console.error("Invalid addr1def");
+    }
+    lg("addr1", addr1, ', addr2:', addr2)
     if (data.enum1 === tokenOnChains[0]) {
-
       if (data.enum2 === "getBalance") {
-        out = await getBalanceEth(addr1)
+        out = await ethBalanceOf(addr1)
       } else if (data.enum2 === "transfer") {
+        if (addr2 === salesAddr) {
+          addr2 = addr1def;
+        }
+        out = await ethTransfer(addr2, outFloat + '', chainName);
 
       } else {
 
@@ -98,22 +103,16 @@ const Web3Form = (props: Props) => {
         out = await erc20BalanceOf(addr1, decimals, tokenAddr)
 
       } else if (data.enum2 === "transfer") {
-        if (!addr2) {
-          addr2 = salesAddr
-        }
         const decimals = getDecimals(tokenAddr);
         out = await erc20Transfer(addr2, outFloat + '', decimals, tokenAddr);
 
       } else if (data.enum2 === "approve") {
-        lg("addr1", addr1)
-        if (!addr2) {
-          addr2 = salesAddr
-        }
         const decimals = getDecimals(tokenAddr);
         out = await erc20Approve(addr2, outFloat + '', decimals, tokenAddr);
 
-      } else if (data.enum2 === "mintTokens") {
-        //out = await erc20SafeMint(addr2, parseInt(outFloat), tokenAddr);
+      } else if (data.enum2 === "allowance") {
+        const decimals = getDecimals(tokenAddr);
+        out = await erc20Allowance(addr1, addr2, tokenAddr, decimals);
       }
 
     } else if (data.enum1 === tokenOnChains[2]) {
@@ -332,7 +331,7 @@ const Web3Form = (props: Props) => {
                   <h3>Addr1</h3>
                   <FormControl>
                     <Input
-                      placeholder="Enter addr1..."
+                      placeholder="keep this empty to use wallet account"
                       {...field}
                     />
                   </FormControl>
@@ -350,7 +349,7 @@ const Web3Form = (props: Props) => {
                   <h3>Addr2</h3>
                   <FormControl>
                     <Input
-                      placeholder="Enter addr2..."
+                      placeholder="keep this empty to use addr1def"
                       {...field}
                     />
                   </FormControl>

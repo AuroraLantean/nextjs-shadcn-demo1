@@ -162,7 +162,7 @@ const BasicModal = ({ nftId, priceNative, priceToken }: Props) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[200px] justify-between",
+                            "w-[270px] justify-between",
                             !field.value && "text-muted-foreground"
                           )}
                         >

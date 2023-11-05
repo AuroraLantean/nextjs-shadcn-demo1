@@ -1,4 +1,4 @@
-import { ethers, formatEther, formatUnits, parseUnits, Contract, getBigInt, toNumber } from "ethers";
+import { ethers, formatEther, formatUnits, parseUnits, Contract, getBigInt, toNumber, parseEther } from "ethers";
 import contractsJSON from "@/web3ABIs/ethereum/contractABIsERC721Sales.json";
 if (contractsJSON.length != 4) console.error("contractsJSON length must be 4")
 export const contractsJSONdup = contractsJSON;
@@ -8,7 +8,7 @@ export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
 import { asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
 import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
-import { number } from "zod";
+
 
 const infuraApiKey = process.env.NEXT_PUBLIC_INFURA_APIKEY || '';
 const ethereumNetwork = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK || 'anvil';
@@ -16,6 +16,8 @@ const erc20_usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || erc20JSON.contra
 const erc20_usdcAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDC || '';
 const erc721Addr = process.env.NEXT_PUBLIC_ETHEREUM_NFT || erc721JSON.contractAddress;
 const salesAddr = process.env.NEXT_PUBLIC_ETHEREUM_NFTSALES || salesJSON.contractAddress;
+export const addr1def = process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "";
+export const addr2def = process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "";
 
 let signer: any = undefined;
 let provider: any = undefined;
@@ -189,8 +191,8 @@ export async function getAccount(): Promise<Partial<Web3InitOutT>> {
   return { account };
 }
 
-export const getBalanceEth = async (addr: string): Promise<OutT> => {
-  const funcName = 'getBalanceEth';
+export const ethBalanceOf = async (addr: string): Promise<OutT> => {
+  const funcName = 'ethBalanceOf';
   lg(funcName + '()... addr:', addr);
   if (isEmpty(addr)) {
     return { ...out, err: funcName + ' input invalid' };
@@ -201,13 +203,50 @@ export const getBalanceEth = async (addr: string): Promise<OutT> => {
     const balanceInWei: bigint = await provider.getBalance(addr);// 182334002436162568n
 
     const balanceInEth = formatEther(balanceInWei);
-    // '0.182334002436162568'
     lg(funcName + ' success:', balanceInWei, balanceInEth);
     return {
       ...out,
       str1: balanceInEth,
       inWei: balanceInWei,
     };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...out, err: funcName + ' failed' };
+  }
+}
+
+export const ethTransfer = async (addrTo: string, amount: string, chainName: string): Promise<OutT> => {
+  const funcName = 'ethTransfer';
+  lg(funcName + '()... addrTo:', addrTo, ', amount:', amount, ', chainName:', chainName);
+  if (isEmpty(addrTo) || isEmpty(amount) || isEmpty(chainName)) {
+    return { ...out, err: funcName + ' input invalid' };
+  } else if (!signer) {
+    return { ...out, err: 'signer invalid' };
+  }
+  let txObj;
+  if (chainName === 'Anvil' || chainName === 'Hardhat' || chainName === 'Ganache') {
+    txObj = {
+      to: addrTo,
+      value: parseEther(amount),
+      //gasLimit: 9721975, // Adjust this
+      //gasPrice: parseUnits("20000000000", "wei"),
+    }
+  } else {
+    txObj = {
+      to: addrTo,
+      value: parseEther(amount),
+      //gasLimit: ethers.hexlify(10000),
+      //gasPrice: ethers.hexlify(parseInt(await provider.getGasPrice())),
+    }
+  }
+  lg("txObj:", txObj)
+  try {
+    const tx = await signer.sendTransaction(txObj);
+    lg("tx:", tx)
+    const receipt = await tx.wait();
+    lg(funcName + ' success... txnHash:', receipt, receipt.hash);
+    //receipt has properties of provider, to, from, index: number, blockHash, blockNumber: number, logsBloom, cumulativeGasUsed: bigint, gasPrice: bigint, gasUsed: bigint
+    return { ...out, str1: receipt.hash };
   } catch (error) {
     console.error(funcName + ':', error);
     return { ...out, err: funcName + ' failed' };
@@ -601,7 +640,7 @@ export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr
   lg(funcName + ' in ethers.ts...');
 
   try {
-    const oAccNative = await getBalanceEth(account)
+    const oAccNative = await ethBalanceOf(account)
     //const decimals = getDecimals(tokenAddr);
     const oAccUSDT = await erc20BalanceOf(account, -1, tokenAddr);
     const decimals = oAccUSDT.nums[0];
@@ -613,7 +652,7 @@ export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr
       return { ...initBalancesDefault, err };
     }
 
-    const oSalesNative = await getBalanceEth(salesAddr)
+    const oSalesNative = await ethBalanceOf(salesAddr)
     const oSalesUSDT = await erc20BalanceOf(salesAddr, decimals, tokenAddr);
     const oSalesNDragonNFTids = await erc721TokenIds(salesAddr, nftAddr);
 
