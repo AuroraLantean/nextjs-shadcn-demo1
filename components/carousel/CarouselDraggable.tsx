@@ -134,7 +134,7 @@ export const CarouselDraggable = () => {
             className="primary-color ml-2"
             onClick={connectToWallet}>Connect to wallet</Button>}
           <Button
-            className="!bg-secondary-500 ml-2"
+            className="!bg-logout-btn ml-2"
             onClick={changeChainTypeF}>Change Chain Type</Button>
 
         </div>

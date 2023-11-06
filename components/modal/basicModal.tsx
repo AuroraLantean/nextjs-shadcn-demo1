@@ -57,8 +57,8 @@ const BasicModal = ({ nftId, priceNative, priceToken }: Props) => {
     { label: "ETH on Ethereum", value: tokenOnChains[0] },
     { label: tokenSelectionStr, value: tokenOnChains[1] },
     { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
-    { label: "XRD on Radix", value: tokenOnChains[3] },
-    { label: "USDT on Radix", value: tokenOnChains[4] },
+    { label: "XRD on Radix", value: tokenOnChains[5] },
+    { label: "USDT on Radix", value: tokenOnChains[6] },
   ];// as const;
 
   type Input = z.infer<typeof buyNftSchemaFixed>;
@@ -162,7 +162,7 @@ const BasicModal = ({ nftId, priceNative, priceToken }: Props) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[270px] justify-between",
+                            "w-[290px] justify-between",
                             !field.value && "text-muted-foreground"
                           )}
                         >

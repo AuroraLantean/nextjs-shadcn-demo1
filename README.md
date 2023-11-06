@@ -86,6 +86,44 @@ Then you should click on the `Connect to wallet` button on the top of the home p
 
 Confirm your initial ETH balance and the token balance on the home page. This token is the token address set inside the ERC721 Sales smart contract during its deployment, or you can reset the token address after deployment.
 
+#### If you do not have the token that is accepted by the NFT Sales contract:
+
+In the dropdown: choose the USDT or TokenX on Ethereum/Other Chain
+In the Radio buttons: choose `Mint Tokens To Guest`
+Click on the `Submit to Blockchain` button then your Browser wallet should pop up for you to click proceed.
+After the transaction has been submitted and finalized, you should see your Browser Wallet's notice on your screen. Then click on the left `Go` button to refresh your balances. You should see your token balance has increased by 100.
+
+#### If the Sales contract has sold out all NFT:
+
+In the dropdown: choose the `DragonNFT on Ethereum/Other Chain`
+In the Radio buttons: choose `Mint NFTs to Sales Contract`, enter a NFT ID in the form first field. This NFT ID should not have beem minted before. Just try a few numbers until you made it through. The NFT contract will mint 3 new NFTs starting from your chosen NFT ID.
+Then click on the left `Go` button to refresh your balances. You should see the Sales Contract have three new NFTs.
+
+Now. In the dropdown: choose the `Sales Contract on Ethereum/Other Chain`
+In the Radio buttons: choose `Set Price by Guest`, then click on `Submit to Blockchain`. This will automatically set the new NFT prices as 0.001 ETH, 100 Token, and 100 Token respectively.
+
+#### Buy NFTs via Native Asset
+
+You need to get some Native Assets like ETH for Ethereum blockchain. If the smart contracts are deployed on testnet like Sepolia or Mumbai, you can get some native assets for free. This app cannot generate those for you.
+
+The first NFT will always be set to 0.001 ETH by the `Set Price by Guest` function. So you have to get this amount if you want to buy the first NFT.
+
+Still keep the contract dropdown to `Sales contract on Ethereum/Other chain`
+Enter your first NFT id in the first form field, then click on `Submit to Blockchain`. After transaction finalization, you should see your NFT collection has increased by a new NFT ID.
+
+#### Buy NFTs via Tokens
+
+Now. In the dropdown: choose the `TokenX on Ethereum/Other Chain`. E.g. USDT on Ethereum/Other Chain.
+
+In the Radio buttons: choose `Approve`. Enter an amount in the field `Amount` in the form, and that amount is bigger than the sum of all the NFTs you want to buy today.
+Click on `Submit to Blockchain`. This will approve the Sales Contract to take your tokens during the transaction below.
+
+In the dropdown: choose the `Sales Contract on Ethereum/Other Chain`.
+In the Radio buttons: choose `Buy NFT via Token`.
+Enter the NFT ID in the first for field, then click on `Submit to Blockchain`.
+
+After the transaction has been submitted and finalize. Then click on the left `Go` button to refresh your balances. You should see your NFT collection has increased by a new NFT ID.
+
 ## Under Investigation
 
 Cant resolve 'bufferutil' and 'utf-8-validate'

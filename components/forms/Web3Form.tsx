@@ -18,11 +18,12 @@ import { tokenOnChains, web3InputSchema } from '@/lib/validators';
 import { makeShortAddr, cn, isEmpty } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
 import { initializeWallet, updateNftStatus, useWeb3Store } from '@/store/web3Store';
-import { OutT, addr1def, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20MintToGuest, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721SafeMintToGuest, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { OutT, addr1def, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20MintToGuest, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721SafeMintToGuest, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr, salesPrice, salesSetPriceBatchGuest } from '@/lib/actions/ethers';
 import { buyNFT } from '@/lib/actions/radix.actions';
 import { useShallow } from 'zustand/react/shallow'
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Separator } from '../ui/separator';
+import { formatEther } from 'ethers';
 
 type Props = {}
 //web3 wallet connection should be initialized via another React componenet on the same page
@@ -32,6 +33,7 @@ const Web3Form = (props: Props) => {
   lg(compoName + "...")
   const effectRan = useRef(false)
   const { toast } = useToast();
+  let mesg = ''
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] as number[] }
   const initStates = { ...out, isLoading: false };
   const [outputs, setOutputs] = useState<typeof initStates>(initStates);
@@ -46,8 +48,9 @@ const Web3Form = (props: Props) => {
     { label: tokenSelectionStr, value: tokenOnChains[1] },
     { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
     { label: "DragonNFT on Ethereum", value: tokenOnChains[3] },
-    { label: "XRD on Radix", value: tokenOnChains[4] },
-    { label: "USDT on Radix", value: tokenOnChains[5] },
+    { label: "Sales Contract on Ethereum", value: tokenOnChains[4] },
+    { label: "XRD on Radix", value: tokenOnChains[5] },
+    { label: "USDT on Radix", value: tokenOnChains[6] },
   ];// as const;
 
   type InputT = z.infer<typeof web3InputSchema>;
@@ -83,6 +86,7 @@ const Web3Form = (props: Props) => {
       addr2 = addr1def;
       if (isEmpty(addr1def)) console.error("Invalid addr1def");
     }
+    const decimals = getDecimals(tokenAddr);
     lg("addr1", addr1, ', addr2:', addr2)
     if (data.enum1 === tokenOnChains[0]) {
       if (data.enum2 === "getBalance") {
@@ -96,7 +100,6 @@ const Web3Form = (props: Props) => {
 
     } else if (data.enum1 === tokenOnChains[1]) {
       //usdt_ethereum
-      const decimals = getDecimals(tokenAddr);
       if (data.enum2 === "getBalance") {
         out = await erc20BalanceOf(addr1, decimals, tokenAddr)
 
@@ -118,8 +121,8 @@ const Web3Form = (props: Props) => {
 
     } else if (data.enum1 === tokenOnChains[3]) {
       //nftDragon_ethereum
-      const outInt = Number.parseInt(data.floatNum1);
-      if (Number.isNaN(outInt)) {
+      const nftId = Number.parseInt(data.floatNum1);
+      if (Number.isNaN(nftId)) {
         console.error('floatNum1 should be an integer');
         toast({ description: `Error: The numeral should be an integer`, variant: 'destructive' })
         setOutputs(prev => ({ ...prev, isLoading: false }))
@@ -138,9 +141,53 @@ const Web3Form = (props: Props) => {
       }
 
     } else if (data.enum1 === tokenOnChains[4]) {
+      //sales_ethereum
+      const nftId = Number.parseInt(data.floatNum1);
+      if (Number.isNaN(nftId)) {
+        console.error('floatNum1 should be an integer');
+        toast({ description: `Error: The numeral should be an integer`, variant: 'destructive' })
+        setOutputs(prev => ({ ...prev, isLoading: false }))
+        return true;
+      }
+      out = await salesPrice(nftId, nftAddr, salesAddr, decimals);
+      if (out.err) {
+        mesg = 'salesPrice failed: ' + out.err;
+        console.error(mesg);
+        toast({ description: mesg, variant: 'destructive' })
+        setOutputs(prev => ({ ...prev, isLoading: false }))
+        return true;
+      }
+      const priceNative = out.str1.split('_')[0];
+      const priceToken = out.str1.split('_')[1].replace('.0', '');
+      lg('prices:', priceNative, priceToken)
+
+      if (data.enum2 === "setPriceBatchGuest") {
+        out = await salesSetPriceBatchGuest(nftAddr, nftId, salesAddr);
+
+      } else if (data.enum2 === "buyNftviaNative") {
+        if (parseFloat(priceNative) === 0) {
+          mesg = 'priceNative should not be zero'
+          console.error(mesg);
+          toast({ description: mesg, variant: 'destructive' })
+          setOutputs(prev => ({ ...prev, isLoading: false }))
+          return true;
+        }
+        out = await buyNFTviaETH(nftAddr, nftId + '', priceNative, salesAddr, account);
+
+      } else if (data.enum2 === "buyNftviaToken") {
+        if (parseFloat(priceToken) === 0) {
+          mesg = 'priceToken should not be zero'
+          console.error(mesg);
+          toast({ description: mesg, variant: 'destructive' })
+          setOutputs(prev => ({ ...prev, isLoading: false }))
+          return true;
+        }
+        out = await buyNFTviaERC20(nftAddr, nftId, salesAddr, account, tokenAddr, priceToken);
+      }
+    } else if (data.enum1 === tokenOnChains[5]) {
       //xrd_radix
 
-    } else if (data.enum1 === tokenOnChains[5]) {
+    } else if (data.enum1 === tokenOnChains[6]) {
       //usdt_radix
 
     } else {
@@ -179,7 +226,7 @@ const Web3Form = (props: Props) => {
               name="enum1"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Input Token</FormLabel>
+                  <FormLabel>Token/Contract:</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -187,7 +234,7 @@ const Web3Form = (props: Props) => {
                           variant="outline"
                           role="combobox"
                           className={cn(
-                            "w-[270px] justify-between",
+                            "w-[290px] justify-between",
                             !field.value && "text-muted-foreground"
                           )}
                         >
@@ -311,6 +358,33 @@ const Web3Form = (props: Props) => {
                           </FormLabel>
                         </FormItem>
 
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="setPriceBatchGuest" />
+                          </FormControl>
+                          <FormLabel>
+                            Set Price by Guest
+                          </FormLabel>
+                        </FormItem>
+
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="buyNftviaNative" />
+                          </FormControl>
+                          <FormLabel>
+                            Buy NFT via Native Asset
+                          </FormLabel>
+                        </FormItem>
+
+                        <FormItem className="radio-item">
+                          <FormControl>
+                            <RadioGroupItem value="buyNftviaToken" />
+                          </FormControl>
+                          <FormLabel>
+                            Buy NFT via Token
+                          </FormLabel>
+                        </FormItem>
+
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -373,7 +447,7 @@ const Web3Form = (props: Props) => {
               )}
             />
             <Separator />
-            <Button className='!bg-primary-500 mt-5' type="submit" isLoading={outputs.isLoading} >Submit to Blockchain</Button>
+            <Button className='!bg-orange-500 mt-5' type="submit" isLoading={outputs.isLoading} >Submit to Blockchain</Button>
           </form>
         </Form>
 

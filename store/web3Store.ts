@@ -18,7 +18,7 @@ const initialState = {
   accBalcNative: '', accBalcToken: '',
   accNftArray: [] as number[],
   salesBalcNative: '', salesBalcToken: '',
-  salesNftArray: [] as number[], priceNativeRaw: '', priceTokenRaw: '', decimals: 18,
+  salesNftArray: [] as number[], decimals: 18,
   nftArray: [] as DragonT[], nftIds: [] as number[],
   prices: [] as string[],
 }

@@ -160,6 +160,14 @@ const NftSalesOutput = (props: Props) => {
           <p>NFT: {nftAddr}</p>
           <p>Sales: {salesAddr}</p>
         </div>
+        <div className=''>
+          <p className='text-xl font-semibold'>Click below to copy one of above addresses:</p>
+          <div className='flex gap-2'>
+            <Button className='!bg-primary-500 mt-5' onClick={() => { navigator.clipboard.writeText(tokenAddr) }}>Token</Button>
+            <Button className='!bg-primary-500 mt-5' onClick={() => { navigator.clipboard.writeText(nftAddr) }}>NFT</Button>
+            <Button className='!bg-primary-500 mt-5' onClick={() => { navigator.clipboard.writeText(salesAddr) }}>Sales</Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )

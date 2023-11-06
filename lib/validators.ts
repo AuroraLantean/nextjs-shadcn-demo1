@@ -90,13 +90,13 @@ export const settingTabP2Schema = z.object({
   passwordNew: z.string().min(6, { message: "passswordNew too short" }).max(100),
 });
 
-export const tokenOnChains = ["eth_ethereum", "usdt_ethereum", "goldcoin_ethereum", "nftDragon_ethereum", "xrd_radix", "usdt_radix"] as const;
+export const tokenOnChains = ["eth_ethereum", "usdt_ethereum", "goldcoin_ethereum", "nftDragon_ethereum", "sales_ethereum", "xrd_radix", "usdt_radix"] as const;
 
 export const web3InputSchema = z.object({
   enum1: z.enum(tokenOnChains, {
     required_error: "You need to select one",
   }),
-  enum2: z.enum(["getBalance", "transfer", "transferFrom", "approve", "allowance", "mintNftToSales", "mintTokensToGuest"], {
+  enum2: z.enum(["getBalance", "transfer", "transferFrom", "approve", "allowance", "mintNftToSales", "mintTokensToGuest", "setPriceBatchGuest", "buyNftviaNative", "buyNftviaToken"], {
     required_error: "You need to select one",
   }),
   floatNum1: z.string().max(24, {

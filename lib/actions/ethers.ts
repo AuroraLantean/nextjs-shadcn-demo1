@@ -689,6 +689,26 @@ export const salesPrice = async (tokenId: number, nftAddr: string, salesAddr: st
   }
 }
 
+export const salesSetPriceBatchGuest = async (nftAddr: string, tokenId: number, salesAddr: string): Promise<OutT> => {
+  const funcName = 'salesSetPriceBatchGuest'
+  lg(funcName + '()... nftAddr:', nftAddr, ', tokenId:', tokenId, ', salesAddr:', salesAddr);
+  if (tokenId < 0 || isEmpty(nftAddr) || isEmpty(salesAddr)) {
+    return { ...out, err: funcName + ' input invalid' };
+  } else if (!provider) {
+    return { ...out, err: 'provider invalid' };
+  }
+  try {
+    const sales = new Contract(salesAddr, salesJSON.abi, signer);
+    const tx = await sales.setPriceBatchGuest(nftAddr, tokenId);
+    const receipt = await tx.wait();
+    lg(funcName + ' success... txnHash:', receipt, receipt.hash);
+    return { ...out };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...out, err: funcName + ' failed' };
+  }
+}
+
 export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<balancesT> => {
   const funcName = 'getEvmBalances';
   lg(funcName + ' in ethers.ts...');
