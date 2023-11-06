@@ -18,10 +18,10 @@ import { tokenOnChains, web3InputSchema } from '@/lib/validators';
 import { makeShortAddr, cn, isEmpty } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
 import { initializeWallet, updateNftStatus, useWeb3Store } from '@/store/web3Store';
-import { OutT, addr1def, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { OutT, addr1def, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20MintToGuest, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721SafeMintToGuest, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
 import { buyNFT } from '@/lib/actions/radix.actions';
 import { useShallow } from 'zustand/react/shallow'
-import { APP_WIDTH_MIN, chainTypeDefault } from '@/constants/site_data';
+import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Separator } from '../ui/separator';
 
 type Props = {}
@@ -45,8 +45,9 @@ const Web3Form = (props: Props) => {
     { label: "ETH on Ethereum", value: tokenOnChains[0] },
     { label: tokenSelectionStr, value: tokenOnChains[1] },
     { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
-    { label: "XRD on Radix", value: tokenOnChains[3] },
-    { label: "USDT on Radix", value: tokenOnChains[4] },
+    { label: "DragonNFT on Ethereum", value: tokenOnChains[3] },
+    { label: "XRD on Radix", value: tokenOnChains[4] },
+    { label: "USDT on Radix", value: tokenOnChains[5] },
   ];// as const;
 
   type InputT = z.infer<typeof web3InputSchema>;
@@ -91,44 +92,57 @@ const Web3Form = (props: Props) => {
           addr2 = addr1def;
         }
         out = await ethTransfer(addr2, outFloat + '', chainName);
-
-      } else {
-
       }
 
     } else if (data.enum1 === tokenOnChains[1]) {
       //usdt_ethereum
+      const decimals = getDecimals(tokenAddr);
       if (data.enum2 === "getBalance") {
-        const decimals = getDecimals(tokenAddr);
         out = await erc20BalanceOf(addr1, decimals, tokenAddr)
 
       } else if (data.enum2 === "transfer") {
-        const decimals = getDecimals(tokenAddr);
         out = await erc20Transfer(addr2, outFloat + '', decimals, tokenAddr);
 
       } else if (data.enum2 === "approve") {
-        const decimals = getDecimals(tokenAddr);
         out = await erc20Approve(addr2, outFloat + '', decimals, tokenAddr);
 
       } else if (data.enum2 === "allowance") {
-        const decimals = getDecimals(tokenAddr);
         out = await erc20Allowance(addr1, addr2, tokenAddr, decimals);
+
+      } else if (data.enum2 === "mintTokensToGuest") {
+        out = await erc20MintToGuest(tokenAddr);
       }
 
     } else if (data.enum1 === tokenOnChains[2]) {
       //goldcoin_ethereum
-      if (data.enum2 === "getBalance") {
-        out = await erc721TokenIds(addr1, tokenAddr);
-      }
 
     } else if (data.enum1 === tokenOnChains[3]) {
       //nftDragon_ethereum
-      if (!addr1) {
-        out = { ...out, err: "Invalid addr1" }
+      const outInt = Number.parseInt(data.floatNum1);
+      if (Number.isNaN(outInt)) {
+        console.error('floatNum1 should be an integer');
+        toast({ description: `Error: The numeral should be an integer`, variant: 'destructive' })
+        setOutputs(prev => ({ ...prev, isLoading: false }))
+        return true;
       }
-      //out = await erc721Transfer(addr1!, addr1, outFloat, addr1);
+      if (data.enum2 === "getBalance") {
+        out = await erc721TokenIds(addr1, nftAddr);
+
+      } else if (data.enum2 === "transfer") {
+        out = await erc721Transfer(addr1, addr2, data.floatNum1, nftAddr);
+
+      } else if (data.enum2 === "approve") {
+
+      } else if (data.enum2 === "mintNftToSales") {
+        out = await erc721SafeMintToGuest(salesAddr, data.floatNum1, nftAddr);
+      }
+
     } else if (data.enum1 === tokenOnChains[4]) {
+      //xrd_radix
+
     } else if (data.enum1 === tokenOnChains[5]) {
+      //usdt_radix
+
     } else {
       out = { ...out, err: "Invalid enum1" }
     }
@@ -281,21 +295,22 @@ const Web3Form = (props: Props) => {
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="mintOneNFT" />
+                            <RadioGroupItem value="mintTokensToGuest" />
                           </FormControl>
                           <FormLabel>
-                            MintOneNFT
+                            Mint Tokens To Guest
                           </FormLabel>
                         </FormItem>
 
                         <FormItem className="radio-item">
                           <FormControl>
-                            <RadioGroupItem value="mintTokens" />
+                            <RadioGroupItem value="mintNftToSales" />
                           </FormControl>
                           <FormLabel>
-                            MintTokens
+                            Mint NFTs to Sales Contract
                           </FormLabel>
                         </FormItem>
+
                       </div>
                     </RadioGroup>
                   </FormControl>
@@ -310,7 +325,7 @@ const Web3Form = (props: Props) => {
               name="floatNum1"
               render={({ field }) => (
                 <FormItem>
-                  <h3>Amount in Ether</h3>
+                  <h3>Amount in Ether / NFT ID</h3>
                   <FormControl>
                     <Input
                       placeholder="Enter floatNum1..."

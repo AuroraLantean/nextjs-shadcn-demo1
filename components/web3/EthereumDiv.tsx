@@ -39,7 +39,7 @@ const EthereumDiv = (props: Props) => {
   const web3InitOut = { str1: '', inWei: bigIntZero, nums: [], err: '', name: '', symbol: '', decimals: -1, tokenSymbol: '', tokenAddr: '', salesAddr: '' };
   const [web3s, setWeb3s] = useState(web3InitOut);
 
-  const { chainType, isInitialized, chainName, chainId, account, err } = useWeb3Store(
+  const { isInitialized, chainName, chainId, account, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
 
@@ -62,8 +62,7 @@ const EthereumDiv = (props: Props) => {
       }
       toast({ description: "web3 initialized successfully!" });
       lg("initOut:", initOut)
-      const chainType = chainTypeDefault;
-      const { nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
+      const { nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainTypeDefault);
       if (updateAddrsErr) {
         console.error("updateAddrsErr:", updateAddrsErr)
         toast({ description: `${updateAddrsErr}`, variant: 'destructive' })

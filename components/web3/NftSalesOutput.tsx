@@ -9,7 +9,7 @@ import { web3InputSchema } from '@/lib/validators';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { useToast } from '../ui/use-toast';
 import { capitalizeFirst, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { APP_WIDTH_MIN, chainTypeDefault, nftIdMax, nftIdMin } from '@/constants/site_data';
+import { APP_WIDTH_MIN, nftIdMax, nftIdMin } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { getBaseURI, getCurrBalances, getSalesPrices, initBalancesDefault, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from '@/store/web3Store';
@@ -44,7 +44,6 @@ const NftSalesOutput = (props: Props) => {
       lg(compoName + " useEffect ran on initialized:", isInitialized)
 
       const getInit2 = async () => {
-        const chainType = chainTypeDefault;
         lg("tokenAddr:", tokenAddr)
         const balcs = await getCurrBalances(chainType, account, tokenAddr, nftAddr, salesAddr);
         if (balcs.err) {

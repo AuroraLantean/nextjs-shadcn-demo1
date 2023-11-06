@@ -98,6 +98,12 @@ export const isEqualStr = (str1: any, str2: any): boolean => (str1 + '').trim().
 
 export const isObjEqualStr = (obj1: object, obj2: object): boolean => JSON.stringify(obj1) === JSON.stringify(obj2)
 
+export const arrayRange = (start: number, stop: number, step: number) =>
+  Array.from(
+    { length: (stop - start) / step + 1 },
+    (value, index) => start + index * step
+  );
+
 //Sequentially execute an asynchronous callback function in the order of given array of boxes
 export const asyncFor = async<T>(array: Array<T>, callback: <U>(box: T) => Promise<U>) => {
   const output = [];

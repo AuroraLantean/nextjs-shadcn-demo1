@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
-import { getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from "@/store/web3Store";
+import { changeChainType, getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 
 const CARD_HEIGHT = 350;
@@ -108,6 +108,21 @@ export const CarouselDraggable = () => {
       lg("initOut:", initOut)
     }
   }
+  const changeChainTypeF = async () => {
+    lg("changeChainType")
+    const initOut = await changeChainType('newChainType');
+    if (initOut.err) {
+      toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
+      return true;
+    }
+    if (initOut.warn) {
+      toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
+      return true;
+    }
+    toast({ description: "web3 initialized successfully!" });
+    lg("initOut:", initOut)
+
+  }
 
   //relative max-auto <w3m-button />
   return (
@@ -118,6 +133,9 @@ export const CarouselDraggable = () => {
           {isInitialized ? <p>Wallet Connected</p> : <Button
             className="primary-color ml-2"
             onClick={connectToWallet}>Connect to wallet</Button>}
+          <Button
+            className="!bg-secondary-500 ml-2"
+            onClick={changeChainTypeF}>Change Chain Type</Button>
 
         </div>
         <motion.div ref={carousel} className="my-2 " whileHover={{ cursor: "grab" }} whileTap={{ cursor: "grabbing" }}>

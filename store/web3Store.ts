@@ -36,6 +36,11 @@ export const useWeb3Store = createSelectors(createWithEqualityFn<typeof initialS
 )
 )));
 
+export const changeChainType = async (chainType: string) => {
+  const funcName = 'changeChainType';
+  let initOut = web3InitDefault;
+  return initOut;
+}
 export const initializeDefaultProvider = async (chainType: string) => {
   const funcName = 'initializeDefaultProvider';
   let initOut = web3InitDefault;
@@ -236,7 +241,7 @@ export type balancesT = typeof initBalancesDefault;
 export const getCurrBalances = async (chainType: string, account: string, tokenAddr: string, nftAddr: string, salesAddr: string) => {
   const funcName = 'getCurrBalances';
   let balcs = initBalancesDefault;
-
+  lg(funcName, '...');
   if (chainType === 'evm') {
     balcs = await getEvmBalances(account, tokenAddr, nftAddr, salesAddr);
 
@@ -245,7 +250,6 @@ export const getCurrBalances = async (chainType: string, account: string, tokenA
   } else {
     return { ...balcs, err: 'Unknown chainType' };
   }
-  lg(funcName + ' from selected chain. err:', balcs.err);
   if (balcs.err) {
     console.error(funcName + " failed:", balcs.err);
   } else {

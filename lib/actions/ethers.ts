@@ -6,7 +6,7 @@ export const erc20JSON = contractsJSON[0];
 export const erc721JSON = contractsJSON[1];
 export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
-import { asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
+import { arrayRange, asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
 import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
 
 
@@ -410,27 +410,81 @@ export const erc721Transfer = async (addrFrom: string, addrTo: string, tokenId: 
   }
 }
 
-export const erc721SafeMint = async (addrFrom: string, addrTo: string, tokenId: string, ctrtAddr: string): Promise<OutT> => {
+export const erc721SafeMint = async (addrFrom: string, addrTo: string, minTokenId: string, maxTokenId: string, ctrtAddr: string): Promise<OutT> => {
   const funcName = "erc721SafeMint";
-  lg(funcName + '()... addrFrom:', addrFrom, ', addrTo:', addrTo, ', tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
-  const tokId = Number.parseInt(tokenId);
-  if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId)) {
+  lg(funcName + '()... addrFrom:', addrFrom, ', addrTo:', addrTo, ', minTokenId:', minTokenId, ', maxTokenId:', maxTokenId, ', ctrtAddr:', ctrtAddr);
+  const tokIdMin = Number.parseInt(minTokenId);
+  const tokIdMax = Number.parseInt(maxTokenId);
+  if (isEmpty(addrFrom) || isEmpty(addrTo) || isEmpty(minTokenId) || isEmpty(maxTokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokIdMin) || Number.isNaN(tokIdMax)) {
     return { ...out, err: funcName + 'input invalid' };
   } else if (!signer) {
     return { ...out, err: 'signer invalid' };
   }
   try {
     const nft = new Contract(ctrtAddr, erc721JSON.abi, signer);
-
     const ownerOut = await nft.owner();
     lg("ownerOut:", ownerOut)
     if (ownerOut.toLowerCase() !== addrFrom.toLowerCase()) return { ...out, err: 'invalid contract owner' }
 
-    const isExisting: boolean = await nft.exists(tokId);
-    lg("isExisting:", isExisting)
-    if (isExisting) return { ...out, err: 'tokenId was already minted' }
+    const tokenIds = arrayRange(tokIdMin, tokIdMax, 1);
+    lg("tokenIds to be minted:", tokenIds)
+    for (const id of tokenIds) {
+      const isExisting: boolean = await nft.exists(id);
+      lg("isExisting:", isExisting)
+      if (isExisting) return { ...out, err: 'tokenId was already minted. id:' + id }
+    }
 
-    const tx = await nft.safeMint(addrTo, tokId);
+    const tx = await nft.safeMint(addrTo, tokIdMin, tokIdMax);
+    const receipt = await tx.wait();
+    lg(funcName + ' success... txnHash:', receipt, receipt.hash);
+    //blockNumber, cumulativeGasUsed, gasPrice, gasUsed
+    return { ...out, str1: receipt.hash };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...out, err: funcName + ' failed' };
+  }
+}
+
+export const erc721SafeMintToGuest = async (addrTo: string, tokenId: string, ctrtAddr: string): Promise<OutT> => {
+  const funcName = "erc721SafeMintToGuest";
+  lg(funcName + '()... addrTo:', addrTo, ', tokenId:', tokenId, ', ctrtAddr:', ctrtAddr);
+  const tokId = Number.parseInt(tokenId);
+  if (isEmpty(addrTo) || isEmpty(tokenId) || isEmpty(ctrtAddr) || Number.isNaN(tokId)) {
+    return { ...out, err: funcName + 'input invalid' };
+  } else if (!signer) {
+    return { ...out, err: 'signer invalid' };
+  }
+  try {
+    const nft = new Contract(ctrtAddr, erc721JSON.abi, signer);
+    const nftIds = arrayRange(tokId, tokId + 2, 1);
+    for (const id of nftIds) {
+      const isExisting: boolean = await nft.exists(id);
+      lg("isExisting:", isExisting)
+      if (isExisting) return { ...out, err: `tokenId ${id} was already minted` }
+    }
+
+    const tx = await nft.safeMintToGuest(addrTo, tokId);
+    const receipt = await tx.wait();
+    lg(funcName + ' success... txnHash:', receipt, receipt.hash);
+    //blockNumber, cumulativeGasUsed, gasPrice, gasUsed
+    return { ...out, str1: receipt.hash };
+  } catch (error) {
+    console.error(funcName + ':', error);
+    return { ...out, err: funcName + ' failed' };
+  }
+}
+
+export const erc20MintToGuest = async (ctrtAddr: string): Promise<OutT> => {
+  const funcName = "erc20MintToGuest";
+  lg(funcName + '()... ctrtAddr:', ctrtAddr);
+  if (isEmpty(ctrtAddr)) {
+    return { ...out, err: funcName + 'input invalid' };
+  } else if (!signer) {
+    return { ...out, err: 'signer invalid' };
+  }
+  try {
+    const erc20 = new Contract(ctrtAddr, erc20JSON.abi, signer);
+    const tx = await erc20.mintToGuest();
     const receipt = await tx.wait();
     lg(funcName + ' success... txnHash:', receipt, receipt.hash);
     //blockNumber, cumulativeGasUsed, gasPrice, gasUsed

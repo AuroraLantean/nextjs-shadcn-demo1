@@ -96,7 +96,7 @@ export const web3InputSchema = z.object({
   enum1: z.enum(tokenOnChains, {
     required_error: "You need to select one",
   }),
-  enum2: z.enum(["getBalance", "transfer", "transferFrom", "approve", "allowance", "mintOneNFT", "mintTokens"], {
+  enum2: z.enum(["getBalance", "transfer", "transferFrom", "approve", "allowance", "mintNftToSales", "mintTokensToGuest"], {
     required_error: "You need to select one",
   }),
   floatNum1: z.string().max(24, {
