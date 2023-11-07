@@ -1,7 +1,8 @@
 import { parseIntSafe } from "@/lib/utils";
 
 export const APP_WIDTH_MIN = 350;
-export const chainTypeDefault = 'evm'
+export const chainTypeDefault = 'evm';
+export const localChainDefault = 'anvil';
 export const nftIdMin = 0;
 export const nftIdMax = 9;
 export type DragonT = {
@@ -102,11 +103,6 @@ export const sidebarLinks = [
     imgURL: '/assets/profile.svg',
     route: '/login',
     label: 'Login/Register',
-  },
-  {
-    imgURL: '/assets/profile.svg',
-    route: '/chart',
-    label: 'Chart',
   },
   {
     imgURL: '/assets/community.svg',

@@ -149,9 +149,6 @@ const EthereumDiv = (props: Props) => {
 
       } else if (data.enum2 === "approve") {
 
-
-      } else if (data.enum2 === "mintOneNFT") {
-
       }
     } else if (data.enum1 === tokenOnChains[2]) {
       //goldcoin_ethereum

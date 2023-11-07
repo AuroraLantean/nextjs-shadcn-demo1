@@ -2,7 +2,12 @@
 const nextConfig = {
   experimental: {
     //serverActions: true,
+    //appDir: true,
     serverComponentsExternalPackages: ['mongoose'],
+  },
+  webpack: (config) => {
+    config.externals.push('pino-pretty', 'lokijs', 'encoding');
+    return config;
   },
   eslint: {
     // Warning: This allows production builds to successfully complete even if

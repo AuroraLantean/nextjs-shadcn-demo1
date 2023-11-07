@@ -7,6 +7,7 @@ import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
 import { changeChainType, getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
@@ -119,24 +120,24 @@ export const CarouselDraggable = () => {
       toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
       return true;
     }
-    toast({ description: "web3 initialized successfully!" });
+    toast({ description: "ChainType changed to ..." });
     lg("initOut:", initOut)
 
   }
-
+  /**<Button className="primary-color ml-2"
+    onClick={connectToWallet}>Connect to wallet</Button>
+  */
   //relative max-auto <w3m-button />
   return (
     <section className="overflow-hidden my-2">
       <div className="w-full md:w-auto max-w-6xl">
-        <div className="text-2xl font-semibold flex">
-          Mystical Creatures... <span className="ml-2 text-slate-500">Even beyond your imagination.</span>
-          {isInitialized ? <p>Wallet Connected</p> : <Button
-            className="primary-color ml-2"
-            onClick={connectToWallet}>Connect to wallet</Button>}
+        <div className="text-2xl font-semibold flex flex-wrap items-center ">
+          <span className="mr-2">Mystical Creatures...</span>
+          <ConnectButton />
+          {isInitialized ? <p>Wallet Connected</p> : <p></p>}
           <Button
             className="!bg-logout-btn ml-2"
             onClick={changeChainTypeF}>Change Chain Type</Button>
-
         </div>
         <motion.div ref={carousel} className="my-2 " whileHover={{ cursor: "grab" }} whileTap={{ cursor: "grabbing" }}>
           <motion.div drag="x"
@@ -205,7 +206,7 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
               <span className=''> {priceToken} </span>
               {tokenSymbol}
             </p>
-            <p className="text-slate-300 bg-secondary-500 w-min">{status}</p>
+            <p className="text-dark-4 bg-secondary-500 w-min">{status}</p>
           </div>
         </div>
       </div>

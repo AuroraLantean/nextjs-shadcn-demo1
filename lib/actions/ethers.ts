@@ -8,10 +8,11 @@ export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
 import { arrayRange, asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
 import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
-
+import { linea } from "wagmi/chains";
+import { localChainDefault } from "@/constants/site_data";
 
 const infuraApiKey = process.env.NEXT_PUBLIC_INFURA_APIKEY || '';
-const ethereumNetwork = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK || 'anvil';
+const blockchain = process.env.NEXT_PUBLIC_BLOCKCHAIN || localChainDefault;
 const erc20_usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || erc20JSON.contractAddress;
 const erc20_usdcAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDC || '';
 const erc721Addr = process.env.NEXT_PUBLIC_ETHEREUM_NFT || erc721JSON.contractAddress;
@@ -42,34 +43,28 @@ declare global {
 export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
   const funcName = "ethersDefaultProvider";
   lg(funcName + "()...");
-  const ethereumNetworkRaw = process.env.NEXT_PUBLIC_ETHEREUM_NETWORK;
   let chainId = ''
   let chainName = ''
-  if (ethereumNetworkRaw) {
-    // set to remote default network
-    mesg = "Use read-only defaults on " + ethereumNetworkRaw + " test network";
-    const infuraEndpoint = "https://" + ethereumNetworkRaw + ".infura.io/v3/" + infuraApiKey;
-    lg("infuraEndpoint", infuraEndpoint)
-    provider = new ethers.JsonRpcProvider(infuraEndpoint);
-    const chainObj = getChainObj(ethereumNetworkRaw);
-    chainId = chainObj.chainId;
-    chainName = chainObj.chainName;
-  } else {
+  let endpoint = ''
+  const infuraChains = ['mainnet', 'sepolia', 'goerli', 'linea-goerli', 'polygon-mainnet', 'polygon-mumbai', 'optimism-mainnet', 'optimism-goerli', 'arbitrum-mainnet', 'arbitrum-goerli', 'avalanche-mainnet', 'avalanche-fuji', 'starknet-goerli'];
+  if (blockchain === localChainDefault) {
     // set to local default network
-    const localEndpoint = "http://localhost:8545";
-    lg("localEndpoint", localEndpoint)
-    provider = new ethers.JsonRpcProvider(localEndpoint);
-    chainId = 'local'
-    chainName = 'local'
+    endpoint = "http://localhost:8545";
+    provider = new ethers.JsonRpcProvider(endpoint);
+    chainName = blockchain;
+    chainId = getChainObj(chainName).chainId;
+  } else {
+    // set to remote default network
+    if (!infuraChains.includes(blockchain)) {
+      return { ...web3InitDefault, err: 'invalid blockchain' };
+    }
+    lg("Use read-only defaults on " + blockchain + " network");
+    endpoint = "https://" + blockchain + ".infura.io/v3/" + infuraApiKey;
+    provider = new ethers.JsonRpcProvider(endpoint);
+    chainName = blockchain;
+    chainId = getChainObj(blockchain).chainId;
   }
-  //signer = await provider.getSigner()
-  lg('use default chainId:', chainId);
-  lg('use default chainName:', chainName);
-  if (chainName !== ethereumNetwork && process.env.NEXT_PUBLIC_ETHEREUM_NETWORK) {
-    warning = 'use default chain ' + capitalizeFirst(chainName) + ' is not expected. Switch network to ' + capitalizeFirst(ethereumNetwork);
-  }
-  const account = '';
-  lg('use null account:', account);
+  lg('use chainName:', chainName, ', use chainId:', chainId, ", use endpoint:", endpoint)
 
   if (warning) console.warn(warning)
   lg(funcName + " ran successfully")
@@ -78,7 +73,7 @@ export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
     chainType: 'evm',
     chainId,
     chainName,
-    account,
+    account: '',
     warn: warning,
   };
 }
@@ -124,8 +119,8 @@ export const initializeEvmWallet = async (): Promise<Web3InitOutT> => {
     const { chainHex, chainName } = getChainObj(chainId)
     lg('detected chainName:', chainName);
 
-    if (chainName !== ethereumNetwork) {
-      warning = 'detected chain ' + capitalizeFirst(chainName) + ' is not expected. Switch network to ' + capitalizeFirst(ethereumNetwork);
+    if (chainName !== blockchain) {
+      warning = 'detected blockchain ' + capitalizeFirst(chainName) + ' is not expected. Switch network to ' + capitalizeFirst(blockchain);
     }
 
     const accounts = await window.ethereum.request({ method: 'eth_accounts' }).catch((err: any) => {
@@ -921,9 +916,9 @@ export const getEvmAddr = (ctrtName: addrName): string => {
 };
 
 export const getDecimals = (addr: string) => {
-  //lg('getDecimals. addr:', addr, "erc20JSON.contractAddress:", erc20JSON.contractAddress, isEqualStr(addr, erc20JSON.contractAddress), ', ethereumNetwork:', ethereumNetwork)
+  //lg('getDecimals. addr:', addr, "erc20JSON.contractAddress:", erc20JSON.contractAddress, isEqualStr(addr, erc20JSON.contractAddress), ', blockchain:', blockchain)
   let decimals = 18;
-  if (ethereumNetwork === 'anvil') {
+  if (blockchain === localChainDefault) {
     switch (addr) {
       case erc20JSON.contractAddress:
         decimals = 6;
@@ -1022,7 +1017,7 @@ export const getChainObj = (input: string) => {
     case '0x7a69':
       chainHex = '';
       chainName = 'anvil';
-      chainId = 'anvil'
+      chainId = '31337'
       break;
     case 'hardhat':
     case '0x539':
