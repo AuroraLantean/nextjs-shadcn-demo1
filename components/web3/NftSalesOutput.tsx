@@ -22,12 +22,9 @@ const NftSalesOutput = (props: Props) => {
   const lg = console.log;
   const compoName = 'NftSalesOutput';
   lg(compoName + '...');
-  const initStates = { ...initBalancesDefault, str1: '' };
-  //let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const effectRan = useRef(false)
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
-  //const [states, setStates] = useState<typeof initStates>(initStates);
   const [isLoading, setIsLoading] = useState(false);
   const nativeTokenName = 'ETH'
   const tokenName = 'USDT'
@@ -61,13 +58,13 @@ const NftSalesOutput = (props: Props) => {
         lg("statuses:", statuses.arr)
         //setStates({ ...states, ...balcs })
       }
-      if (isInitialized) getInit2();
+      if (isInitialized && tokenAddr) getInit2();
     }
     return () => {
       lg(compoName + " unmounted useeffect()...")
       effectRan.current = true
     }
-  }, [isInitialized]);
+  }, [isInitialized, tokenAddr]);//tokenAddr arrives later than isInitialized from Wagmi
 
   type InputT = z.infer<typeof web3InputSchema>;
   const form = useForm<InputT>({

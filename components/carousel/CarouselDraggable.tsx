@@ -5,9 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
-import { changeChainType, getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from "@/store/web3Store";
+import { changeChainType, getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, runAfterRainbowKit, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useAccount, useNetwork } from "wagmi";
+import { getChainObj } from "@/lib/actions/ethers";
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
@@ -34,7 +36,7 @@ export const CarouselDraggable = () => {
       if (carousel.current?.scrollWidth) setLeftLimit(carousel.current?.scrollWidth - carousel.current?.offsetWidth);
 
       // fetch nftArray
-      const action = async () => {
+      const initDefaultProvider = async () => {
         const chainType = chainTypeDefault;
         const initOut = await initializeDefaultProvider(chainType);
         if (initOut.err) {
@@ -81,7 +83,7 @@ export const CarouselDraggable = () => {
       if (isDefaultProvider) {
         lg("isDefaultProvider already true")
       } else {
-        action();
+        initDefaultProvider();
       }
     }
     return () => {
@@ -89,6 +91,20 @@ export const CarouselDraggable = () => {
       effectRan.current = true
     }
   }, []);
+
+  //RainbowKit functions: to detect connected account and chain details
+  //const { address, isConnecting, isDisconnected } = useAccount();
+  const { chain, chains } = useNetwork()
+  const accountRB = useAccount({
+    onConnect({ address, connector, isReconnected }) {
+      lg('Connected', { address, connector, isReconnected })
+      if (chain && address) {
+        lg(`Wagmi()... Connected to ${chain.name}, chainId: ${chain.id}`)
+        const { decimals: nativeAssetDecimals, name: nativeAssetName, symbol: nativeAssetSymbol } = chain.nativeCurrency;
+        runAfterRainbowKit(chain.name, chain.id, address, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals)
+      }
+    },
+  })
 
   const connectToWallet = async () => {
     lg("connectToWallet")
@@ -124,9 +140,11 @@ export const CarouselDraggable = () => {
     lg("initOut:", initOut)
 
   }
-  /**<Button className="primary-color ml-2"
-    onClick={connectToWallet}>Connect to wallet</Button>
-  */
+  /* {isInitialized ? <p>Wallet Connected</p> : <Button className="primary-color ml-2"
+    onClick={connectToWallet}>Connect to wallet</Button>}
+
+    {effectRan.current ? address && <p>Address: {address} </p> : null}
+    */
   //relative max-auto <w3m-button />
   return (
     <section className="overflow-hidden my-2">
@@ -134,7 +152,6 @@ export const CarouselDraggable = () => {
         <div className="text-2xl font-semibold flex flex-wrap items-center ">
           <span className="mr-2">Mystical Creatures...</span>
           <ConnectButton />
-          {isInitialized ? <p>Wallet Connected</p> : <p></p>}
           <Button
             className="!bg-logout-btn ml-2"
             onClick={changeChainTypeF}>Change Chain Type</Button>

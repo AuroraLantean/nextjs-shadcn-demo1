@@ -87,6 +87,16 @@ export const initEvmWalletAfterLoad = async () =>
       return { ...web3InitDefault, err: err.message };
     }
   });
+export const afterWagmi = async (): Promise<Web3InitOutT> => {
+  const funcName = "initializeEvmWallet";
+  lg(funcName + "()...");
+  provider = new ethers.BrowserProvider(window.ethereum)
+  signer = await provider.getSigner();
+  lg(funcName + " ran successfully")
+  return {
+    ...web3InitDefault,
+  };
+}
 export const initializeEvmWallet = async (): Promise<Web3InitOutT> => {
   const funcName = "initializeEvmWallet";
   lg(funcName + "()...");
@@ -1014,6 +1024,7 @@ export const getChainObj = (input: string) => {
       chainId = ''
       break;
     case 'anvil':
+    case '"Foundry"':
     case '0x7a69':
       chainHex = '';
       chainName = 'anvil';

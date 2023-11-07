@@ -3,7 +3,7 @@ import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
-import { contractsJSONdup, initializeEvmWallet, getEvmAddr, getEvmBalances, nftSalesStatus, nftStatusesDefault, nftStatusesT, checkEvmNftStatus, erc721BaseURI, OutT, out, evmSalesPrices, ethersDefaultProvider, evmSalesPricesD } from '@/lib/actions/ethers';
+import { contractsJSONdup, initializeEvmWallet, getEvmAddr, getEvmBalances, nftSalesStatus, nftStatusesDefault, nftStatusesT, checkEvmNftStatus, erc721BaseURI, OutT, out, evmSalesPrices, ethersDefaultProvider, evmSalesPricesD, afterWagmi } from '@/lib/actions/ethers';
 import { DragonT, dragons, extractNftIds } from '@/constants/site_data';
 
 export const web3InitDefault = { err: '', warn: '', chainType: '', chainId: '', chainName: '', account: '' };
@@ -14,7 +14,7 @@ const initialState = {
   ...web3InitDefault, tokenAddr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: '',
   nftStatuses: [] as nftSalesStatus[],
   isInitialized: false, isDefaultProvider: false,
-  err: '', baseURI: '', nativeAssetName: '', tokenName: '', tokenSymbol: '',
+  err: '', baseURI: '', nativeAssetName: '', nativeAssetSymbol: '', nativeAssetDecimals: '', tokenName: '', tokenSymbol: '',
   accBalcNative: '', accBalcToken: '',
   accNftArray: [] as number[],
   salesBalcNative: '', salesBalcToken: '',
@@ -73,6 +73,30 @@ export const initializeDefaultProvider = async (chainType: string) => {
   }
   return initOut;
 }
+
+//After RainbowKit button clicking
+export const runAfterRainbowKit = async (chainName: string, chainId: number, account: string, nativeAssetName: string, nativeAssetSymbol: string, nativeAssetDecimals: number) => {
+  const funcName = 'runAfterRainbowKit';
+  lg(funcName + `()...chainName: ${chainName}, chainId: ${chainId}, account: ${account}, nativeAssetName: ${nativeAssetName}, nativeAssetSymbol: ${nativeAssetSymbol}, nativeAssetDecimals: ${nativeAssetDecimals}`)
+  const chainType = 'evm';
+  let initOut = web3InitDefault;
+  const len = contractsJSONdup.length;
+  if (len < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
+  await afterWagmi()
+  lg("here 103")
+  useWeb3Store.setState((state) => ({
+    ...state, chainType, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals,
+    isInitialized: true,
+    isDefaultProvider: false,
+    chainName: capitalizeFirst(chainName),
+    chainId: chainId,
+    account: account,
+  }));
+  lg("here 104")
+  return initOut;
+}
+
+//Click to connect to Wallets
 export const initializeWallet = async (chainType: string) => {
   const funcName = 'initializeWallet';
   let initOut = web3InitDefault;
@@ -212,7 +236,7 @@ export const updateAddrs = async (chainType: string) => {
     tokenAddr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: ''
   }
   if (chainType === 'evm') {
-    //tokenAddr = getEvmAddr('erc20_usdt')
+    //tokenAddr = getEvmAddr('erc20_usdt') ... to be updated in getSalesPrices()
     nftAddr = getEvmAddr('erc721Dragon')
     salesAddr = getEvmAddr('erc721Sales')
     nftOriginalOwner = getEvmAddr('nftOriginalOwner')

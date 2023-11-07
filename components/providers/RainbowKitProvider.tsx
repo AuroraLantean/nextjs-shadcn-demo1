@@ -15,6 +15,7 @@ import { configureChains, createConfig, sepolia, WagmiConfig } from 'wagmi';
 import { foundry, polygonMumbai } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 
+//enter chains with deployed contracts
 const { chains, publicClient, webSocketPublicClient } = configureChains(
   [
     sepolia, foundry, //polygonMumbai,
