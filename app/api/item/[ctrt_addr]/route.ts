@@ -10,7 +10,7 @@ export async function GET(req: Request) {
 
   const box: BoxT = await res.json()
 
-  if (!box.id) return NextResponse.json({ "message": "Todo not found" })
+  if (!box.id) return NextResponse.json({ "message": "Box not found" })
 
   return NextResponse.json(box)
 }

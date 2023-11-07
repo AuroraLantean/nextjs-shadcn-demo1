@@ -16,7 +16,6 @@ const MARGIN = 20;
 const lg = console.log;
 //TODO: make mobile carousel work without difficulty... reference: commit before Sep 29
 export const CarouselDraggable = () => {
-  const lg = console.log;
   const compoName = 'CarouselDraggable'
   //const [ref, { width }] = useMeasure();ref={ref} 
   //lg("width=" + width)
@@ -158,7 +157,7 @@ export const CarouselDraggable = () => {
         </div>
         <motion.div ref={carousel} className="my-2 " whileHover={{ cursor: "grab" }} whileTap={{ cursor: "grabbing" }}>
           <motion.div drag="x"
-            dragConstraints={{ right: 0, left: - leftLimit - (1 / 1) }}
+            dragConstraints={{ right: 0, left: - leftLimit - (APP_WIDTH_MIN * 6.3) }}
             className="flex flex-row">
             {nftArray.map((nft, index) => {
               return (
