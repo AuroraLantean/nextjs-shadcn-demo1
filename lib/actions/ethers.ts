@@ -8,11 +8,10 @@ export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
 import { arrayRange, asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
 import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
-import { linea } from "wagmi/chains";
 import { localChainDefault } from "@/constants/site_data";
 
 const infuraApiKey = process.env.NEXT_PUBLIC_INFURA_APIKEY || '';
-const blockchain = process.env.NEXT_PUBLIC_BLOCKCHAIN || localChainDefault;
+const blockchain = (process.env.NEXT_PUBLIC_BLOCKCHAIN)?.toLowerCase() || localChainDefault.toLowerCase();
 const erc20_usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || erc20JSON.contractAddress;
 const erc20_usdcAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDC || '';
 const erc721Addr = process.env.NEXT_PUBLIC_ETHEREUM_NFT || erc721JSON.contractAddress;
@@ -43,36 +42,51 @@ declare global {
 export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
   const funcName = "ethersDefaultProvider";
   lg(funcName + "()...");
-  let chainId = ''
-  let chainName = ''
-  let endpoint = ''
+  let chainId = '', chainName = '', endpoint = ''
+
   const infuraChains = ['mainnet', 'sepolia', 'goerli', 'linea-goerli', 'polygon-mainnet', 'polygon-mumbai', 'optimism-mainnet', 'optimism-goerli', 'arbitrum-mainnet', 'arbitrum-goerli', 'avalanche-mainnet', 'avalanche-fuji', 'starknet-goerli'];
   if (blockchain === localChainDefault) {
-    // set to local default network
+    lg('------ Connect to a local network');
     endpoint = "http://localhost:8545";
     provider = new ethers.JsonRpcProvider(endpoint);
     chainName = blockchain;
     chainId = getChainObj(chainName).chainId;
+
+  } else if (provider !== undefined) {
+    lg('------ Use existing provider')
+
   } else {
-    // set to remote default network
+    lg('------ Connect to a remote network')
     if (!infuraChains.includes(blockchain)) {
-      return { ...web3InitDefault, err: 'invalid blockchain' };
+      return { ...web3InitDefault, err: 'invalid blockchain:' + blockchain };
     }
-    lg("Use read-only defaults on " + blockchain + " network");
     endpoint = "https://" + blockchain + ".infura.io/v3/" + infuraApiKey;
-    provider = new ethers.JsonRpcProvider(endpoint);
+    lg("Use read-only defaults on " + blockchain)
+    //lg("endpoint:" + endpoint, ', infuraApiKey:', infuraApiKey);
+    provider = new ethers.InfuraProvider(blockchain, infuraApiKey);
+    //new AlchemyProvider(network, apiKey)
+    //new QuickNodeProvider(network, token)
     chainName = blockchain;
     chainId = getChainObj(blockchain).chainId;
   }
-  lg('use chainName:', chainName, ', use chainId:', chainId, ", use endpoint:", endpoint)
+  lg('use chainName:', chainName, ', chainId:', chainId)
+  let balance: any;
+  try {
+    if (addr2def) {
+      balance = await provider.getBalance(addr2def);
+    }
+  } catch (err) {
+    return { ...web3InitDefault, err: 'provider failed:' + blockchain };
+  }
+  lg('test run on provider... balance on addr2def:', balance);
 
   if (warning) console.warn(warning)
   lg(funcName + " ran successfully")
   return {
     ...web3InitDefault,
     chainType: 'evm',
-    chainId,
-    chainName,
+    chainId, chainName,
+    nativeAssetName: 'Ether', nativeAssetSymbol: 'ETH',
     account: '',
     warn: warning,
   };
@@ -159,10 +173,10 @@ export const initializeEvmWallet = async (): Promise<Web3InitOutT> => {
     };
   }
 }
-const handleChainChanged = () => {
+export const handleChainChanged = () => {
   window.location.reload();
 }
-function handleAccountsChanged(accounts: string | any[]): Web3InitOutT {
+export function handleAccountsChanged(accounts: string | any[]): Web3InitOutT {
   let currentAccount = null;
   if (accounts.length === 0) {
     warning = 'Please connect to MetaMask';

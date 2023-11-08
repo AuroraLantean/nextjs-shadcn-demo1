@@ -3,12 +3,13 @@ const nextConfig = {
   experimental: {
     //serverActions: true,
     //appDir: true,
+    //webpackBuildWorker: true,
     serverComponentsExternalPackages: ['mongoose'],
   },
-  webpack: (config) => {
+  /*   webpack: (config) => {
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     return config;
-  },
+  }, */
   eslint: {
     // Warning: This allows production builds to successfully complete even if
     // your project has ESLint errors.

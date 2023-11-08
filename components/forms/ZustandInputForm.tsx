@@ -17,12 +17,12 @@ import { APP_WIDTH_MIN } from '@/constants/site_data';
 
 type Props = {}
 
-const ItemInputForm = (props: Props) => {
+const ZustandInputForm = (props: Props) => {
   const { toast } = useToast();
   const { totalNum, obj, objSum } = useObjStore(
     (state) => state
   );
-  console.log("ItemInputForm...")
+  console.log("ZustandInputForm...")
   type Input = z.infer<typeof zustandSchema>;
   const form = useForm<Input>({
     resolver: zodResolver(zustandSchema),
@@ -62,7 +62,7 @@ const ItemInputForm = (props: Props) => {
   return (
     <Card className={`w-[${APP_WIDTH_MIN}px] gap-2`}>
       <CardHeader>
-        <CardTitle>ItemInputForm: Zustand Client State Management</CardTitle>
+        <CardTitle>ZustandInputForm: Zustand Client State Management</CardTitle>
       </CardHeader>
       <CardContent>
 
@@ -190,4 +190,4 @@ const ItemInputForm = (props: Props) => {
 }
 
 //  <div className="flex flex-row space-y-1">
-export default ItemInputForm;
+export default ZustandInputForm;

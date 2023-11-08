@@ -26,21 +26,20 @@ const NftSalesOutput = (props: Props) => {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const nativeTokenName = 'ETH'
-  const tokenName = 'USDT'
 
   const { chainType, isInitialized, chainName, chainId, account, err, tokenAddr, nftAddr, salesAddr, accBalcNative, accBalcToken, nftOriginalOwner,
     accNftArray, salesBalcNative, salesBalcToken,
-    salesNftArray } = useWeb3Store(
+    salesNftArray, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals, tokenName, tokenSymbol } = useWeb3Store(
       useShallow((state) => ({ ...state }))
     )
 
   useEffect(() => {
+    lg(compoName + " useEffect runs")
     setIsClient(true);
-    if (effectRan.current === true) {
-      lg(compoName + " useEffect ran on initialized:", isInitialized)
+    if (process.env.NEXT_PUBLIC_BLOCKCHAIN || effectRan.current === true) {
 
       const getInit2 = async () => {
+        lg(compoName + " useEffect runs getInit2()")
         lg("tokenAddr:", tokenAddr)
         const balcs = await getCurrBalances(chainType, account, tokenAddr, nftAddr, salesAddr);
         if (balcs.err) {
@@ -61,7 +60,7 @@ const NftSalesOutput = (props: Props) => {
       if (isInitialized && tokenAddr) getInit2();
     }
     return () => {
-      lg(compoName + " unmounted useeffect()...")
+      lg(compoName + " unmounted useEffect()...")
       effectRan.current = true
     }
   }, [isInitialized, tokenAddr]);//tokenAddr arrives later than isInitialized from Wagmi
@@ -99,18 +98,22 @@ const NftSalesOutput = (props: Props) => {
         <CardTitle>{compoName} {isClient ? Math.trunc(Math.random() * 10000) : 0}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-xl font-semibold">Chain: {chainName} {chainId}</p>
-        <p className="break-words text-xl font-semibold">Account: {makeShortAddr(account)}</p>
-        <p className='text-xl font-semibold'>Account {nativeTokenName} Balance: {accBalcNative}</p>
-        <p className='text-xl font-semibold'>Account {tokenName} Balance: {accBalcToken}</p>
-        <p className='text-xl font-semibold'>Account NFT(s): {accNftArray.toString() || "none"}</p>
+        <div className='text-xl font-semibold break-all mb-3'>
+          <p>Chain: {chainName} {chainId}</p>
+          <p>Account: {makeShortAddr(account)}</p>
+          <p>Account {nativeAssetSymbol} Balance: {accBalcNative}</p>
+          <p>Account {tokenSymbol} Balance: {accBalcToken}</p>
+          <p>Account NFT(s): {accNftArray.toString() || "none"}</p>
+        </div>
 
-        <p className='text-xl'>Sales Contract: {makeShortAddr(salesAddr)}</p>
-        <p className='text-xl'>Sales Contract {nativeTokenName} Balance: {salesBalcNative}</p>
-        <p className='text-xl'>Sales Contract {tokenName} Balance: {salesBalcToken}</p>
-        <p className='text-xl'>Sales Contract NFT(s): {salesNftArray.toString() || "none"}</p>
+        <div className='text-xl break-all'>
+          <p>Sales Contract: {makeShortAddr(salesAddr)}</p>
+          <p>Sales Contract {nativeAssetSymbol} Balance: {salesBalcNative}</p>
+          <p>Sales Contract {tokenSymbol} Balance: {salesBalcToken}</p>
+          <p>Sales Contract NFT(s): {salesNftArray.toString() || "none"}</p>
+        </div>
 
-        <p className='text-xl font-semibold break-words mb-3'>Output: { }</p>
+        <p className='text-xl font-semibold break-all mb-3'>Output: { }</p>
 
         <Form {...form}>
           <form
@@ -153,9 +156,9 @@ const NftSalesOutput = (props: Props) => {
         </Form>
         <div className="break-all">
           <p>Deployed Contract Addresses</p>
-          <p>Token: {tokenAddr}</p>
-          <p>NFT: {nftAddr}</p>
-          <p>Sales: {salesAddr}</p>
+          <p><span className='text-xl font-semibold'>Token:</span> {tokenAddr}</p>
+          <p><span className='text-xl font-semibold'>NFT:</span> {nftAddr}</p>
+          <p><span className='text-xl font-semibold'>Sales:</span> {salesAddr}</p>
         </div>
         <div className=''>
           <p className='text-xl font-semibold'>Click below to copy one of above addresses:</p>

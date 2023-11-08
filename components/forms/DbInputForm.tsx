@@ -19,10 +19,13 @@ import BoxCard from '../cards/BoxCard';
 type Props = {}
 
 const DbInputForm = (props: Props) => {
+  const lg = console.log;
+  const compoName = 'DbInputForm';
+  lg(compoName + '...');
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false)
   useEffect(() => {
-    console.log("DbInputForm...")
+    lg(compoName + " useEffect runs")
     setIsClient(true);
   }, []);
 
@@ -39,7 +42,7 @@ const DbInputForm = (props: Props) => {
   });
   async function onSubmit(data: Input) {
     //alert(JSON.stringify(data, null, 4));
-    console.log(data);
+    lg(data);
     /*toast({
       title: "submitted values:",
       description: (
@@ -59,7 +62,7 @@ const DbInputForm = (props: Props) => {
         out = await findOne(data.id)
         if (out === null) out = "not found"
       } else {
-        console.log("data.id does not exist")
+        lg("data.id does not exist")
         out = "data.id does not exist";
       }
     } else if (data.enum1 === "addOrUpdateOne") {
@@ -82,7 +85,7 @@ const DbInputForm = (props: Props) => {
     } else if (data.enum1 === "deleteAll") {
       out = await deleteAll()
     }
-    console.log("out:", out)
+    lg("out:", out)
     toast({
       title: "result:",
       description: (

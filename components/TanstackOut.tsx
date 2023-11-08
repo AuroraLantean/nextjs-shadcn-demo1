@@ -10,10 +10,13 @@ import { parseIntSafe } from '@/lib/utils';
 
 type Props = {}
 const TanstackOut = (props: Props) => {
+  const lg = console.log;
+  const compoName = 'TanstackOut';
+  lg(compoName + '...');
   const [isClient, setIsClient] = useState(false);
   const [isToFetch, setIsToFetch] = useState(false);
   useEffect(() => {
-    console.log("TanstackOut useEffect...")
+    lg(compoName + " useEffect runs...")
     setIsClient(true)
   }, [])
   const { data, status, dataUpdatedAt, error, isFetched, isLoading, isSuccess, isError, /*refresh... */ } = useQuery({
@@ -22,7 +25,7 @@ const TanstackOut = (props: Props) => {
     //cacheTime: 0,//to fetch new data all the time, no cached data!
     queryFn: async () => {
       const { data } = await axios.get('/api/item')
-      console.log("🚀 data:", data)
+      lg("🚀 data:", data)
       //const res = await fetch('..');
       //if (!res.ok) throw new Error('...')
       //const data = await res.json();

@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Input } from '../ui/input';
 import { useToast } from '../ui/use-toast';
 import { cn, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { OutT, bigIntZero, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { OutT, addr1def, addr2def, bigIntZero, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN, chainTypeDefault } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -90,7 +90,7 @@ const EthereumDiv = (props: Props) => {
       run();
     }
     return () => {
-      lg("EthereumDiv unmounted useeffect()...")
+      lg("EthereumDiv unmounted useEffect()...")
       effectRan.current = true
     }
   }, []);
@@ -110,8 +110,8 @@ const EthereumDiv = (props: Props) => {
       enum1: tokenOnChains[0],
       enum2: "getBalance",
       floatNum1: "",
-      addr1: process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "",
-      addr2: process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "",
+      addr1: addr1def,
+      addr2: addr2def,
     },
   });
   async function onSubmit(data: InputT) {

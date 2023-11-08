@@ -8,34 +8,41 @@ import { Button } from "../ui/button";
 import { changeChainType, getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, runAfterRainbowKit, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useNetwork } from "wagmi";
-import { getChainObj } from "@/lib/actions/ethers";
+import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from "wagmi";
+import { capitalizeFirst } from "@/lib/utils";
+import { handleAccountsChanged, handleChainChanged } from "@/lib/actions/ethers";
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
-const lg = console.log;
-//TODO: make mobile carousel work without difficulty... reference: commit before Sep 29
+
 export const CarouselDraggable = () => {
   const compoName = 'CarouselDraggable'
+  const lg = console.log;
   //const [ref, { width }] = useMeasure();ref={ref} 
   //lg("width=" + width)
   const [leftLimit, setLeftLimit] = useState(0);
   const carousel = useRef<HTMLDivElement>(null);
   const effectRan = useRef(false)
   const { toast } = useToast();
+  const { disconnect } = useDisconnect()
 
-  const { account, isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, nativeAssetName, tokenName, tokenSymbol, err } = useWeb3Store(
+  const { account, isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, chainName, nativeAssetName, nativeAssetSymbol, tokenName, tokenSymbol, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
-  //lg(compoName, ', account:', account, "nftStatuses:", nftStatuses)
+  //TODO: disconnect then reconnect => should auto check balances
+  //lg(compoName + '... effectRan.current:', effectRan.current, ' isDefaultProvider:', isDefaultProvider)
+  //lg(compoName+ ' account:', account, "nftStatuses:", nftStatuses)
+  const blockchain = (process.env.NEXT_PUBLIC_BLOCKCHAIN || '').toLowerCase();
   useEffect(() => {
-    if (effectRan.current === true) {
-      lg(compoName + " useEffect ran")
+    lg(compoName + " useEffect runs, blockchain:", blockchain)
+    if (blockchain || effectRan.current === true) {
       //lg(carousel.current?.scrollWidth, carousel.current?.offsetWidth);
       if (carousel.current?.scrollWidth) setLeftLimit(carousel.current?.scrollWidth - carousel.current?.offsetWidth);
 
       // fetch nftArray
       const initDefaultProvider = async () => {
+        lg(compoName + " useEffect runs initDefaultProvider")
+        disconnect();
         const chainType = chainTypeDefault;
         const initOut = await initializeDefaultProvider(chainType);
         if (initOut.err) {
@@ -86,7 +93,7 @@ export const CarouselDraggable = () => {
       }
     }
     return () => {
-      lg(compoName + " unmounted useeffect()...")
+      lg(compoName + " unmounted useEffect()...")
       effectRan.current = true
     }
   }, []);
@@ -96,10 +103,21 @@ export const CarouselDraggable = () => {
   const { chain, chains } = useNetwork()
   const accountRB = useAccount({
     onConnect({ address, connector, isReconnected }) {
-      lg('Connected', { address, connector, isReconnected })
+      lg('Connected', address, connector, ', isReconnected:', isReconnected)
       if (chain && address) {
         lg(`Wagmi()... Connected to ${chain.name}, chainId: ${chain.id}`)
         const { decimals: nativeAssetDecimals, name: nativeAssetName, symbol: nativeAssetSymbol } = chain.nativeCurrency;
+
+        window.ethereum.on('chainChanged', () => {
+          disconnect()
+          window.location.reload();
+        });
+        window.ethereum.on('accountsChanged', handleAccountsChanged);
+
+        if (chain.name.toLowerCase() !== blockchain) {
+          toast({ description: `Failed: connected chain is not expected! Click on the Network dropdown button, and click on ${capitalizeFirst(blockchain)}. Click on your account dropdown, then click on Disconnect. Then connect wallet again.`, variant: 'destructive' })
+          return true;
+        }
         runAfterRainbowKit(chain.name, chain.id, address, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals)
       }
     },
@@ -154,6 +172,7 @@ export const CarouselDraggable = () => {
           <Button
             className="!bg-logout-btn ml-2"
             onClick={changeChainTypeF}>Change Chain Type</Button>
+          {chain && chain.name.toLowerCase() !== blockchain ? <span className="text-logout-btn">Connected chain is not expected! Click on the Network dropdown button, and click on {capitalizeFirst(blockchain)}. Click on your account dropdown, then click on Disconnect. Then connect wallet again.</span> : null}
         </div>
         <motion.div ref={carousel} className="my-2 " whileHover={{ cursor: "grab" }} whileTap={{ cursor: "grabbing" }}>
           <motion.div drag="x"
@@ -162,7 +181,7 @@ export const CarouselDraggable = () => {
             {nftArray.map((nft, index) => {
               return (
                 <motion.div className="" key={nft.id}>
-                  <Card {...nft} index={index} status={nftStatuses[index]} nativeAssetName={nativeAssetName} tokenName={tokenName} tokenSymbol={tokenSymbol} prices={prices}
+                  <Card {...nft} index={index} status={nftStatuses[index]} nativeAssetSymbol={nativeAssetSymbol} tokenSymbol={tokenSymbol} prices={prices}
                   />
                 </motion.div>
               );
@@ -178,9 +197,9 @@ animate={{ x: 250 }}
 <Image src={item.imgURL} alt="image_alt" width={CARD_WIDTH} height={CARD_HEIGHT} />
 */
 type CardProps = {
-  index: number, status: string, nativeAssetName: string, tokenName: string, tokenSymbol: string, prices: string[]
+  index: number, status: string, nativeAssetSymbol: string, tokenSymbol: string, prices: string[]
 } & DragonT;
-const Card = ({ id, imgURL, category, name, description, index, status, nativeAssetName, tokenName, tokenSymbol, prices }: CardProps) => {
+const Card = ({ id, imgURL, category, name, description, index, status, nativeAssetSymbol, tokenSymbol, prices }: CardProps) => {
   const compoName = 'Carousel Card'
   //const index = nftIds.indexOf(nftId);
   const priceOne = prices[index];
@@ -218,7 +237,7 @@ const Card = ({ id, imgURL, category, name, description, index, status, nativeAs
           <BasicModal nftId={id} priceNative={priceNative} priceToken={priceToken} />
           <div className="text-slate-300 bg-dark-2 ">
             <p className="">Price:
-              <span className='ml-2 mr-1'>{priceNative}</span>{nativeAssetName} /
+              <span className='ml-2 mr-1'>{priceNative}</span>{nativeAssetSymbol} /
               <span className=''> {priceToken} </span>
               {tokenSymbol}
             </p>

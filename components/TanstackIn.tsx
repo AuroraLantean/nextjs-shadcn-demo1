@@ -13,21 +13,16 @@ import { delayFunc, parseIntSafe } from '@/lib/utils';
 type Props = {}
 const TanstackIn = (props: Props) => {
   const lg = console.log;
-  const effectRan = useRef(false)
+  const compoName = 'TanstackIn';
+  lg(compoName + '...');
   const { toast } = useToast();
   const box0 = { id: "", title: "", total: 0 }
   const [box, setBox] = useState<Partial<BoxT>>(box0);
   const [isToFetch, setIsToFetch] = useState(false);
   const [isClient, setIsClient] = useState(false);
   useEffect(() => {
+    lg(compoName + " useEffect runs")
     setIsClient(true);
-    if (effectRan.current === true) {
-      lg("TanstackIn useEffect...")
-    }
-    return () => {
-      lg("TanstackIn unmounted useeffect()...")
-      effectRan.current = true
-    }
   }, [])
 
   const queryClient = useQueryClient();
@@ -90,7 +85,7 @@ const TanstackIn = (props: Props) => {
     enabled: isToFetch,
   });
   useEffect(() => {
-    lg("new out data1:", data1)
+    lg(compoName + " data1:", data1)
     if (isSuccess1 && data1) {
       setBox({ ...data1 })
     }

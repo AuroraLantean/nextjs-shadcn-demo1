@@ -14,16 +14,15 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { tokenOnChains, web3InputSchema } from '@/lib/validators';
+import { tokenOnChain, tokenOnChains, tokenT, web3InputSchema } from '@/lib/validators';
 import { makeShortAddr, cn, isEmpty } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
 import { initializeWallet, updateNftStatus, useWeb3Store } from '@/store/web3Store';
-import { OutT, addr1def, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20MintToGuest, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721SafeMintToGuest, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr, salesPrice, salesSetPriceBatchGuest } from '@/lib/actions/ethers';
+import { OutT, addr2def, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20MintToGuest, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721SafeMintToGuest, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr, salesPrice, salesSetPriceBatchGuest } from '@/lib/actions/ethers';
 import { buyNFT } from '@/lib/actions/radix.actions';
 import { useShallow } from 'zustand/react/shallow'
 import { APP_WIDTH_MIN } from '@/constants/site_data';
 import { Separator } from '../ui/separator';
-import { formatEther } from 'ethers';
 
 type Props = {}
 //web3 wallet connection should be initialized via another React componenet on the same page
@@ -37,21 +36,35 @@ const Web3Form = (props: Props) => {
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] as number[] }
   const initStates = { ...out, isLoading: false };
   const [outputs, setOutputs] = useState<typeof initStates>(initStates);
-
-  const { chainType, isInitialized, chainName, chainId, account, nftOriginalOwner, nftAddr, tokenAddr, salesAddr, nftIds, tokenSymbol, prices, err } = useWeb3Store(
+  const [inputTokens, setInputTokens] = useState<tokenT[]>([]);
+  const { chainName, chainId, account, nftAddr, tokenAddr, salesAddr, nativeAssetSymbol, tokenSymbol, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
+  const blockchain = process.env.NEXT_PUBLIC_BLOCKCHAIN;
+  //lg('--------', compoName, chainName, 'nativeAssetSymbol:', nativeAssetSymbol, 'tokenSymbol:', tokenSymbol)
+  useEffect(() => {
+    lg(compoName + " useEffect runs, blockchain:", blockchain)
+    if (blockchain || effectRan.current === true) {
+      lg('------', compoName, chainName, nativeAssetSymbol, tokenSymbol)
+      if (chainName && nativeAssetSymbol && tokenSymbol) {
+        setInputTokens([
+          { label: nativeAssetSymbol + " on " + chainName, value: tokenOnChains[0] },
+          { label: tokenSymbol + " on " + chainName, value: tokenOnChains[1] },
+          { label: "GoldCoin on " + chainName, value: tokenOnChains[2] },
+          { label: "DragonNFT on " + chainName, value: tokenOnChains[3] },
+          { label: "Sales Contract on " + chainName, value: tokenOnChains[4] },
+          { label: "XRD on Radix", value: tokenOnChains[5] },
+          { label: "USDT on Radix", value: tokenOnChains[6] },
+        ]);// as const;
+        lg("inputTokens:", inputTokens)
+      }
+    }
+    return () => {
+      lg(compoName + " unmounted useEffect()...")
+      effectRan.current = true
+    }
+  }, [chainName, nativeAssetSymbol, tokenSymbol]);
 
-  const tokenSelectionStr = tokenSymbol + ' on Ethereum';
-  const inputTokens = [
-    { label: "ETH on Ethereum", value: tokenOnChains[0] },
-    { label: tokenSelectionStr, value: tokenOnChains[1] },
-    { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
-    { label: "DragonNFT on Ethereum", value: tokenOnChains[3] },
-    { label: "Sales Contract on Ethereum", value: tokenOnChains[4] },
-    { label: "XRD on Radix", value: tokenOnChains[5] },
-    { label: "USDT on Radix", value: tokenOnChains[6] },
-  ];// as const;
 
   type InputT = z.infer<typeof web3InputSchema>;
   const form = useForm<InputT>({
@@ -83,8 +96,8 @@ const Web3Form = (props: Props) => {
       addr1 = account;
     }
     if (!addr2) {
-      addr2 = addr1def;
-      if (isEmpty(addr1def)) console.error("Invalid addr1def");
+      if (isEmpty(addr2def)) console.error("Invalid addr2def");
+      addr2 = addr2def;
     }
     const decimals = getDecimals(tokenAddr);
     lg("addr1", addr1, ', addr2:', addr2)
@@ -93,7 +106,7 @@ const Web3Form = (props: Props) => {
         out = await ethBalanceOf(addr1)
       } else if (data.enum2 === "transfer") {
         if (addr2 === salesAddr) {
-          addr2 = addr1def;
+          addr2 = addr2def;
         }
         out = await ethTransfer(addr2, outFloat + '', chainName);
       }
@@ -209,11 +222,13 @@ const Web3Form = (props: Props) => {
         <CardTitle>Web3Form</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="text-xl font-semibold">Detected Chain: {chainName}, Id: {chainId}</p>
-        <p className="break-words text-xl font-semibold">Account: {makeShortAddr(account)}</p>
-        <p className='text-xl font-semibold break-words'>Outputs numbers: {outputs.nums}</p>
-        <p className='text-xl font-semibold'>Error: {outputs.err}</p>
-        <p className='text-xl font-semibold break-words mb-3'>Output: {outputs.str1}</p>
+        <div className='text-xl font-semibold break-all mb-3'>
+          <p>Detected Chain: {chainName}, Id: {chainId}</p>
+          <p>Account: {makeShortAddr(account)}</p>
+          <p>Outputs numbers: {outputs.nums}</p>
+          <p>Error: {outputs.err}</p>
+          <p>Output: {outputs.str1}</p>
+        </div>
 
         <Form {...form}>
           <form
@@ -438,7 +453,7 @@ const Web3Form = (props: Props) => {
                   <h3>Addr2</h3>
                   <FormControl>
                     <Input
-                      placeholder="keep this empty to use addr1def"
+                      placeholder="keep this empty to use addr2def"
                       {...field}
                     />
                   </FormControl>

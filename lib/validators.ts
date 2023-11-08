@@ -91,6 +91,8 @@ export const settingTabP2Schema = z.object({
 });
 
 export const tokenOnChains = ["eth_ethereum", "usdt_ethereum", "goldcoin_ethereum", "nftDragon_ethereum", "sales_ethereum", "xrd_radix", "usdt_radix"] as const;
+export type tokenOnChain = (typeof tokenOnChains)[number];
+export type tokenT = { label: string, value: tokenOnChain }
 
 export const web3InputSchema = z.object({
   enum1: z.enum(tokenOnChains, {

@@ -49,14 +49,13 @@ const BasicModal = ({ nftId, priceNative, priceToken }: Props) => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
-  const { chainType, nativeAssetName, tokenName, tokenSymbol, account, nftOriginalOwner, nftAddr, tokenAddr, salesAddr, nftIds, prices, baseURI, err } = useWeb3Store(
+  const { chainType, chainName, nativeAssetName, nativeAssetSymbol, tokenName, tokenSymbol, account, nftOriginalOwner, nftAddr, tokenAddr, salesAddr, nftIds, baseURI, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
-  const tokenSelectionStr = tokenSymbol + ' on Ethereum';
   const inputTokens = [
-    { label: "ETH on Ethereum", value: tokenOnChains[0] },
-    { label: tokenSelectionStr, value: tokenOnChains[1] },
-    { label: "GoldCoin on Ethereum", value: tokenOnChains[2] },
+    { label: nativeAssetSymbol + " on " + chainName, value: tokenOnChains[0] },
+    { label: tokenSymbol + " on " + chainName, value: tokenOnChains[1] },
+    { label: "GoldCoin on " + chainName, value: tokenOnChains[2] },
     { label: "XRD on Radix", value: tokenOnChains[5] },
     { label: "USDT on Radix", value: tokenOnChains[6] },
   ];// as const;
@@ -210,7 +209,7 @@ const BasicModal = ({ nftId, priceNative, priceToken }: Props) => {
 
             <div className="mt-0">
               <div>
-                <FormLabel>NFT Price in {nativeAssetName}: <span className='ml-2 mr-1'>{priceNative}</span>{nativeAssetName}
+                <FormLabel>NFT Price in {nativeAssetName}: <span className='ml-2 mr-1'>{priceNative}</span>{nativeAssetSymbol}
                 </FormLabel>
               </div>
               <div>

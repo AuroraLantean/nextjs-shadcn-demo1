@@ -6,10 +6,10 @@ import { StateCreator } from 'zustand';
 import { contractsJSONdup, initializeEvmWallet, getEvmAddr, getEvmBalances, nftSalesStatus, nftStatusesDefault, nftStatusesT, checkEvmNftStatus, erc721BaseURI, OutT, out, evmSalesPrices, ethersDefaultProvider, evmSalesPricesD, afterWagmi } from '@/lib/actions/ethers';
 import { DragonT, dragons, extractNftIds } from '@/constants/site_data';
 
-export const web3InitDefault = { err: '', warn: '', chainType: '', chainId: '', chainName: '', account: '' };
+export const web3InitDefault = { err: '', warn: '', chainType: '', chainId: '', chainName: '', account: '', nativeAssetName: '', nativeAssetSymbol: '', };
 const lg = console.log;
-
 export type Web3InitOutT = typeof web3InitDefault;
+
 const initialState = {
   ...web3InitDefault, tokenAddr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: '',
   nftStatuses: [] as nftSalesStatus[],
@@ -44,7 +44,7 @@ export const changeChainType = async (chainType: string) => {
 export const initializeDefaultProvider = async (chainType: string) => {
   const funcName = 'initializeDefaultProvider';
   let initOut = web3InitDefault;
-  let nativeAssetName = ''
+  //let nativeAssetName = ''
   if (chainType === 'evm') {
     initOut = await ethersDefaultProvider();
     const len = contractsJSONdup.length;
@@ -59,15 +59,16 @@ export const initializeDefaultProvider = async (chainType: string) => {
 
   } else {
     //else if (initOut.warn)
-    nativeAssetName = getNativeAssetName(chainType)
+    //nativeAssetName = getNativeAssetName(chainType)
 
     useWeb3Store.setState((state) => ({
       ...state,
       isDefaultProvider: true,
       chainType,
-      nativeAssetName,
       chainName: capitalizeFirst(initOut.chainName),
       chainId: initOut.chainId,
+      nativeAssetName: initOut.nativeAssetName,
+      nativeAssetSymbol: initOut.nativeAssetSymbol,
       account: initOut.account,
     }));
   }

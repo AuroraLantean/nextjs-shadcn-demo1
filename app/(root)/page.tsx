@@ -3,12 +3,7 @@ import { fetchPosts } from "@/lib/actions/thread.actions";
 import { fetchUser } from "@/lib/actions/user.actions";
 import { Separator } from "@/components/ui/separator";
 import { CarouselDraggable } from "@/components/carousel/CarouselDraggable";
-import ItemInputForm from "@/components/forms/ItemInputForm";
 
-import StateOutput from "@/components/stateOutput";
-import StateInput from "@/components/forms/StateInput";
-import CouponDiv from "@/components/couponDiv";
-import TableRows from "@/components/tableRows";
 import DbInputForm from "@/components/forms/DbInputForm";
 import TanstackOut from "@/components/TanstackOut";
 import TanstackIn from "@/components/TanstackIn";
@@ -37,11 +32,6 @@ export default async function HomePage() {
         <TanstackIn />
         <TanstackOut />
         <DbInputForm />
-        <ItemInputForm />
-        <StateOutput />
-        <StateInput />
-        <CouponDiv />
-        <TableRows />
       </div>
     </>
   )
