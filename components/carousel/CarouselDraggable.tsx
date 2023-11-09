@@ -5,34 +5,35 @@ import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
-import { changeChainType, getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, runAfterRainbowKit, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from "@/store/web3Store";
+import { changeChainType, getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateChain, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store, updateAccount, removeAccount, setupBlockchainData, blockchain } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from "wagmi";
-import { capitalizeFirst } from "@/lib/utils";
+import { capitalizeFirst, delayFunc } from "@/lib/utils";
 import { handleAccountsChanged, handleChainChanged } from "@/lib/actions/ethers";
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
-
+//TODO: https://sepolia.etherscan.io/tx/TXNHASH
+//TODO: has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource
 export const CarouselDraggable = () => {
   const compoName = 'CarouselDraggable'
   const lg = console.log;
   //const [ref, { width }] = useMeasure();ref={ref} 
   //lg("width=" + width)
   const [leftLimit, setLeftLimit] = useState(0);
+  //const [mesg, setMesg] = useState('');
   const carousel = useRef<HTMLDivElement>(null);
   const effectRan = useRef(false)
   const { toast } = useToast();
   const { disconnect } = useDisconnect()
 
-  const { account, isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, chainName, nativeAssetName, nativeAssetSymbol, tokenName, tokenSymbol, err } = useWeb3Store(
+  const { chainType, account, isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, chainName, previousChain, nativeAssetName, nativeAssetSymbol, tokenName, tokenSymbol, nftOriginalOwner, nftAddr, salesAddr, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   //TODO: disconnect then reconnect => should auto check balances
   //lg(compoName + '... effectRan.current:', effectRan.current, ' isDefaultProvider:', isDefaultProvider)
   //lg(compoName+ ' account:', account, "nftStatuses:", nftStatuses)
-  const blockchain = (process.env.NEXT_PUBLIC_BLOCKCHAIN || '').toLowerCase();
   useEffect(() => {
     lg(compoName + " useEffect runs, blockchain:", blockchain)
     if (blockchain || effectRan.current === true) {
@@ -53,38 +54,14 @@ export const CarouselDraggable = () => {
           toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
           return true;
         }
-        toast({ description: "web3 initialized with the DefaultProvider!" });
+        const out = await setupBlockchainData(nftIdMin, nftIdMax, chainType);
+        if (out.err) {
+          toast({ description: `${out.err}`, variant: 'destructive' })
+          return;
+        }
+
+        toast({ description: "web3 initialized with the DefaultProvider on " + capitalizeFirst(initOut.chainName) });
         lg("initOut:", initOut)
-
-        const nftsOut = await updateNftArray(nftIdMin, nftIdMax);
-        if (nftsOut.err) {
-          console.error("nftsOut.err:", nftsOut.err)
-          toast({ description: `${nftsOut.err}`, variant: 'destructive' })
-          return;
-        }
-
-        const { nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
-        if (updateAddrsErr) {
-          console.error("updateAddrsErr:", updateAddrsErr)
-          toast({ description: `${updateAddrsErr}`, variant: 'destructive' })
-          return;
-        }
-
-        const out2 = await getSalesPrices(chainType, nftsOut.nftIds, nftAddr, salesAddr);
-        if (out2.err) {
-          console.error("getSalesPrices err:", out2.err)
-          toast({ description: `${out2.err}`, variant: 'destructive' })
-          return;
-        }
-        await getBaseURI(chainType, nftAddr);
-
-        const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
-        if (statuses.err) {
-          console.error("updateNftStatus err:", statuses.err)
-          toast({ description: `${statuses.err}`, variant: 'destructive' })
-          return;
-        }
-        lg("statuses:", statuses.arr)
       }
       if (isDefaultProvider) {
         lg("isDefaultProvider already true")
@@ -98,28 +75,49 @@ export const CarouselDraggable = () => {
     }
   }, []);
 
-  //RainbowKit functions: to detect connected account and chain details
-  //const { address, isConnecting, isDisconnected } = useAccount();
   const { chain, chains } = useNetwork()
+  if (chain) {
+    //lg(`Wagmi() useNetwork(): ${chain.name}, chainId: ${chain.id}, previousChain: ${previousChain}`)
+    //NOT run useState as it will cause loop rendering!
+    const { decimals: nativeAssetDecimals, name: nativeAssetName, symbol: nativeAssetSymbol } = chain.nativeCurrency;
+
+    //this chain IS onConnect! https://wagmi.sh/react/hooks/useNetwork
+    if (previousChain !== chain.name) {
+      const run = async () => {
+        const out1 = await updateChain(chain.name, chain.id, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals)
+
+        const out = await setupBlockchainData(nftIdMin, nftIdMax, out1.chainType);
+        if (out.err) {
+          toast({ description: `${out.err}`, variant: 'destructive' })
+          return;
+        }
+      }
+      run();
+    }
+  }
+
   const accountRB = useAccount({
     onConnect({ address, connector, isReconnected }) {
-      lg('Connected', address, connector, ', isReconnected:', isReconnected)
-      if (chain && address) {
-        lg(`Wagmi()... Connected to ${chain.name}, chainId: ${chain.id}`)
-        const { decimals: nativeAssetDecimals, name: nativeAssetName, symbol: nativeAssetSymbol } = chain.nativeCurrency;
+      lg('Wagmi useAccount onConnect', address, connector, ', isReconnected:', isReconnected)
+      if (address) {
+        const run = async () => {
+          await updateAccount(address)
 
-        window.ethereum.on('chainChanged', () => {
-          disconnect()
-          window.location.reload();
-        });
-        window.ethereum.on('accountsChanged', handleAccountsChanged);
-
-        if (chain.name.toLowerCase() !== blockchain) {
-          toast({ description: `Failed: connected chain is not expected! Click on the Network dropdown button, and click on ${capitalizeFirst(blockchain)}. Click on your account dropdown, then click on Disconnect. Then connect wallet again.`, variant: 'destructive' })
-          return true;
+          await delayFunc(2000);//wait for statemanagement to update the data to be used below
+          lg('nftOriginalOwner:', nftOriginalOwner)
+          const statuses = await updateNftStatus(chainType, address, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
+          if (statuses.err) {
+            console.error("updateNftStatus err:", statuses.err)
+            return;
+          }
+          lg("statuses:", statuses.arr)
         }
-        runAfterRainbowKit(chain.name, chain.id, address, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals)
+        run();
       }
+    },
+    onDisconnect() {
+      console.log('Account disconnected')
+      removeAccount()
     },
   })
 

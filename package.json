@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cp .env.dev .env.local && next dev",
+    "dev2": "cp .env.prod .env.local && next dev",
     "buildlocal": "cp .env.prod .env.local && next build",
     "build": "next build",
     "start": "next start",

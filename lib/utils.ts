@@ -76,7 +76,7 @@ export const parseIntSafe = (input: any) => {
   return out;
 }
 
-export const delayFunc = (delay: number): Promise<boolean> => new Promise((resolve, reject) => setTimeout(() => {
+export const delayFunc = async (delay: number): Promise<boolean> => new Promise((resolve, reject) => setTimeout(() => {
   console.log("delay:", delay);
   resolve(true)
 }, delay))

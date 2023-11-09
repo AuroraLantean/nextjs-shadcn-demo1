@@ -7,11 +7,10 @@ export const erc721JSON = contractsJSON[1];
 export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
 import { arrayRange, asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
-import { Web3InitOutT, balancesT, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
+import { Web3InitOutT, balancesT, blockchain, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
 import { localChainDefault } from "@/constants/site_data";
 
 const infuraApiKey = process.env.NEXT_PUBLIC_INFURA_APIKEY || '';
-const blockchain = (process.env.NEXT_PUBLIC_BLOCKCHAIN)?.toLowerCase() || localChainDefault.toLowerCase();
 const erc20_usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || erc20JSON.contractAddress;
 const erc20_usdcAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDC || '';
 const erc721Addr = process.env.NEXT_PUBLIC_ETHEREUM_NFT || erc721JSON.contractAddress;
@@ -45,7 +44,8 @@ export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
   let chainId = '', chainName = '', endpoint = ''
 
   const infuraChains = ['mainnet', 'sepolia', 'goerli', 'linea-goerli', 'polygon-mainnet', 'polygon-mumbai', 'optimism-mainnet', 'optimism-goerli', 'arbitrum-mainnet', 'arbitrum-goerli', 'avalanche-mainnet', 'avalanche-fuji', 'starknet-goerli'];
-  if (blockchain === localChainDefault) {
+  lg("blockchain:", blockchain)
+  if (blockchain === localChainDefault.toLowerCase()) {
     lg('------ Connect to a local network');
     endpoint = "http://localhost:8545";
     provider = new ethers.JsonRpcProvider(endpoint);
@@ -63,7 +63,13 @@ export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
     endpoint = "https://" + blockchain + ".infura.io/v3/" + infuraApiKey;
     lg("Use read-only defaults on " + blockchain)
     //lg("endpoint:" + endpoint, ', infuraApiKey:', infuraApiKey);
-    provider = new ethers.InfuraProvider(blockchain, infuraApiKey);
+    try {
+      provider = new ethers.InfuraProvider(blockchain, infuraApiKey);
+    } catch (err) {
+      mesg = `Error @InfuraProvider. blockchain: ${blockchain}, err:${err}`
+      console.error(mesg);
+      return { ...web3InitDefault, err: mesg };
+    }
     //new AlchemyProvider(network, apiKey)
     //new QuickNodeProvider(network, token)
     chainName = blockchain;
@@ -101,12 +107,28 @@ export const initEvmWalletAfterLoad = async () =>
       return { ...web3InitDefault, err: err.message };
     }
   });
-export const afterWagmi = async (): Promise<Web3InitOutT> => {
-  const funcName = "initializeEvmWallet";
+export const setupProvider = async (): Promise<Web3InitOutT> => {
+  const funcName = "setupProvider";
   lg(funcName + "()...");
   provider = new ethers.BrowserProvider(window.ethereum)
+  lg(funcName + " ran successfully")
+  return {
+    ...web3InitDefault,
+  };
+}
+export const setupSigner = async (): Promise<Web3InitOutT> => {
+  const funcName = "setupSigner";
+  lg(funcName + "()...");
   signer = await provider.getSigner();
   lg(funcName + " ran successfully")
+  return {
+    ...web3InitDefault,
+  };
+}
+export const removeSigner = async (): Promise<Web3InitOutT> => {
+  const funcName = "removeSigner";
+  lg(funcName + "()...");
+  signer = undefined;
   return {
     ...web3InitDefault,
   };
@@ -116,14 +138,19 @@ export const initializeEvmWallet = async (): Promise<Web3InitOutT> => {
   lg(funcName + "()...");
   if (window.ethereum == null) {
     // If MetaMask is not installed, we use the default provider, which is backed by a variety of third-party services (such as INFURA). They do not have private keys installed so are only have read-only access
-    warning = "MetaMask not installed; using read-only defaults on sepolia test network";
+    warning = `MetaMask not installed; using read-only defaults on ${blockchain} test network`;
     console.warn(warning)
-    provider = ethers.getDefaultProvider("sepolia");
+    try {
+      provider = ethers.getDefaultProvider(blockchain);
+    } catch (err) {
+      console.error('Error getting default provider')
+      return { ...web3InitDefault, err: 'failed to get default provider' };
+    }
     return {
       ...web3InitDefault,
       warn: warning,
-      chainId: '11155111',//sepolia
-      chainName: 'sepolia',
+      chainId: getChainObj(blockchain).chainId,
+      chainName: blockchain,
     };
   } else {
     // Connect to the MetaMask EIP-1193 object. This is a standard protocol that allows Ethers access to make all read-only requests through MetaMask.
@@ -942,7 +969,7 @@ export const getEvmAddr = (ctrtName: addrName): string => {
 export const getDecimals = (addr: string) => {
   //lg('getDecimals. addr:', addr, "erc20JSON.contractAddress:", erc20JSON.contractAddress, isEqualStr(addr, erc20JSON.contractAddress), ', blockchain:', blockchain)
   let decimals = 18;
-  if (blockchain === localChainDefault) {
+  if (blockchain === localChainDefault.toLowerCase()) {
     switch (addr) {
       case erc20JSON.contractAddress:
         decimals = 6;

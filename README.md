@@ -79,14 +79,18 @@ bun run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. I use Firefox during development.
 
-For unknown reasons, NextJs cannot launch the app properly in the very first time. So you need to press `F5` on your keyboard to reload your web browser again after launching the NextJs, so the NextJs can work properly.
+If for unknown reasons, NextJs cannot launch the app properly in the very first time. You need to press `F5` on your keyboard to reload your web browser again after launching the NextJs, so the NextJs can work properly.
 
 Initially, the app should use the default web3 provider via Infura API to load the page.
-Then you should click on the `Connect to wallet` button on the top of the home page to connect your Web3 Wallet to this app.
+
+Go to your browser wallet to choose the account you want to connect to. Then come back to this app and click on the `Connect to wallet` button on the top of the home page to connect your Web3 Wallet to this app.
+
+Wagmi should prompt you to switch to the correct network with deployed contracts.
+If you want to use another account, go to your browser wallet to choose the account you want to connect to. Then come back to this app and click on `Disconnect` then `Connect to Wallet`
 
 Confirm your initial ETH balance and the token balance on the home page. This token is the token address set inside the ERC721 Sales smart contract during its deployment, or you can reset the token address after deployment.
 
-#### If you do not have the token that is accepted by the NFT Sales contract:
+#### If you do not have the tokens that is accepted by the NFT Sales contract:
 
 In the dropdown: choose the USDT or TokenX on Ethereum/Other Chain
 In the Radio buttons: choose `Mint Tokens To Guest`
