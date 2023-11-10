@@ -128,6 +128,11 @@ Enter the NFT ID in the first for field, then click on `Submit to Blockchain`.
 
 After the transaction has been submitted and finalize. Then click on the left `Go` button to refresh your balances. You should see your NFT collection has increased by a new NFT ID.
 
+## Known Issues
+
+`CORS: rpc.sepolia.org has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource`
+This turns out to be an issue from the Sepolia.org APIs, because I have no control over which domains they would accept requests from.
+
 ## Under Investigation
 
 Cant resolve 'bufferutil' and 'utf-8-validate'

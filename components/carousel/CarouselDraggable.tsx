@@ -5,17 +5,16 @@ import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
-import { changeChainType, getBaseURI, getSalesPrices, initializeDefaultProvider, initializeWallet, updateChain, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store, updateAccount, removeAccount, setupBlockchainData, blockchain } from "@/store/web3Store";
+import { changeChainType, initializeDefaultProvider, initializeWallet, updateChain, updateNftStatus, useWeb3Store, updateAccount, removeAccount, setupBlockchainData, blockchain } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useAccount, useDisconnect, useNetwork, useSwitchNetwork } from "wagmi";
+import { useAccount, useDisconnect, useNetwork } from "wagmi";
 import { capitalizeFirst, delayFunc } from "@/lib/utils";
-import { handleAccountsChanged, handleChainChanged } from "@/lib/actions/ethers";
 
 const CARD_HEIGHT = 350;
 const MARGIN = 20;
 //TODO: https://sepolia.etherscan.io/tx/TXNHASH
-//TODO: has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource
+
 export const CarouselDraggable = () => {
   const compoName = 'CarouselDraggable'
   const lg = console.log;
@@ -81,12 +80,13 @@ export const CarouselDraggable = () => {
     //NOT run useState as it will cause loop rendering!
     const { decimals: nativeAssetDecimals, name: nativeAssetName, symbol: nativeAssetSymbol } = chain.nativeCurrency;
 
-    //this chain IS onConnect! https://wagmi.sh/react/hooks/useNetwork
+    //this chain IS onConnect! could cause loop! https://wagmi.sh/react/hooks/useNetwork
     if (previousChain !== chain.name) {
       const run = async () => {
-        const out1 = await updateChain(chain.name, chain.id, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals)
+        await delayFunc(2000);
+        const out1 = await updateChain(chainType, chain.name, chain.id, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals)
 
-        const out = await setupBlockchainData(nftIdMin, nftIdMax, out1.chainType);
+        const out = await setupBlockchainData(nftIdMin, nftIdMax, chainType);
         if (out.err) {
           toast({ description: `${out.err}`, variant: 'destructive' })
           return;
@@ -101,7 +101,7 @@ export const CarouselDraggable = () => {
       lg('Wagmi useAccount onConnect', address, connector, ', isReconnected:', isReconnected)
       if (address) {
         const run = async () => {
-          await updateAccount(address)
+          await updateAccount(chainType, address)
 
           await delayFunc(2000);//wait for statemanagement to update the data to be used below
           lg('nftOriginalOwner:', nftOriginalOwner)

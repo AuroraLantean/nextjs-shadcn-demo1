@@ -14,11 +14,11 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Input } from '../ui/input';
 import { useToast } from '../ui/use-toast';
 import { cn, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { OutT, addr1def, addr2def, bigIntZero, erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN, chainTypeDefault } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
-import { initializeWallet, updateAddrs, useWeb3Store } from '@/store/web3Store';
+import { bigIntZero, initializeWallet, out, updateAddrs, useWeb3Store } from '@/store/web3Store';
 import { useShallow } from 'zustand/react/shallow';
 
 type Props = {}
@@ -32,7 +32,6 @@ const EthereumDiv = (props: Props) => {
   const [isClient, setIsClient] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
   const initOutputs = out;
   const [outputs, setOutputs] = useState<typeof initOutputs>(initOutputs);
 
@@ -80,12 +79,12 @@ const EthereumDiv = (props: Props) => {
     if (effectRan.current === true) {
       console.log("EthereumDiv useEffect ran")
       const run = async () => {
-        const out = await connectToWallet();
-        if (out?.err) {
-          console.error("connectToWallet failed. err:", out.err)
+        const out1 = await connectToWallet();
+        if (out1?.err) {
+          console.error("connectToWallet failed. err:", out1.err)
           return;
         }
-        setWeb3s({ ...web3s, ...out })
+        setWeb3s({ ...web3s, ...out1 })
       }
       run();
     }
@@ -110,8 +109,8 @@ const EthereumDiv = (props: Props) => {
       enum1: tokenOnChains[0],
       enum2: "getBalance",
       floatNum1: "",
-      addr1: addr1def,
-      addr2: addr2def,
+      addr1: '',
+      addr2: '',
     },
   });
   async function onSubmit(data: InputT) {
@@ -130,20 +129,21 @@ const EthereumDiv = (props: Props) => {
     let addr2 = data.addr2;
     let outIds: number[] = []
     lg("data.enum1:", data.enum1, ", data.enum2:", data.enum2)
+    let out1 = out;
     if (!addr1) {
       addr1 = account;
     }
     if (data.enum1 === tokenOnChains[0]) {
 
       if (data.enum2 === "getBalance") {
-        out = await ethBalanceOf(addr1)
+        out1 = await ethBalanceOf(addr1)
       }
 
     } else if (data.enum1 === tokenOnChains[1]) {
       //usdt_ethereum
       if (data.enum2 === "getBalance") {
         const decimals = getDecimals(web3s.tokenAddr);
-        out = await erc20BalanceOf(addr1, decimals, web3s.tokenAddr)
+        out1 = await erc20BalanceOf(addr1, decimals, web3s.tokenAddr)
 
       } else if (data.enum2 === "transfer") {
 
@@ -159,21 +159,21 @@ const EthereumDiv = (props: Props) => {
     } else if (data.enum1 === tokenOnChains[3]) {
       //nftDragon_ethereum
       if (!addr1) {
-        out = { ...out, err: "Invalid addr1" }
+        out1 = { ...out1, err: "Invalid addr1" }
       }
 
     } else if (data.enum1 === tokenOnChains[4]) {
     } else if (data.enum1 === tokenOnChains[5]) {
     } else {
-      out = { ...out, err: "Invalid enum1" }
+      out1 = { ...out1, err: "Invalid enum1" }
     }
 
-    lg("out:", out)
-    if (out.err) {
-      toast({ description: `Failed: ${out.err}`, variant: 'destructive' })
+    lg("out1:", out1)
+    if (out1.err) {
+      toast({ description: `Failed: ${out1.err}`, variant: 'destructive' })
     } else {
-      toast({ description: `Success ${out.str1}` })
-      setOutputs(out)
+      toast({ description: `Success ${out1.str1}` })
+      setOutputs(out1)
     }
     setIsLoading(false)
   }

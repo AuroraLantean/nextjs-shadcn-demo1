@@ -15,10 +15,10 @@ import z from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { tokenOnChain, tokenOnChains, tokenT, web3InputSchema } from '@/lib/validators';
-import { makeShortAddr, cn, isEmpty } from '@/lib/utils';
+import { makeShortAddr, cn, isEmpty, delayFunc } from '@/lib/utils';
 import { useToast } from '../ui/use-toast';
-import { initializeWallet, updateNftStatus, useWeb3Store } from '@/store/web3Store';
-import { OutT, addr2def, bigIntZero, buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20MintToGuest, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721SafeMintToGuest, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr, salesPrice, salesSetPriceBatchGuest } from '@/lib/actions/ethers';
+import { OutT, bigIntZero, initializeWallet, updateNftStatus, useWeb3Store } from '@/store/web3Store';
+import { buyNFTviaERC20, buyNFTviaETH, erc20Allowance, erc20Approve, erc20BalanceOf, erc20Data, erc20MintToGuest, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721SafeMintToGuest, erc721TokenIds, erc721Transfer, ethBalanceOf, ethTransfer, getDecimals, getEvmAddr, salesPrice, salesSetPriceBatchGuest } from '@/lib/actions/ethers';
 import { buyNFT } from '@/lib/actions/radix.actions';
 import { useShallow } from 'zustand/react/shallow'
 import { APP_WIDTH_MIN } from '@/constants/site_data';
@@ -36,29 +36,33 @@ const Web3Form = (props: Props) => {
   let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] as number[] }
   const initStates = { ...out, isLoading: false };
   const [outputs, setOutputs] = useState<typeof initStates>(initStates);
-  const [inputTokens, setInputTokens] = useState<tokenT[]>([]);
-  const { chainName, chainId, account, nftAddr, tokenAddr, salesAddr, nativeAssetSymbol, tokenSymbol, err } = useWeb3Store(
+  const [inputTokens, setInputTokens] = useState<tokenT[]>([{ label: 'ETH', value: tokenOnChains[0] }]);
+  const { chainName, chainId, account, nftAddr, tokenAddr, salesAddr, nativeAssetSymbol, tokenSymbol, addr2Def, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   const blockchain = process.env.NEXT_PUBLIC_BLOCKCHAIN;
   //lg('--------', compoName, chainName, 'nativeAssetSymbol:', nativeAssetSymbol, 'tokenSymbol:', tokenSymbol)
   useEffect(() => {
-    lg(compoName + " useEffect runs, blockchain:", blockchain)
-    if (blockchain || effectRan.current === true) {
-      lg('------', compoName, chainName, nativeAssetSymbol, tokenSymbol)
-      if (chainName && nativeAssetSymbol && tokenSymbol) {
-        setInputTokens([
-          { label: nativeAssetSymbol + " on " + chainName, value: tokenOnChains[0] },
-          { label: tokenSymbol + " on " + chainName, value: tokenOnChains[1] },
-          { label: "GoldCoin on " + chainName, value: tokenOnChains[2] },
-          { label: "DragonNFT on " + chainName, value: tokenOnChains[3] },
-          { label: "Sales Contract on " + chainName, value: tokenOnChains[4] },
-          { label: "XRD on Radix", value: tokenOnChains[5] },
-          { label: "USDT on Radix", value: tokenOnChains[6] },
-        ]);// as const;
-        lg("inputTokens:", inputTokens)
+    const run = async () => {
+      lg(compoName + " useEffect runs, blockchain:", blockchain)
+      if (blockchain || effectRan.current === true) {
+        await delayFunc(2000)
+        lg('------', compoName, chainName, nativeAssetSymbol, tokenSymbol)
+        if (chainName && nativeAssetSymbol && tokenSymbol) {
+          setInputTokens([
+            { label: nativeAssetSymbol + " on " + chainName, value: tokenOnChains[0] },
+            { label: tokenSymbol + " on " + chainName, value: tokenOnChains[1] },
+            { label: "GoldCoin on " + chainName, value: tokenOnChains[2] },
+            { label: "DragonNFT on " + chainName, value: tokenOnChains[3] },
+            { label: "Sales Contract on " + chainName, value: tokenOnChains[4] },
+            { label: "XRD on Radix", value: tokenOnChains[5] },
+            { label: "USDT on Radix", value: tokenOnChains[6] },
+          ]);// as const;
+          lg("inputTokens:", inputTokens)
+        }
       }
     }
+    run();
     return () => {
       lg(compoName + " unmounted useEffect()...")
       effectRan.current = true
@@ -96,8 +100,8 @@ const Web3Form = (props: Props) => {
       addr1 = account;
     }
     if (!addr2) {
-      if (isEmpty(addr2def)) console.error("Invalid addr2def");
-      addr2 = addr2def;
+      if (isEmpty(addr2Def)) console.warn("Invalid default addr2");
+      addr2 = addr2Def;
     }
     const decimals = getDecimals(tokenAddr);
     lg("addr1", addr1, ', addr2:', addr2)
@@ -106,7 +110,7 @@ const Web3Form = (props: Props) => {
         out = await ethBalanceOf(addr1)
       } else if (data.enum2 === "transfer") {
         if (addr2 === salesAddr) {
-          addr2 = addr2def;
+          addr2 = addr2Def;
         }
         out = await ethTransfer(addr2, outFloat + '', chainName);
       }
@@ -453,7 +457,7 @@ const Web3Form = (props: Props) => {
                   <h3>Addr2</h3>
                   <FormControl>
                     <Input
-                      placeholder="keep this empty to use addr2def"
+                      placeholder="keep this empty to use addr2"
                       {...field}
                     />
                   </FormControl>

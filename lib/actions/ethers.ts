@@ -1,13 +1,13 @@
 import { ethers, formatEther, formatUnits, parseUnits, Contract, getBigInt, toNumber, parseEther } from "ethers";
 import contractsJSON from "@/web3ABIs/ethereum/contractABIsERC721Sales.json";
 if (contractsJSON.length != 4) console.error("contractsJSON length must be 4")
-export const contractsJSONdup = contractsJSON;
+export const evmCtrtLen = contractsJSON.length;
 export const erc20JSON = contractsJSON[0];
 export const erc721JSON = contractsJSON[1];
 export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
 import { arrayRange, asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
-import { Web3InitOutT, balancesT, blockchain, initBalancesDefault, web3InitDefault } from "@/store/web3Store";
+import { OutT, Web3InitOutT, balancesT, blockchain, initBalancesDefault, nftSalesStatus, nftStatusesDefault, out, web3InitDefault } from "@/store/web3Store";
 import { localChainDefault } from "@/constants/site_data";
 
 const infuraApiKey = process.env.NEXT_PUBLIC_INFURA_APIKEY || '';
@@ -15,42 +15,37 @@ const erc20_usdtAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDT || erc20JSON.contra
 const erc20_usdcAddr = process.env.NEXT_PUBLIC_ETHEREUM_USDC || '';
 const erc721Addr = process.env.NEXT_PUBLIC_ETHEREUM_NFT || erc721JSON.contractAddress;
 const salesAddr = process.env.NEXT_PUBLIC_ETHEREUM_NFTSALES || salesJSON.contractAddress;
-export const addr1def = process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "";
-export const addr2def = process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "";
+export const ethAddr1 = process.env.NEXT_PUBLIC_ETHEREUM_ADDR1 || "";
+export const ethAddr2 = process.env.NEXT_PUBLIC_ETHEREUM_ADDR2 || "";
 
 let signer: any = undefined;
 let provider: any = undefined;
 let isInitialized = false;
 const lg = console.log;
 let mesg = '', warning = '';
-export const bigIntZero = BigInt(0)
 
-export type OutT = {
-  err: string
-  str1: string
-  inWei: bigint
-  nums: number[]
-}
-export let out: OutT = { err: '', str1: '', inWei: bigIntZero, nums: [] }
 declare global {
   interface Window {
     ethereum: any
   }
 }
 
-export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
-  const funcName = "ethersDefaultProvider";
-  lg(funcName + "()...");
-  let chainId = '', chainName = '', endpoint = ''
-
+export const evmDefaultAddrs = () => {
+  //const funcName = "evmDefaultAddrs";
+  //lg(funcName + "()...");
+  return { addr1: ethAddr1, addr2: ethAddr2 }
+}
+export const evmDefaultProvider = async (): Promise<Web3InitOutT> => {
+  const funcName = "evmDefaultProvider";
+  const chainName = blockchain;
+  const chainId = getChainObj(chainName).chainId;
   const infuraChains = ['mainnet', 'sepolia', 'goerli', 'linea-goerli', 'polygon-mainnet', 'polygon-mumbai', 'optimism-mainnet', 'optimism-goerli', 'arbitrum-mainnet', 'arbitrum-goerli', 'avalanche-mainnet', 'avalanche-fuji', 'starknet-goerli'];
-  lg("blockchain:", blockchain)
+  lg(funcName + ".. blockchain:", blockchain)
+
   if (blockchain === localChainDefault.toLowerCase()) {
     lg('------ Connect to a local network');
-    endpoint = "http://localhost:8545";
+    const endpoint = "http://localhost:8545";
     provider = new ethers.JsonRpcProvider(endpoint);
-    chainName = blockchain;
-    chainId = getChainObj(chainName).chainId;
 
   } else if (provider !== undefined) {
     lg('------ Use existing provider')
@@ -60,9 +55,9 @@ export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
     if (!infuraChains.includes(blockchain)) {
       return { ...web3InitDefault, err: 'invalid blockchain:' + blockchain };
     }
-    endpoint = "https://" + blockchain + ".infura.io/v3/" + infuraApiKey;
+    //endpoint = "https://" + blockchain + ".infura.io/v3/" + infuraApiKey;
     lg("Use read-only defaults on " + blockchain)
-    //lg("endpoint:" + endpoint, ', infuraApiKey:', infuraApiKey);
+    //lg("endpoint:" + endpoint);
     try {
       provider = new ethers.InfuraProvider(blockchain, infuraApiKey);
     } catch (err) {
@@ -72,19 +67,19 @@ export const ethersDefaultProvider = async (): Promise<Web3InitOutT> => {
     }
     //new AlchemyProvider(network, apiKey)
     //new QuickNodeProvider(network, token)
-    chainName = blockchain;
-    chainId = getChainObj(blockchain).chainId;
   }
   lg('use chainName:', chainName, ', chainId:', chainId)
-  let balance: any;
+  /*let balance: any;
   try {
-    if (addr2def) {
-      balance = await provider.getBalance(addr2def);
+    if (ethAddr2) {
+      balance = await provider.getBalance(ethAddr2);
+      //will try to reach https://rpc.sepolia.org, but may get CORS error...
     }
   } catch (err) {
-    return { ...web3InitDefault, err: 'provider failed:' + blockchain };
+    console.error('provider.getBalance failed:', err);
+    return { ...web3InitDefault, err: 'provider.getBalance, ' + blockchain+', err:'+err };
   }
-  lg('test run on provider... balance on addr2def:', balance);
+  lg('test run on provider... balance on ethAddr2:', balance);*/
 
   if (warning) console.warn(warning)
   lg(funcName + " ran successfully")
@@ -107,8 +102,8 @@ export const initEvmWalletAfterLoad = async () =>
       return { ...web3InitDefault, err: err.message };
     }
   });
-export const setupProvider = async (): Promise<Web3InitOutT> => {
-  const funcName = "setupProvider";
+export const setupEvmProvider = async (): Promise<Web3InitOutT> => {
+  const funcName = "setupEvmProvider";
   lg(funcName + "()...");
   provider = new ethers.BrowserProvider(window.ethereum)
   lg(funcName + " ran successfully")
@@ -116,17 +111,22 @@ export const setupProvider = async (): Promise<Web3InitOutT> => {
     ...web3InitDefault,
   };
 }
-export const setupSigner = async (): Promise<Web3InitOutT> => {
-  const funcName = "setupSigner";
+export const setupEvmSigner = async (): Promise<Web3InitOutT> => {
+  const funcName = "setupEvmSigner";
   lg(funcName + "()...");
-  signer = await provider.getSigner();
+  try {
+    provider = new ethers.BrowserProvider(window.ethereum);//in case provider is not properly setup
+    signer = await provider.getSigner();
+  } catch (err) {
+    console.error(funcName + ' err:', err)
+  }
   lg(funcName + " ran successfully")
   return {
     ...web3InitDefault,
   };
 }
-export const removeSigner = async (): Promise<Web3InitOutT> => {
-  const funcName = "removeSigner";
+export const removeEvmSigner = async (): Promise<Web3InitOutT> => {
+  const funcName = "removeEvmSigner";
   lg(funcName + "()...");
   signer = undefined;
   return {
@@ -888,11 +888,7 @@ export const buyNFTviaERC20 = async (nftAddr: string, tokenId: number, salesAddr
   }
 }
 
-export type nftSalesStatus = 'soldToUser' | 'soldToUnknown' | 'availableFromOriginalOwner' | 'availableFromOthers' | 'availableFromSalesCtrt' | 'notApproved';
-export const nftStatusesDefault = {
-  arr: [] as nftSalesStatus[],
-  err: ''
-}
+
 export type nftStatusesT = typeof nftStatusesDefault;
 export const checkEvmNftStatus = async (user: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin = 0, nftIdMax = 9): Promise<nftStatusesT> => {
   const funcName = 'checkNftStatus';
@@ -1065,10 +1061,10 @@ export const getChainObj = (input: string) => {
       chainId = ''
       break;
     case 'anvil':
-    case '"Foundry"':
+    case 'foundry':
     case '0x7a69':
       chainHex = '';
-      chainName = 'anvil';
+      chainName = 'foundry';
       chainId = '31337'
       break;
     case 'hardhat':

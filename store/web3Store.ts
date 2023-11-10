@@ -3,11 +3,21 @@ import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
-import { contractsJSONdup, initializeEvmWallet, getEvmAddr, getEvmBalances, nftSalesStatus, nftStatusesDefault, nftStatusesT, checkEvmNftStatus, erc721BaseURI, OutT, out, evmSalesPrices, ethersDefaultProvider, evmSalesPricesD, setupProvider, setupSigner, removeSigner } from '@/lib/actions/ethers';
+import { initializeEvmWallet, getEvmAddr, getEvmBalances, checkEvmNftStatus, erc721BaseURI, evmSalesPrices, evmDefaultProvider, evmSalesPricesD, setupEvmProvider, setupEvmSigner, removeEvmSigner, evmCtrtLen, evmDefaultAddrs } from '@/lib/actions/ethers';
 import { DragonT, dragons, extractNftIds, localChainDefault } from '@/constants/site_data';
 
 console.log("NEXT_PUBLIC_BLOCKCHAIN:", process.env.NEXT_PUBLIC_BLOCKCHAIN)
 export const blockchain = (process.env.NEXT_PUBLIC_BLOCKCHAIN)?.toLowerCase() || localChainDefault.toLowerCase();
+
+export const bigIntZero = BigInt(0)
+export const out = { err: '', str1: '', inWei: bigIntZero, nums: [] as number[] }
+export type OutT = typeof out;
+
+export type nftSalesStatus = 'soldToUser' | 'soldToUnknown' | 'availableFromOriginalOwner' | 'availableFromOthers' | 'availableFromSalesCtrt' | 'notApproved';
+export const nftStatusesDefault = {
+  arr: [] as nftSalesStatus[],
+  err: ''
+}
 
 export const web3InitDefault = { err: '', warn: '', chainType: '', chainId: '', chainName: '', account: '', nativeAssetName: '', nativeAssetSymbol: '', nftOriginalOwner: '' };
 const lg = console.log;
@@ -17,8 +27,7 @@ const initialState = {
   ...web3InitDefault, tokenAddr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: '', previousChain: '',
   nftStatuses: [] as nftSalesStatus[],
   isInitialized: false, isDefaultProvider: false,
-  err: '', baseURI: '', nativeAssetName: '', nativeAssetSymbol: '', nativeAssetDecimals: '', tokenName: '', tokenSymbol: '',
-  accBalcNative: '', accBalcToken: '',
+  err: '', baseURI: '', nativeAssetName: '', nativeAssetSymbol: '', nativeAssetDecimals: '', tokenName: '', tokenSymbol: '', addr1Def: '', addr2Def: '', accBalcNative: '', accBalcToken: '',
   accNftArray: [] as number[],
   salesBalcNative: '', salesBalcToken: '',
   salesNftArray: [] as number[], decimals: 18,
@@ -49,14 +58,14 @@ export const initializeDefaultProvider = async (chainType: string) => {
   let initOut = web3InitDefault;
   //let nativeAssetName = ''
   if (chainType === 'evm') {
-    initOut = await ethersDefaultProvider();
-    const len = contractsJSONdup.length;
+    initOut = await evmDefaultProvider();
+    const len = evmCtrtLen;
     if (len < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
 
   } else if (chainType === 'radix') {
 
   } else {
-    return { ...initOut, err: 'Unknown chainType' };
+    return { ...initOut, err: funcName + ' Unknown chainType' };
   }
   if (initOut.err) {
 
@@ -78,33 +87,50 @@ export const initializeDefaultProvider = async (chainType: string) => {
   return initOut;
 }
 
-export const updateChain = async (chainName: string, chainId: number, nativeAssetName: string, nativeAssetSymbol: string, nativeAssetDecimals: number) => {
+export const updateChain = async (chainType: string, chainName: string, chainId: number, nativeAssetName: string, nativeAssetSymbol: string, nativeAssetDecimals: number) => {
   const funcName = 'updateChain';
   lg(funcName + `()...chainName: ${chainName}, chainId: ${chainId}, nativeAssetName: ${nativeAssetName}, nativeAssetSymbol: ${nativeAssetSymbol}, nativeAssetDecimals: ${nativeAssetDecimals}`)
-  const chainType = 'evm';
   let initOut = web3InitDefault;
-  const len = contractsJSONdup.length;
+  const len = evmCtrtLen;
   if (len < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
 
-  await setupProvider()
+  if (chainType === 'evm') {
+    await setupEvmProvider()
+  } else if (chainType === 'radix') {
+
+  } else {
+    return { ...initOut, err: funcName + ' Unknown chainType' };
+  }
   useWeb3Store.setState((state) => ({
-    ...state, chainType, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals,
+    ...state, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals,
     chainName: capitalizeFirst(chainName),
     chainId: chainId,
-    previousChain: capitalizeFirst(chainName),
+    previousChain: chainName,
   }));
-  return { ...initOut, chainType };
+  return { ...initOut };
 }
 
-export const updateAccount = async (account: string) => {
+export const updateAccount = async (chainType: string, account: string) => {
   const funcName = 'updateAccount';
   lg(funcName + `()... account: ${account}`)
   let initOut = web3InitDefault;
-  await setupSigner()
+  let out1 = { addr1: '', addr2: '' }
+
+  if (chainType === 'evm') {
+    await setupEvmSigner();
+    out1 = evmDefaultAddrs();
+  } else if (chainType === 'radix') {
+
+  } else {
+    return { ...initOut, err: funcName + ' Unknown chainType' };
+  }
+
   useWeb3Store.setState((state) => ({
     ...state, isInitialized: true,
     isDefaultProvider: false,
     account: account,
+    addr1Def: out1.addr1,
+    addr2Def: out1.addr2,
   }));
   return initOut;
 }
@@ -112,7 +138,7 @@ export const removeAccount = async () => {
   const funcName = 'removeAccount';
   lg(funcName + `()...`)
   let initOut = web3InitDefault;
-  await removeSigner()
+  await removeEvmSigner()
   useWeb3Store.setState((state) => ({
     ...state, isInitialized: false,
     //isDefaultProvider: true,
@@ -128,13 +154,13 @@ export const initializeWallet = async (chainType: string) => {
   let nativeAssetName = ''
   if (chainType === 'evm') {
     initOut = await initializeEvmWallet();
-    const len = contractsJSONdup.length;
+    const len = evmCtrtLen;
     if (len < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
 
   } else if (chainType === 'radix') {
 
   } else {
-    return { ...initOut, err: 'Unknown chainType' };
+    return { ...initOut, err: funcName + ' Unknown chainType' };
   }
   nativeAssetName = getNativeAssetName(chainType)
   if (initOut.err || initOut.warn) {
@@ -159,11 +185,10 @@ export const initializeWallet = async (chainType: string) => {
   return initOut;
 }
 
-
 export const setupBlockchainData = async (nftIdMin: number, nftIdMax: number, chainType: string) => {
   const funcName = 'setupBlockchainData';
   let initOut = web3InitDefault;
-  lg(funcName + '()...')
+  lg(funcName + '()... chainType:', chainType)
   const nftsOut = await updateNftArray(nftIdMin, nftIdMax);
   if (nftsOut.err) {
     console.error("nftsOut.err:", nftsOut.err)
@@ -185,6 +210,8 @@ export const setupBlockchainData = async (nftIdMin: number, nftIdMax: number, ch
 
   return { ...initOut, nftOriginalOwner }
 }
+
+
 
 export const updateNftArray = async (nftIdMin: number, nftIdMax: number) => {
   //get NFT Data from APIs OR from a local file...
@@ -208,25 +235,25 @@ export const updateNftArray = async (nftIdMin: number, nftIdMax: number) => {
 
 export const updateNftStatus = async (chainType: string, account: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin: number, nftIdMax: number) => {
   const funcName = 'updateNftStatus';
-  let out = nftStatusesDefault;
+  let out1 = nftStatusesDefault;
   if (chainType === 'evm') {
-    out = await checkEvmNftStatus(account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
+    out1 = await checkEvmNftStatus(account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
 
   } else if (chainType === 'radix') {
 
   } else {
-    return { ...out, err: 'Unknown chainType' };
+    return { ...out1, err: funcName + ' Unknown chainType' };
   }
-  if (out.err) {
-    return { ...out, err: funcName + ' err:' + out.err, };
+  if (out1.err) {
+    return { ...out1, err: funcName + ' err:' + out1.err, };
   }
-  //lg(funcName + " out.arr:", out.arr)
+  //lg(funcName + " out1.arr:", out1.arr)
   useWeb3Store.setState((state) => ({
     ...state,
-    nftStatuses: out.arr,
+    nftStatuses: out1.arr,
   }
   ));
-  return out;
+  return out1;
 }
 
 export const getBaseURI = async (chainType: string, nftAddr: string) => {
@@ -238,7 +265,7 @@ export const getBaseURI = async (chainType: string, nftAddr: string) => {
   } else if (chainType === 'radix') {
 
   } else {
-    return { ...out, err: 'Unknown chainType' };
+    return { ...out, err: funcName + ' Unknown chainType' };
   }
   if (out.err) {
     return { ...out, err: funcName + ' err:' + out.err, };
@@ -253,31 +280,31 @@ export const getBaseURI = async (chainType: string, nftAddr: string) => {
 }
 
 export const getSalesPrices = async (chainType: string, tokenIds: number[], nftAddr: string, salesAddr: string) => {
-  const funcName = 'getSalesPrices()';
+  const funcName = 'getSalesPrices';
   lg(funcName + " in web3Store.ts... tokenIds:" + tokenIds)
-  let out = evmSalesPricesD;
+  let out1 = evmSalesPricesD;
   if (chainType === 'evm') {
-    out = await evmSalesPrices(tokenIds, nftAddr, salesAddr);
+    out1 = await evmSalesPrices(tokenIds, nftAddr, salesAddr);
 
   } else if (chainType === 'radix') {
 
   } else {
-    return { ...out, err: 'Unknown chainType' };
+    return { ...out1, err: funcName + ' Unknown chainType' };
   }
-  if (out.err) {
-    return { ...out, err: out.err };
+  if (out1.err) {
+    return { ...out1, err: out1.err };
   }
-  lg(funcName + " successful. out:", out)
+  lg(funcName + " successful. out1:", out1)
   useWeb3Store.setState((state) => ({
     ...state,
-    tokenAddr: out.tokenAddr,
-    tokenName: out.name,
-    tokenSymbol: out.symbol,
-    decimals: out.decimals,
-    prices: out.priceArrStr,
+    tokenAddr: out1.tokenAddr,
+    tokenName: out1.name,
+    tokenSymbol: out1.symbol,
+    decimals: out1.decimals,
+    prices: out1.priceArrStr,
   }
   ));
-  return out;
+  return out1;
 }
 
 export const updateAddrs = async (chainType: string) => {
@@ -295,7 +322,7 @@ export const updateAddrs = async (chainType: string) => {
   } else if (chainType === 'radix') {
 
   } else {
-    return { ...outDefault, err: 'Unknown chainType' };
+    return { ...outDefault, err: funcName + ' Unknown chainType' };
   }
   lg(funcName + ', nftAddr:', nftAddr, ', salesAddr:', salesAddr);
   useWeb3Store.setState((state) => ({
@@ -323,7 +350,7 @@ export const getCurrBalances = async (chainType: string, account: string, tokenA
   } else if (chainType === 'radix') {
 
   } else {
-    return { ...balcs, err: 'Unknown chainType' };
+    return { ...balcs, err: funcName + ' Unknown chainType' };
   }
   if (balcs.err) {
     console.error(funcName + " failed:", balcs.err);

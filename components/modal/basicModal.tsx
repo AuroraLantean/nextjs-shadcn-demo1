@@ -32,7 +32,7 @@ import { buyNftSchemaFixed, tokenOnChains } from '@/lib/validators'
 import Icons from "@/components/Icons";
 import { buyNFT } from '@/lib/actions/radix.actions'
 import { cn } from '@/lib/utils'
-import { OutT, bigIntZero, buyNFTviaERC20, buyNFTviaETH } from '@/lib/actions/ethers'
+import { buyNFTviaERC20, buyNFTviaETH } from '@/lib/actions/ethers'
 import { updateNftStatus, useWeb3Store } from '@/store/web3Store'
 import { useShallow } from 'zustand/react/shallow'
 

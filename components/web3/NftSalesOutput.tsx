@@ -14,7 +14,6 @@ import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
 import { getBaseURI, getCurrBalances, getSalesPrices, initBalancesDefault, updateAddrs, updateNftArray, updateNftStatus, useWeb3Store } from '@/store/web3Store';
 import { useShallow } from 'zustand/react/shallow';
-import { addr1def, addr2def } from '@/lib/actions/ethers';
 
 type Props = {}
 
@@ -29,7 +28,7 @@ const NftSalesOutput = (props: Props) => {
 
   const { chainType, isInitialized, chainName, chainId, account, err, tokenAddr, nftAddr, salesAddr, accBalcNative, accBalcToken, nftOriginalOwner,
     accNftArray, salesBalcNative, salesBalcToken,
-    salesNftArray, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals, tokenName, tokenSymbol } = useWeb3Store(
+    salesNftArray, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals, tokenName, tokenSymbol, addr1Def, addr2Def, } = useWeb3Store(
       useShallow((state) => ({ ...state }))
     )
 
@@ -71,9 +70,9 @@ const NftSalesOutput = (props: Props) => {
     defaultValues: {
       enum1: "eth_ethereum",
       enum2: "getBalance",
-      floatNum1: "",
-      addr1: addr1def,
-      addr2: addr2def,
+      floatNum1: '',
+      addr1: '',
+      addr2: '',
     },
   });
 
