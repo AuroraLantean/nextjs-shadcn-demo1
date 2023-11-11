@@ -1,4 +1,4 @@
-import { ethers, formatEther, formatUnits, parseUnits, Contract, getBigInt, toNumber, parseEther } from "ethers";
+import { ethers, formatEther, formatUnits, parseUnits, Contract, toNumber, parseEther } from "ethers";
 import contractsJSON from "@/web3ABIs/ethereum/contractABIsERC721Sales.json";
 if (contractsJSON.length != 4) console.error("contractsJSON length must be 4")
 export const evmCtrtLen = contractsJSON.length;
@@ -6,7 +6,7 @@ export const erc20JSON = contractsJSON[0];
 export const erc721JSON = contractsJSON[1];
 export const salesJSON = contractsJSON[2];
 export const ArrayOfStructsJSON = contractsJSON[3];
-import { arrayRange, asyncFor, capitalizeFirst, isEmpty, isEqualStr, parseFloatSafe } from "@/lib/utils";
+import { arrayRange, capitalizeFirst, isEmpty, isEqualStr } from "@/lib/utils";
 import { OutT, Web3InitOutT, balancesT, blockchain, initBalancesDefault, nftSalesStatus, nftStatusesDefault, out, web3InitDefault } from "@/store/web3Store";
 import { localChainDefault } from "@/constants/site_data";
 

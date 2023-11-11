@@ -35,34 +35,19 @@ const NftSalesOutput = (props: Props) => {
   useEffect(() => {
     lg(compoName + " useEffect runs")
     setIsClient(true);
-    if (process.env.NEXT_PUBLIC_BLOCKCHAIN || effectRan.current === true) {
-
-      const getInit2 = async () => {
-        lg(compoName + " useEffect runs getInit2()")
-        lg("tokenAddr:", tokenAddr)
-        const balcs = await getCurrBalances(chainType, account, tokenAddr, nftAddr, salesAddr);
-        if (balcs.err) {
-          console.error("balcs.err:", balcs.err)
-          toast({ description: `${balcs.err}`, variant: 'destructive' })
-          return;
+    /*if (process.env.NEXT_PUBLIC_BLOCKCHAIN || effectRan.current === true) {
+          const getInit2 = async () => {
+            lg(compoName + " useEffect runs getInit2()")
+            lg("tokenAddr:", tokenAddr)
+            //NFT status and balances are updated at useAccount.onConnect()
+          }
+          if (isInitialized && tokenAddr) getInit2();
         }
-        lg("getInit2. account:", account)
-        const statuses = await updateNftStatus(chainType, account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
-        if (statuses.err) {
-          console.error("updateNftStatus err:", statuses.err)
-          toast({ description: `${statuses.err}`, variant: 'destructive' })
-          return;
-        }
-        lg("statuses:", statuses.arr)
-        //setStates({ ...states, ...balcs })
-      }
-      if (isInitialized && tokenAddr) getInit2();
-    }
-    return () => {
-      lg(compoName + " unmounted useEffect()...")
-      effectRan.current = true
-    }
-  }, [isInitialized, tokenAddr]);//tokenAddr arrives later than isInitialized from Wagmi
+        return () => {
+          lg(compoName + " unmounted useEffect()...")
+          effectRan.current = true
+        }*/
+  }, []);//[isInitialized, tokenAddr] ... tokenAddr arrives later than isInitialized from Wagmi
 
   type InputT = z.infer<typeof web3InputSchema>;
   const form = useForm<InputT>({

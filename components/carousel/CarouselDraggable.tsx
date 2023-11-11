@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import BasicModal from "../modal/basicModal";
 import { useToast } from "../ui/use-toast";
 import { Button } from "../ui/button";
-import { changeChainType, initializeDefaultProvider, initializeWallet, updateChain, updateNftStatus, useWeb3Store, updateAccount, removeAccount, setupBlockchainData, blockchain } from "@/store/web3Store";
+import { changeChainType, initializeDefaultProvider, initializeWallet, updateChain, updateNftStatus, useWeb3Store, updateAccount, removeAccount, setupBlockchainData, blockchain, getCurrBalances } from "@/store/web3Store";
 import { useShallow } from 'zustand/react/shallow'
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { useAccount, useDisconnect, useNetwork } from "wagmi";
@@ -27,7 +27,7 @@ export const CarouselDraggable = () => {
   const { toast } = useToast();
   const { disconnect } = useDisconnect()
 
-  const { chainType, account, isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, chainName, previousChain, nativeAssetName, nativeAssetSymbol, tokenName, tokenSymbol, nftOriginalOwner, nftAddr, salesAddr, err } = useWeb3Store(
+  const { chainType, account, isInitialized, isDefaultProvider, nftArray, nftStatuses, prices, baseURI, chainName, previousChain, nativeAssetName, nativeAssetSymbol, tokenName, tokenSymbol, nftOriginalOwner, tokenAddr, nftAddr, salesAddr, err } = useWeb3Store(
     useShallow((state) => ({ ...state }))
   )
   //TODO: disconnect then reconnect => should auto check balances
@@ -53,7 +53,7 @@ export const CarouselDraggable = () => {
           toast({ description: `Failed: ${JSON.stringify(initOut.warn)}`, variant: 'destructive' })
           return true;
         }
-        const out = await setupBlockchainData(nftIdMin, nftIdMax, chainType);
+        const out = await setupBlockchainData(nftIdMin, nftIdMax, chainType, initOut.chainName);
         if (out.err) {
           toast({ description: `${out.err}`, variant: 'destructive' })
           return;
@@ -75,18 +75,19 @@ export const CarouselDraggable = () => {
   }, []);
 
   const { chain, chains } = useNetwork()
-  if (chain) {
-    //lg(`Wagmi() useNetwork(): ${chain.name}, chainId: ${chain.id}, previousChain: ${previousChain}`)
-    //NOT run useState as it will cause loop rendering!
-    const { decimals: nativeAssetDecimals, name: nativeAssetName, symbol: nativeAssetSymbol } = chain.nativeCurrency;
-
+  useEffect(() => {
     //this chain IS onConnect! could cause loop! https://wagmi.sh/react/hooks/useNetwork
-    if (previousChain !== chain.name) {
+    if (chain && chain.name && chain?.id) {
+      //lg(`Wagmi() useNetwork(): ${chain.name}, chainId: ${chain.id}, previousChain: ${previousChain}`)
+      //NOT run useState as it will cause loop rendering!
+      const { decimals: nativeAssetDecimals, name: nativeAssetName, symbol: nativeAssetSymbol } = chain.nativeCurrency;
+
+      //if (previousChain !== chain.name) {
       const run = async () => {
-        await delayFunc(2000);
+        await delayFunc(3000);//for previousChain to set
         const out1 = await updateChain(chainType, chain.name, chain.id, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals)
 
-        const out = await setupBlockchainData(nftIdMin, nftIdMax, chainType);
+        const out = await setupBlockchainData(nftIdMin, nftIdMax, chainType, chain.name);
         if (out.err) {
           toast({ description: `${out.err}`, variant: 'destructive' })
           return;
@@ -94,16 +95,27 @@ export const CarouselDraggable = () => {
       }
       run();
     }
-  }
+    return () => {
+      lg(compoName + " unmounted useEffect[chain.name]...")
+    }
+  }, [chain?.name]);
 
   const accountRB = useAccount({
     onConnect({ address, connector, isReconnected }) {
       lg('Wagmi useAccount onConnect', address, connector, ', isReconnected:', isReconnected)
+      //connector has onAccountChanged, onChainChanged
       if (address) {
         const run = async () => {
           await updateAccount(chainType, address)
 
-          await delayFunc(2000);//wait for statemanagement to update the data to be used below
+          await delayFunc(2000);//wait for state management to update the data to be used below
+          const balcs = await getCurrBalances(chainType, address, tokenAddr, nftAddr, salesAddr);
+          if (balcs.err) {
+            console.error("balcs.err:", balcs.err)
+            toast({ description: `${balcs.err}`, variant: 'destructive' })
+            return;
+          }
+
           lg('nftOriginalOwner:', nftOriginalOwner)
           const statuses = await updateNftStatus(chainType, address, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
           if (statuses.err) {

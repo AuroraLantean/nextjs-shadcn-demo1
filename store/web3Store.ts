@@ -77,7 +77,7 @@ export const initializeDefaultProvider = async (chainType: string) => {
       ...state,
       isDefaultProvider: true,
       chainType,
-      chainName: capitalizeFirst(initOut.chainName),
+      chainName: initOut.chainName,
       chainId: initOut.chainId,
       nativeAssetName: initOut.nativeAssetName,
       nativeAssetSymbol: initOut.nativeAssetSymbol,
@@ -103,8 +103,7 @@ export const updateChain = async (chainType: string, chainName: string, chainId:
   }
   useWeb3Store.setState((state) => ({
     ...state, nativeAssetName, nativeAssetSymbol, nativeAssetDecimals,
-    chainName: capitalizeFirst(chainName),
-    chainId: chainId,
+    chainName, chainId,
     previousChain: chainName,
   }));
   return { ...initOut };
@@ -185,10 +184,18 @@ export const initializeWallet = async (chainType: string) => {
   return initOut;
 }
 
-export const setupBlockchainData = async (nftIdMin: number, nftIdMax: number, chainType: string) => {
+let chainnamePrev = ''
+export const setupBlockchainData = async (nftIdMin: number, nftIdMax: number, chainType: string, chainName: string) => {
   const funcName = 'setupBlockchainData';
   let initOut = web3InitDefault;
-  lg(funcName + '()... chainType:', chainType)
+  const chainname = chainName.toLowerCase();
+  lg(funcName + '()...', chainType, chainname)
+  if (chainnamePrev === chainname) {
+    lg("same chainname:", chainnamePrev)
+    return { ...initOut }
+  }
+  chainnamePrev = chainname;
+
   const nftsOut = await updateNftArray(nftIdMin, nftIdMax);
   if (nftsOut.err) {
     console.error("nftsOut.err:", nftsOut.err)
