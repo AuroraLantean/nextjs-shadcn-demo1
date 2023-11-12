@@ -3,7 +3,7 @@ import { createWithEqualityFn } from 'zustand/traditional'
 import { immer } from 'zustand/middleware/immer'
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { StateCreator } from 'zustand';
-import { initializeEvmWallet, getEvmAddr, getEvmBalances, checkEvmNftStatus, erc721BaseURI, evmSalesPrices, evmDefaultProvider, evmSalesPricesD, setupEvmProvider, setupEvmSigner, removeEvmSigner, evmCtrtLen, evmDefaultAddrs } from '@/lib/actions/ethers';
+import { evmInitializeWallet, evmGetAddr, evmGetBalances, evmUpdateNftStatus, erc721BaseURI, evmSalesPrices, evmDefaultProvider, evmSalesPricesD, evmSetupProvider, evmSetupSigner, evmRemoveSigner, evmCtrtLen, evmDefaultAddrs } from '@/lib/actions/ethers';
 import { DragonT, dragons, extractNftIds, localChainDefault } from '@/constants/site_data';
 
 console.log("NEXT_PUBLIC_BLOCKCHAIN:", process.env.NEXT_PUBLIC_BLOCKCHAIN)
@@ -59,8 +59,7 @@ export const initializeDefaultProvider = async (chainType: string) => {
   //let nativeAssetName = ''
   if (chainType === 'evm') {
     initOut = await evmDefaultProvider();
-    const len = evmCtrtLen;
-    if (len < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
+    if (evmCtrtLen < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
 
   } else if (chainType === 'radix') {
 
@@ -91,11 +90,9 @@ export const updateChain = async (chainType: string, chainName: string, chainId:
   const funcName = 'updateChain';
   lg(funcName + `()...chainName: ${chainName}, chainId: ${chainId}, nativeAssetName: ${nativeAssetName}, nativeAssetSymbol: ${nativeAssetSymbol}, nativeAssetDecimals: ${nativeAssetDecimals}`)
   let initOut = web3InitDefault;
-  const len = evmCtrtLen;
-  if (len < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
 
   if (chainType === 'evm') {
-    await setupEvmProvider()
+    await evmSetupProvider()
   } else if (chainType === 'radix') {
 
   } else {
@@ -116,7 +113,7 @@ export const updateAccount = async (chainType: string, account: string) => {
   let out1 = { addr1: '', addr2: '' }
 
   if (chainType === 'evm') {
-    await setupEvmSigner();
+    await evmSetupSigner();
     out1 = evmDefaultAddrs();
   } else if (chainType === 'radix') {
 
@@ -137,7 +134,7 @@ export const removeAccount = async () => {
   const funcName = 'removeAccount';
   lg(funcName + `()...`)
   let initOut = web3InitDefault;
-  await removeEvmSigner()
+  await evmRemoveSigner()
   useWeb3Store.setState((state) => ({
     ...state, isInitialized: false,
     //isDefaultProvider: true,
@@ -152,9 +149,8 @@ export const initializeWallet = async (chainType: string) => {
   let initOut = web3InitDefault;
   let nativeAssetName = ''
   if (chainType === 'evm') {
-    initOut = await initializeEvmWallet();
-    const len = evmCtrtLen;
-    if (len < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
+    initOut = await evmInitializeWallet();
+    if (evmCtrtLen < 2) return { ...initOut, err: 'contract ABI must be at least 3' }
 
   } else if (chainType === 'radix') {
 
@@ -244,7 +240,7 @@ export const updateNftStatus = async (chainType: string, account: string, nftOri
   const funcName = 'updateNftStatus';
   let out1 = nftStatusesDefault;
   if (chainType === 'evm') {
-    out1 = await checkEvmNftStatus(account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
+    out1 = await evmUpdateNftStatus(account, nftOriginalOwner, nftAddr, salesAddr, nftIdMin, nftIdMax);
 
   } else if (chainType === 'radix') {
 
@@ -321,10 +317,10 @@ export const updateAddrs = async (chainType: string) => {
     tokenAddr: '', nftAddr: '', salesAddr: '', nftOriginalOwner: ''
   }
   if (chainType === 'evm') {
-    //tokenAddr = getEvmAddr('erc20_usdt') ... to be updated in getSalesPrices()
-    nftAddr = getEvmAddr('erc721Dragon')
-    salesAddr = getEvmAddr('erc721Sales')
-    nftOriginalOwner = getEvmAddr('nftOriginalOwner')
+    //tokenAddr = evmGetAddr('erc20_usdt') ... to be updated in getSalesPrices()
+    nftAddr = evmGetAddr('erc721Dragon')
+    salesAddr = evmGetAddr('erc721Sales')
+    nftOriginalOwner = evmGetAddr('nftOriginalOwner')
     if (isEmpty(nftAddr) || isEmpty(salesAddr) || isEmpty(nftOriginalOwner)) return { ...outDefault, err: 'found empty address' };
   } else if (chainType === 'radix') {
 
@@ -352,7 +348,7 @@ export const getCurrBalances = async (chainType: string, account: string, tokenA
   let balcs = initBalancesDefault;
   lg(funcName, '...');
   if (chainType === 'evm') {
-    balcs = await getEvmBalances(account, tokenAddr, nftAddr, salesAddr);
+    balcs = await evmGetBalances(account, tokenAddr, nftAddr, salesAddr);
 
   } else if (chainType === 'radix') {
 

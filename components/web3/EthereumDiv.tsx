@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Input } from '../ui/input';
 import { useToast } from '../ui/use-toast';
 import { cn, makeShortAddr, parseFloatSafe } from '@/lib/utils';
-import { erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, getDecimals, getEvmAddr } from '@/lib/actions/ethers';
+import { erc20Approve, erc20BalanceOf, erc20Data, erc20Transfer, erc721BalanceOf, erc721SafeMint, erc721TokenIds, erc721Transfer, ethBalanceOf, getDecimals, evmGetAddr } from '@/lib/actions/ethers';
 import { APP_WIDTH_MIN, chainTypeDefault } from '@/constants/site_data';
 import { Button } from '../ui/button';
 import { Separator } from '../ui/separator';
@@ -45,12 +45,13 @@ const EthereumDiv = (props: Props) => {
 
   const connectToWallet = async () => {
     lg("connectToWallet")
+    const chainType = chainTypeDefault;
     if (isInitialized) {
       lg("already initialized")
       toast({ description: "web3 already initialized" });
       return { ...web3InitOut }
     } else {
-      const initOut = await initializeWallet(chainTypeDefault);
+      const initOut = await initializeWallet(chainType);
       if (initOut.err) {
         toast({ description: `Failed: ${JSON.stringify(initOut.err)}`, variant: 'destructive' })
         return { ...web3InitOut, err: initOut.err };
@@ -61,13 +62,13 @@ const EthereumDiv = (props: Props) => {
       }
       toast({ description: "web3 initialized successfully!" });
       lg("initOut:", initOut)
-      const { nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainTypeDefault);
+      const { nftAddr, salesAddr, nftOriginalOwner, err: updateAddrsErr } = await updateAddrs(chainType);
       if (updateAddrsErr) {
         console.error("updateAddrsErr:", updateAddrsErr)
         toast({ description: `${updateAddrsErr}`, variant: 'destructive' })
         return { ...web3InitOut, err: updateAddrsErr };
       }
-      const tokenAddr = getEvmAddr('erc20_usdt')
+      const tokenAddr = evmGetAddr('erc20_usdt')
       const out1 = await erc20Data(tokenAddr);
       ;
       return { ...web3InitOut, tokenSymbol: out1.symbol, tokenAddr, salesAddr, tokenName: out1.name, decimals: out1.decimals };

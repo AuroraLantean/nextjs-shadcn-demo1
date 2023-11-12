@@ -1,11 +1,11 @@
 import { ethers, formatEther, formatUnits, parseUnits, Contract, toNumber, parseEther } from "ethers";
 import contractsJSON from "@/web3ABIs/ethereum/contractABIsERC721Sales.json";
-if (contractsJSON.length != 4) console.error("contractsJSON length must be 4")
+
 export const evmCtrtLen = contractsJSON.length;
-export const erc20JSON = contractsJSON[0];
-export const erc721JSON = contractsJSON[1];
-export const salesJSON = contractsJSON[2];
-export const ArrayOfStructsJSON = contractsJSON[3];
+const erc20JSON = contractsJSON[0];
+const erc721JSON = contractsJSON[1];
+const salesJSON = contractsJSON[2];
+const ArrayOfStructsJSON = contractsJSON[3];
 import { arrayRange, capitalizeFirst, isEmpty, isEqualStr } from "@/lib/utils";
 import { OutT, Web3InitOutT, balancesT, blockchain, initBalancesDefault, nftSalesStatus, nftStatusesDefault, out, web3InitDefault } from "@/store/web3Store";
 import { localChainDefault } from "@/constants/site_data";
@@ -92,18 +92,18 @@ export const evmDefaultProvider = async (): Promise<Web3InitOutT> => {
     warn: warning,
   };
 }
-export const initEvmWalletAfterLoad = async () =>
+export const evmInitWalletAfterLoad = async () =>
   window.addEventListener('load', async () => {
     let initOut = web3InitDefault;
     try {
-      initOut = await initializeEvmWallet();
+      initOut = await evmInitializeWallet();
     } catch (err: any) {
-      console.error('@initializeEvmWallet:', err);
+      console.error('@evmInitializeWallet:', err);
       return { ...web3InitDefault, err: err.message };
     }
   });
-export const setupEvmProvider = async (): Promise<Web3InitOutT> => {
-  const funcName = "setupEvmProvider";
+export const evmSetupProvider = async (): Promise<Web3InitOutT> => {
+  const funcName = "evmSetupProvider";
   lg(funcName + "()...");
   provider = new ethers.BrowserProvider(window.ethereum)
   lg(funcName + " ran successfully")
@@ -111,8 +111,8 @@ export const setupEvmProvider = async (): Promise<Web3InitOutT> => {
     ...web3InitDefault,
   };
 }
-export const setupEvmSigner = async (): Promise<Web3InitOutT> => {
-  const funcName = "setupEvmSigner";
+export const evmSetupSigner = async (): Promise<Web3InitOutT> => {
+  const funcName = "evmSetupSigner";
   lg(funcName + "()...");
   try {
     provider = new ethers.BrowserProvider(window.ethereum);//in case provider is not properly setup
@@ -125,16 +125,16 @@ export const setupEvmSigner = async (): Promise<Web3InitOutT> => {
     ...web3InitDefault,
   };
 }
-export const removeEvmSigner = async (): Promise<Web3InitOutT> => {
-  const funcName = "removeEvmSigner";
+export const evmRemoveSigner = async (): Promise<Web3InitOutT> => {
+  const funcName = "evmRemoveSigner";
   lg(funcName + "()...");
   signer = undefined;
   return {
     ...web3InitDefault,
   };
 }
-export const initializeEvmWallet = async (): Promise<Web3InitOutT> => {
-  const funcName = "initializeEvmWallet";
+export const evmInitializeWallet = async (): Promise<Web3InitOutT> => {
+  const funcName = "evmInitializeWallet";
   lg(funcName + "()...");
   if (window.ethereum == null) {
     // If MetaMask is not installed, we use the default provider, which is backed by a variety of third-party services (such as INFURA). They do not have private keys installed so are only have read-only access
@@ -180,15 +180,15 @@ export const initializeEvmWallet = async (): Promise<Web3InitOutT> => {
       return { ...web3InitDefault, err: mesg };
     });
     lg('detected accounts:', accounts);//same as account with only one item in the array
-    const out = handleAccountsChanged(accounts);
+    const out = evmHandleAccountsChanged(accounts);
     if (out.warn) {
       return { ...web3InitDefault, warn: out.warn }
     }
     const account = out.account;
     lg('detected account:', account);
 
-    window.ethereum.on('accountsChanged', handleAccountsChanged);
-    window.ethereum.on('chainChanged', handleChainChanged);
+    window.ethereum.on('accountsChanged', evmHandleAccountsChanged);
+    window.ethereum.on('chainChanged', evmHandleChainChanged);
     if (warning) console.warn(warning)
     lg(funcName + " ran successfully")
     return {
@@ -200,10 +200,10 @@ export const initializeEvmWallet = async (): Promise<Web3InitOutT> => {
     };
   }
 }
-export const handleChainChanged = () => {
+export const evmHandleChainChanged = () => {
   window.location.reload();
 }
-export function handleAccountsChanged(accounts: string | any[]): Web3InitOutT {
+export function evmHandleAccountsChanged(accounts: string | any[]): Web3InitOutT {
   let currentAccount = null;
   if (accounts.length === 0) {
     warning = 'Please connect to MetaMask';
@@ -220,7 +220,7 @@ export function handleAccountsChanged(accounts: string | any[]): Web3InitOutT {
   return { ...web3InitDefault, account: currentAccount };
 }
 
-export async function getAccount(): Promise<Partial<Web3InitOutT>> {
+export async function evmGetAccount(): Promise<Partial<Web3InitOutT>> {
   const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' })
     .catch((err: any) => {
       if (err.code === 4001) {
@@ -755,8 +755,8 @@ export const salesSetPriceBatchGuest = async (nftAddr: string, tokenId: number, 
   }
 }
 
-export const getEvmBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<balancesT> => {
-  const funcName = 'getEvmBalances';
+export const evmGetBalances = async (account: string, tokenAddr: string, nftAddr: string, salesAddr: string): Promise<balancesT> => {
+  const funcName = 'evmGetBalances';
   lg(funcName + ' in ethers.ts...');
 
   try {
@@ -890,8 +890,8 @@ export const buyNFTviaERC20 = async (nftAddr: string, tokenId: number, salesAddr
 
 
 export type nftStatusesT = typeof nftStatusesDefault;
-export const checkEvmNftStatus = async (user: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin = 0, nftIdMax = 9): Promise<nftStatusesT> => {
-  const funcName = 'checkNftStatus';
+export const evmUpdateNftStatus = async (user: string, nftOriginalOwner: string, nftAddr: string, salesAddr: string, nftIdMin = 0, nftIdMax = 9): Promise<nftStatusesT> => {
+  const funcName = 'evmUpdateNftStatus';
   lg(funcName + ' in ethers.ts...');
   lg(funcName + ". user:", user, ', nftAddr:', nftAddr, 'nftOriginalOwner:', nftOriginalOwner)
   if (isEmpty(nftAddr) || isEmpty(nftOriginalOwner)) {
@@ -936,7 +936,7 @@ export const checkEvmNftStatus = async (user: string, nftOriginalOwner: string, 
 }
 
 type addrName = 'erc20_usdt' | 'erc721Dragon' | 'erc721Sales' | 'nftOriginalOwner';//must match validator web3InputSchema
-export const getEvmAddr = (ctrtName: addrName): string => {
+export const evmGetAddr = (ctrtName: addrName): string => {
   let ctrtAddr = '';
   if (contractsJSON.length < 3) {
     console.error("'Error contractsJSON.length < 3'")
