@@ -142,6 +142,9 @@ https://github.com/ethers-io/ethers.js/issues/4428
 React-Email
 https://github.com/resendlabs/react-email/issues/977
 
+Popover
+https://github.com/shadcn-ui/ui/issues/1511#issuecomment-1810682366
+
 ## Development Requirement
 
 [NextJs 14 requires Node v18.17](https://nextjs.org/blog/next-14) Or Bun 1.0.7
