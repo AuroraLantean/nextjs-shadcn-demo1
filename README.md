@@ -77,6 +77,13 @@ Then run this app by:
 bun run dev
 ```
 
+OR
+
+```bash
+cp .env.prod .env.local && bun run build
+bun run start
+```
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. I use Firefox during development.
 
 If for unknown reasons, NextJs cannot launch the app properly in the very first time. You need to press `F5` on your keyboard to reload your web browser again after launching the NextJs, so the NextJs can work properly.
