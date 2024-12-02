@@ -69,19 +69,20 @@ NEXT_PUBLIC_ETHEREUM_NFTSALES=
 
 ## Run this NextJs application
 
-I use Bun to run the development because of its speed, but you should be able to use PNPM or NPM or Yarn to run it as well.
+I use Bun to run this app in development because of its speed, but you should be able to use PNPM or NPM or Yarn to run it as well.
 Install Bun: [here](https://bun.sh/docs/installation)
-Then run this app by:
+
+Run this app with development configuratioon:
 
 ```bash
 bun run dev
 ```
 
-OR
+OR run this app with production configuration:
 
 ```bash
 cp .env.prod .env.local && bun run build
-bun run start
+bun run runproduction
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. I use Firefox during development.
@@ -135,6 +136,19 @@ Enter the NFT ID in the first for field, then click on `Submit to Blockchain`.
 
 After the transaction has been submitted and finalize. Then click on the left `Go` button to refresh your balances. You should see your NFT collection has increased by a new NFT ID.
 
+## Production Deployment via Vercel
+
+Change the lockfileVersion in pnpm-lock.yaml to `lockfileVersion: '8.5.1'`
+
+Use Vercel's NodeJs version(from deployment error message) in your package.json engine section. Remove `"pnpm": ">=8.14.0"` in your package.json engine section to avoid `ERR_PNPM_UNSUPPORTED_ENGINE  Unsupported environment (bad pnpm and/or Node.js version)`:
+
+```
+  "engines": {
+    "node": "18.x",
+    "bun": ">=1.0.22"
+  }
+```
+
 ## Known Issues
 
 `CORS: rpc.sepolia.org has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource`
@@ -154,7 +168,7 @@ https://github.com/shadcn-ui/ui/issues/1511#issuecomment-1810682366
 
 ## Development Requirement
 
-[NextJs 14 requires Node v18.17](https://nextjs.org/blog/next-14) Or Bun 1.0.7
+[NextJs 14 requires Node v18.17](https://nextjs.org/blog/next-14) Or Bun 1.0.22
 
 ## Browser Requirement
 
